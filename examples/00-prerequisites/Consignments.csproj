@@ -1,0 +1,14 @@
+<!-- Chapter 0 smoke test: a small shipping-domain library, just enough to prove
+     the toolchain (SDK, nullable, warnings-as-errors, xUnit v3) end to end.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Consignments.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

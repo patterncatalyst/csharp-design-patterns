@@ -1,0 +1,25 @@
+<!-- Shared build settings for every example project under examples/.
+     Scoped to this subtree only: MSBuild imports the nearest Directory.Build.props
+     walking up from each .csproj, and this file sits at examples/, not the repo
+     root, so it never reaches the Jekyll site at the root of the repo. -->
+<Project>
+
+  <PropertyGroup>
+    <!-- .NET 10 LTS, supported to Nov 2028 -->
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- C# 14 with nullable reference types on everywhere -->
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Warnings are errors; analyzers and editorconfig style fail the build -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+    <!-- Deterministic, reproducible builds -->
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+</Project>

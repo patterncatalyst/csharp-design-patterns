@@ -20,5 +20,8 @@ echo "==> dotnet test (every example)"
 for proj in "${examples_dir}"/*/*Tests*.csproj "${examples_dir}"/*/*.Tests/*.csproj; do
     [ -f "${proj}" ] || continue
     echo "--- ${proj}"
-    dotnet test "${proj}"
+    # .NET 10's Microsoft.Testing.Platform mode of `dotnet test` (opted into via
+    # the repo-root global.json) requires the project path via --project; a bare
+    # positional path is rejected.
+    dotnet test --project "${proj}"
 done
