@@ -101,3 +101,50 @@
     instance. ShipmentRateAdvisor resolves only ICarrierRates and
     ShipmentBookingService resolves only the full ICarrierGateway, each
     consumer taking exactly the face it uses.
+
+- name: 07-dispose-and-iasyncdisposable
+  section: "Ch. 7"
+  title: Scope exit drives deterministic cleanup
+  caption: >-
+    A using scope around ManifestWriter and an await using scope around
+    LedgerAppender side by side. Both run their cleanup the moment the scope
+    exits rather than waiting on the garbage collector: the synchronous path
+    calls Dispose() and closes the underlying FileStream handle on the spot,
+    while the asynchronous path awaits DisposeAsync(), which flushes pending
+    writes before it closes.
+
+- name: 07-dispose-pattern-paths
+  section: "Ch. 7"
+  title: Three shapes of the dispose pattern
+  caption: >-
+    Three dispose shapes compared side by side. A sealed type that owns only
+    managed disposables needs nothing more than a guarded Dispose(), an
+    unsealed type that owns an unmanaged handle directly takes the heavier
+    Dispose(bool disposing), finalizer, and GC.SuppressFinalize(this)
+    combination, and a type whose release has to await a flush implements
+    IAsyncDisposable instead. ManifestWriter takes the first path and
+    LedgerAppender takes the third; the middle path stays a correct choice
+    for the day a type actually owns an unmanaged resource on its own.
+
+- name: 08-value-types-struct-span
+  section: "Ch. 8"
+  title: Inline values and zero-allocation field projection
+  caption: >-
+    Two readonly record struct values compared side by side, equal by
+    content rather than by reference, set against a reference-type class for
+    contrast. ReadOnlySpan<char> takes the other half: one fixed-width
+    EDI-style record is sliced in place into a consignment ID, a Money, a
+    Weight, and a SlotId, with no intermediate string allocation along the
+    way.
+
+- name: 08-fixed-width-edi-layout
+  section: "Ch. 8"
+  title: The 28-character record as a sliced ruler
+  caption: >-
+    The fixed-width EDI segment laid out as a ruler of six labeled field
+    spans at their exact zero-based offsets. Each span slices directly into
+    its typed destination, ConsignmentId into int, Bay and Tier into SlotId,
+    WeightKilograms into Weight, and Amount and Currency into Money, and all
+    four converge on one ConsignmentRecord. Every slice is a window over the
+    same backing characters, so no field ever becomes its own allocated
+    string before the numeric fields parse through TryParse.
