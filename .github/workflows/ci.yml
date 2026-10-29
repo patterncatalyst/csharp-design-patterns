@@ -1,0 +1,40 @@
+# The book's TAUGHT workflow is local tools (the .NET 10 SDK on the host,
+# per _docs/00-prerequisites.md), never containers. This runner installs that
+# same local toolchain directly via actions/setup-dotnet — no CI-only
+# container substrate is needed for a dotnet build.
+#
+# NOTE (r01 scaffold): no example projects exist yet. The guard below only runs
+# the dotnet test step once an examples/<NN-pattern>/*.csproj exists, so this
+# workflow is green at scaffold time and starts exercising real tests the moment
+# the first example lands — no workflow edit required when that happens.
+
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Versions
+        run: dotnet --info
+
+      - name: dotnet test (every example)
+        run: |
+          if ls examples/*/*.csproj >/dev/null 2>&1; then
+              ./scripts/verify.sh
+          else
+              echo "::notice::no example projects yet — skipping dotnet test until the first example lands"
+          fi
