@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ManifestWriting.csproj" />
+  <Project Path="ManifestWriting.Tests/ManifestWriting.Tests.csproj" />
+</Solution>
