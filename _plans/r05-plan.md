@@ -98,4 +98,43 @@ TheoryData/MemberData analyzer trips (xUnit1042/1019 - use `TheoryData<...>`); a
 
 ## r05 verification log
 
-_(filled in Wave D)_
+Opus-validated 2026-10-29 (branch `release/r05`). Overall: PASS (after repair round).
+
+**Build / test (all green):**
+- `examples/09-nrts-records-init-required-with` `dotnet test`: 15 total / 15 succeeded / 0 failed.
+- `examples/10-testing-with-xunit-and-nsubstitute` `dotnet test`: 16 total / 16 succeeded / 0 failed.
+- `scripts/verify.sh`: both new examples auto-discovered and green alongside 00/05/06/07/08.
+- `bundle exec jekyll build`: clean, all four r05 figures render.
+
+**Content:** both chapters carry the full spine in order (figure after "Why this matters");
+ch10 correctly has no "When not to use it" section (its one AI sidebar lives in the
+"NSubstitute versus Moq" subsection). "Build, run, observe" quotes the real summaries with
+matching counts (15 / 16), path-sanitized (0 `/home/`, 0 username); exactly one AI sidebar
+each; body prose 4291 words (ch9) and 4166 words (ch10) by the validator's measure, both
+above the 2000 floor and each carrying a second (density) figure; 0 em-dash in docs; no
+intra-book numeric cross-refs; citations on learn.microsoft.com (+ official xunit.net /
+nsubstitute.github.io / publisher link for ch10). The NSubstitute async-wrapping claim is
+backed by the runnable `AsyncSubstituteTests` (NSubstitute's async doc page 404s), allowed
+per the house rule.
+
+**Diagrams:** four figures (`09-nrts-records-init-required-with`,
+`09-required-init-construction-gap`, `10-testing-with-xunit-and-nsubstitute`,
+`10-nsubstitute-stub-vs-verify`) each paired on disk, registered in `_data/diagrams.yml`
+(entries 15-18, chapter order), included in the right chapter.
+
+**Code idiom:** `lgtm-idiomatic-review` scan 0 hits on both examples. ch9 `Consignment` is a
+`sealed record` (class) with `required`/`init` on every member, no CS8618 suppression. ch10
+`ShipmentRatingEngine` uses ConfigureAwait(false) and threads the token; tests use
+`TheoryData<,>` (xUnit1042/1019 clean) and `TestContext.Current.CancellationToken`
+(xUnit1051 clean). Both test csprojs set IsTestProject + IsPackable false + NoWarn CA1707,
+pin xunit.v3 4.0.2 / runner 4.0.1 / Test.Sdk 18.11.0 / NSubstitute 6.2.0, omit
+`TestingPlatformDotnetTestSupport`; each example has its own `.slnx`. Em-dash scan across
+both examples' `.cs` and README = 0 (r04 lesson held).
+
+**Repairs applied this iteration (must-fix):**
+- Replaced the two placeholder `Figure 9.1 / 10.1: TODO caption.` primary-figure captions
+  with real descriptive captions (the density figures already had full captions).
+- Rewrote 18+ ban-tier voice hits in `_docs/09` and `_docs/10` (genuinely/worth naming/on
+  purpose/deliberately/full stop/honest way/"the rest of this book"); re-scan now 0
+  ban-tier on both (watch-tier only). Load-bearing "genuinely" uses were reworded, not
+  just deleted, to preserve meaning.

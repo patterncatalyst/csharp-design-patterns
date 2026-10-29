@@ -13,7 +13,7 @@ description: "Immutability as a design tool, and why nullable reference types re
 
 By the end of this chapter you can:
 
-- Explain what compiler-generated equality a record class gives for free, and
+- Explain what compiler-generated equality a record class provides, and
   how that equality recurses through a nested positional record and nested
   record structs rather than stopping at the outer type.
 - Pair `required` with `init` to guarantee every non-nullable property on a
@@ -66,7 +66,7 @@ hold. A `ConsignmentId` and a `Route` must always be present; a shipment with
 no route literally has nowhere to go, and treating that as a possibility
 every downstream method has to handle defensively, a `null`-checked `Route`
 property, is pure accidental complexity. A `ReferenceNumber`, on the other
-hand, is sometimes genuinely absent, a customer-supplied purchase-order code
+hand, is sometimes absent, a customer-supplied purchase-order code
 that may never arrive at all. Before nullable reference types, both of those
 facts had to be remembered by convention and enforced, if at all, by a hand
 written constructor and scattered documentation comments; the type system
@@ -79,7 +79,7 @@ Put together, `required`, `init`, `with`, and nullable reference types let
 `Consignment` state its own contract once, at the declaration, and have the
 compiler hold every caller to it.
 
-{% include excalidraw.html name="09-nrts-records-init-required-with" caption="Figure 9.1: TODO caption." %}
+{% include excalidraw.html name="09-nrts-records-init-required-with" caption="Figure 9.1: A Consignment record amended with a with expression. The expression copies the original into a new instance and overrides only the named members, so the first object is never written to, and equality compares member values rather than references." %}
 
 ## Records and recursive value equality
 
@@ -101,7 +101,7 @@ public sealed record Consignment
 }
 ```
 
-That non-positional shape is a deliberate choice: a record with a primary
+That non-positional shape is intentional: a record with a primary
 constructor reads naturally for a handful of short positional members, the
 way `Route`'s `Origin` and `Destination` do, but a five-member type with two
 different enforcement rules per member, three `required`, one nullable, one
@@ -131,10 +131,10 @@ values, it calls `Weight`'s own value-equality over `Kilograms`.
 `Changing_the_weight_makes_consignments_unequal` both confirm this: changing
 only the nested `Route.Destination`, or only the nested `Weight.Kilograms`,
 on an otherwise identical consignment is enough to make the two compare
-unequal, because the comparison is genuinely structural all the way down,
+unequal, because the comparison is structural all the way down,
 not merely a comparison of `Consignment`'s own top-level fields.
 
-That recursion carries a caveat worth stating precisely rather than leaving
+That recursion carries a caveat to state precisely rather than leave
 implicit. A record's generated equality calls `Equals` on each member, but it
 cannot upgrade a member's own equality semantics; it can only use whatever
 `Equals` that member's type actually provides. `Route`, `Weight`, and `Money`
@@ -259,8 +259,8 @@ named method for `with` to stay useful; a one-off amendment at a call site
 works exactly the same way a named helper does, because both desugar to the
 same copy-and-override operation.
 
-`ReRouteTo` nests one level deep, and that nesting is worth looking at
-closely, because it is where `with`'s actual mechanics show through. `this
+`ReRouteTo` nests one level deep, and that nesting repays close attention,
+because it is where `with`'s actual mechanics show through. `this
 with { Route = Route with { Destination = destination } }` evaluates the
 inner `with` expression first: `Route with { Destination = destination }`
 produces a brand-new `Route` value, a copy of the current `Route` with only
@@ -296,7 +296,7 @@ that design sound. `An_amendment_that_reproduces_the_original_data_compares_equa
 closes the loop on this: re-routing a consignment back to the destination it
 started at produces a value that compares equal to the original through
 `==`, even though it is a distinct object, because equality here is
-genuinely about the data, never about which particular instance produced it.
+about the data, never about which particular instance produced it.
 
 ## Nullable reference types: absence versus never
 
@@ -345,9 +345,9 @@ pattern earns its cost specifically when a language cannot distinguish
 sentinel has to carry the weight a type annotation can't. With nullable
 reference types and `required` together, the distinction *is* in the type
 system: `Route` on `Consignment` is `required`, so it is simply never
-missing, full stop, and no sentinel is needed to stand in for a state the
-type cannot be in; `ReferenceNumber` is genuinely sometimes missing, so it is
-`string?`, and the honest way to represent that is `null`, checked once at
+missing, and no sentinel is needed to stand in for a state the
+type cannot be in; `ReferenceNumber` is sometimes missing, so it is
+`string?`, and the correct way to represent that is `null`, checked once at
 the point of use, not a placeholder object pretending to be a reference
 number that was never supplied. The reflex to reach for a Null Object loses
 its motivation once the type system can say "this is required" and "this is
@@ -383,7 +383,7 @@ chapter made. `ValueEqualityTests` proves the generated equality on
 independently constructed values with identical data are equal and share a
 hash code, and changing either the nested `Route` or the nested `Weight`
 alone is enough to make two otherwise-identical consignments compare
-unequal, confirming equality genuinely recurses rather than stopping at
+unequal, confirming equality recurses rather than stopping at
 `Consignment`'s own top-level fields. `WithAmendmentTests` proves every
 amendment helper, and the bare `with` expression amending `DeclaredValue` at
 the test's own call site, returns a new value while leaving the original
@@ -401,7 +401,7 @@ member compiles and constructs a `Consignment` whose two optional members,
 
 Records, `init`-only immutability, and `with`-based amendment all earn their
 keep when a type's job is to represent a value: something two instances can
-be genuinely the same by virtue of holding the same data, with no further
+be the same by virtue of holding the same data, with no further
 question of "which one." That is not every type a shipping system needs.
 A consignment tracked live through a warehouse management system, one with a
 database-assigned identity, a current physical location, and a change
@@ -418,7 +418,7 @@ ever mutates in place for it to observe. Identity-bearing types like that
 belong on a class compared by a stable key, not on a record compared by
 every field it carries.
 
-The shallow-copy behavior of `with` is a second boundary worth naming
+The shallow-copy behavior of `with` is a second boundary to name
 explicitly, because it does not announce itself as a problem until a nested
 member happens to be mutable. This chapter's design works specifically
 because `Route`, `Weight`, and `Money` are themselves immutable, so sharing
@@ -443,7 +443,7 @@ all of them garbage the instant the next one replaces it as "the current
 value" in the loop. For a consignment amended a handful of times over its
 whole lifetime, re-routed once, corrected once, a reference number attached
 once, that allocation cost is immaterial against the bugs it prevents. For a
-genuinely hot path reprocessing the same value many times a second, a
+hot path reprocessing the same value many times a second, a
 carefully encapsulated mutable type, with setters kept private and changes
 routed through methods that preserve the type's invariants, can be the
 better trade; immutability is a design default here, not an unconditional
@@ -468,7 +468,7 @@ changes.
 > plus a `null` check at the point of use says exactly the same thing with
 > less code and no extra object to construct, compare, or special-case.
 > Check a generated fix against what this chapter actually distinguishes: is
-> the member genuinely optional, in which case make it nullable and check
+> the member truly optional, in which case make it nullable and check
 > it, or does it need to be guaranteed present, in which case `required` is
 > the fix, never a suppressed warning or a `null!` that only moves the
 > failure from compile time to a runtime surprise.

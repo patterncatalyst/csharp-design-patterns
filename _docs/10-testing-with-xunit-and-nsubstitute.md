@@ -62,12 +62,12 @@ means a test built on exactly this foundation: xUnit for the four-phase shape
 and the parametrization, NSubstitute for a trustworthy, instant stand-in for
 whatever the pattern under test talks to.
 
-{% include excalidraw.html name="10-testing-with-xunit-and-nsubstitute" caption="Figure 10.1: TODO caption." %}
+{% include excalidraw.html name="10-testing-with-xunit-and-nsubstitute" caption="Figure 10.1: The four-phase test around ShipmentRatingEngine. Arrange creates NSubstitute doubles for its three collaborators and stubs their return values, Act calls QuoteAsync once, and Assert checks both the returned quote and the Received interactions on each double." %}
 
 ## The four-phase test: Arrange, Act, Assert
 
 `ShipmentRatingEngine` is the library this whole chapter tests, and it is
-small on purpose: three constructor-injected collaborators, `ICarrierRates`,
+small by design: three constructor-injected collaborators, `ICarrierRates`,
 `ITaxPolicy`, and `IAuditSink`, combined by one method.
 
 ```csharp
@@ -459,7 +459,7 @@ would await the real carrier integration. `GetBaseRateAsync`'s declared
 return type is `Task<Money>`, so the substitute wraps the stubbed value in an
 already-completed task behind the scenes; the test never constructs that task
 itself, and nothing about the calling code has to know or care whether the
-value arrived synchronously or genuinely asynchronously, which is exactly the
+value arrived synchronously or asynchronously, which is exactly the
 behavior a real `await` over a network call would also exhibit from the
 caller's perspective once the call actually finishes.
 
@@ -547,7 +547,7 @@ through on `CancellationToken.None` by habit.
 Moq is the other mocking library most C# developers have already used, and
 nothing about this book's choice of NSubstitute argues that a team already
 standardized on Moq should migrate a working suite. The syntax differs in a
-way worth naming once. Moq wraps the substituted type behind a `Mock<T>`
+way that matters here. Moq wraps the substituted type behind a `Mock<T>`
 instance, and the test calls through a `.Setup(...)` expression and an
 `.Object` property to get at the actual interface instance the code under
 test receives: `var mock = new Mock<ITaxPolicy>(); mock.Setup(t =>
@@ -578,8 +578,8 @@ reach for NSubstitute by default.
 > in the training data an LLM draws from than NSubstitute's shorter syntax
 > does. That default is harmless by itself, Moq still works, but it quietly
 > reintroduces the `.Setup(...)`/`.Object` indirection this book's examples
-> deliberately avoid, and a generated suite built that way will not match the
-> idiom the rest of this book's tests use if it gets pasted into this
+> avoid by design, and a generated suite built that way will not match the
+> idiom this book's other tests use if it gets pasted into this
 > project's test folder. A generated test is also prone to a subtler mistake
 > this chapter named directly: stubbing an async member with
 > `.Returns(Task.FromResult(value))` where a plain `.Returns(value)` would do,
