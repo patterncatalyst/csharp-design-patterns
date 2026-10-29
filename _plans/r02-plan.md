@@ -1,6 +1,7 @@
 ---
 title: "r02 plan — chapters 0-4"
 output: false
+render_with_liquid: false
 ---
 
 # r02 — author chapters 0-4 (Parts 0-2)
