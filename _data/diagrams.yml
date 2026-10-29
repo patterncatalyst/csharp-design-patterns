@@ -136,3 +136,15 @@
     EDI-style record is sliced in place into a consignment ID, a Money, a
     Weight, and a SlotId, with no intermediate string allocation along the
     way.
+
+- name: 08-fixed-width-edi-layout
+  section: "Ch. 8"
+  title: The 28-character record as a sliced ruler
+  caption: >-
+    The fixed-width EDI segment laid out as a ruler of six labeled field
+    spans at their exact zero-based offsets. Each span slices directly into
+    its typed destination, ConsignmentId into int, Bay and Tier into SlotId,
+    WeightKilograms into Weight, and Amount and Currency into Money, and all
+    four converge on one ConsignmentRecord. Every slice is a window over the
+    same backing characters, so no field ever becomes its own allocated
+    string before the numeric fields parse through TryParse.

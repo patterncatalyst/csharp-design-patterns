@@ -344,6 +344,8 @@ string *literal*, already interned by the runtime rather than built fresh,
 so even the single `string`-typed field in the result costs nothing beyond
 a handful of character comparisons.
 
+{% include excalidraw.html name="08-fixed-width-edi-layout" caption="Figure 8.2: The 28-character EDI segment as a ruler of six field spans at their exact zero-based offsets, each one sliced directly into its typed destination, int, SlotId, Weight, and Money, and composed into one ConsignmentRecord with no intermediate string allocated." %}
+
 `int.TryParse` and `decimal.TryParse` over `ReadOnlySpan<char>` are not a
 workaround bolted on for this one parser; they are the current idiomatic
 entry point for culture-aware numeric parsing in .NET, available alongside
