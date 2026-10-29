@@ -95,8 +95,9 @@ scenario.
 Every chapter (`_docs/NN-*.md`) follows the same shape:
 
 1. **Learning objectives** near the top.
-2. **A diagram** (required for every new chapter).
-3. **Why this matters**, near the top, before the mechanics.
+2. **Why this matters**, near the top, before the mechanics.
+3. **A diagram** (required for every new chapter), placed after "Why this
+   matters" and before the body, matching the sibling books.
 4. The body.
 5. **"Build, run, observe"** on every hands-on chapter, pointing at the matching
    `examples/` demo.
@@ -105,9 +106,11 @@ Every chapter (`_docs/NN-*.md`) follows the same shape:
 7. **"For deeper coverage"** at the end, citing the hub's `books.yml` and this
    book's own `/bibliography/`.
 
-- Prose target: **2,000-2,500 words** of body prose (excluding code and
-  diagrams). 2,000 is a hard floor; 2,500 is a target, not a ceiling — more is
-  fine if value-driven, never padding.
+- Prose target: body prose (excluding code and diagrams) has a **2,000-word hard
+  floor** and a **2,500-word target that is not a ceiling**. There is no hard
+  upper limit; longer is fine when value-driven, never padding. As a chapter
+  approaches or passes 2,500 words, add another diagram to carry the extra
+  density rather than trimming substantive content.
 - Voice: no em-dash (zero tolerance), no rule-of-three, no contrived AI phrasing,
   no confessional register. Run `lgtm-professional-voice` before calling a
   chapter done.
