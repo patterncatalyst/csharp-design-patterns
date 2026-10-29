@@ -1,0 +1,15 @@
+<!-- Chapter 10 example: xUnit v3 and NSubstitute idioms, demonstrated against a
+     minimal shipping-rating library. The library itself is deliberately thin;
+     the teaching artifact is RatingEngine.Tests.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RatingEngine.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>
