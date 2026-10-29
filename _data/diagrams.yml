@@ -101,3 +101,25 @@
     instance. ShipmentRateAdvisor resolves only ICarrierRates and
     ShipmentBookingService resolves only the full ICarrierGateway, each
     consumer taking exactly the face it uses.
+
+- name: 07-dispose-and-iasyncdisposable
+  section: "Ch. 7"
+  title: Scope exit drives deterministic cleanup
+  caption: >-
+    A using scope around ManifestWriter and an await using scope around
+    LedgerAppender side by side. Both run their cleanup the moment the scope
+    exits rather than waiting on the garbage collector: the synchronous path
+    calls Dispose() and closes the underlying FileStream handle on the spot,
+    while the asynchronous path awaits DisposeAsync(), which flushes pending
+    writes before it closes.
+
+- name: 08-value-types-struct-span
+  section: "Ch. 8"
+  title: Inline values and zero-allocation field projection
+  caption: >-
+    Two readonly record struct values compared side by side, equal by
+    content rather than by reference, set against a reference-type class for
+    contrast. ReadOnlySpan<char> takes the other half: one fixed-width
+    EDI-style record is sliced in place into a consignment ID, a Money, a
+    Weight, and a SlotId, with no intermediate string allocation along the
+    way.
