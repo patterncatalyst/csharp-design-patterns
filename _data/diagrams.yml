@@ -183,3 +183,17 @@
     three interfaces. Act calls QuoteAsync once. Assert splits into two
     checks on the result: the returned quote value, and Received()
     verification that each substitute was called exactly as expected.
+
+- name: 10-nsubstitute-stub-vs-verify
+  section: "Ch. 10"
+  title: A substitute's two jobs, stubbing on Arrange and verifying on Assert
+  caption: >-
+    The same NSubstitute double doing two separate jobs. On the left, Arrange
+    stubs a return value with Substitute.For and .Returns, including the
+    async GetBaseRateAsync case that wraps a plain value in a completed
+    Task, per-argument stubbing, and the type-default fallback for a call
+    nobody stubbed. On the right, Assert reads back what the substitute
+    recorded with Received(1), DidNotReceive(), and the Arg.Any and Arg.Is
+    matchers, including the await an async Received check needs. Arg
+    matchers work on both sides, narrowing a stub or a verification to the
+    argument that actually matters.

@@ -427,6 +427,8 @@ the assertion to one exact literal string. Between `Arg.Any<T>()` for
 for "this position matters, but only this property of it," a verification
 can express exactly the claim a test needs to make and nothing broader.
 
+{% include excalidraw.html name="10-nsubstitute-stub-vs-verify" caption="Figure 10.2: A substitute's two jobs, stubbing a return value on Arrange and verifying a call on Assert, with Arg matchers working on both sides." %}
+
 ## Async substitutes and cancellation tokens
 
 `ICarrierRates.GetBaseRateAsync` and `IAuditSink.RecordAsync` are both
