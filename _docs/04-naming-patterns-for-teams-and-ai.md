@@ -65,6 +65,8 @@ A named request narrows an assistant's output toward a known shape, and that nar
 
 A name has a failure mode. If `MarkCleared` quietly sends a billing event with no customs check, or a consignment sometimes reaches `Loaded` before `Booked` validation has run, the name no longer matches what the code does, and every reviewer and every assistant that relies on it inherits the mismatch. Naming discipline is only worth the compression it buys when the invariant it promises is tested, not merely implied by a well-chosen word. A test that asserts `MarkCleared` throws on a consignment that has not reached the destination customs point keeps the name and the behavior aligned. Without it, the vocabulary degrades one mismatch at a time until nobody trusts a name enough to skip reading the implementation, which is the benefit naming was supposed to provide in the first place.
 
+The cost falls hardest on the reader who trusts the name enough to skip the body, which is the reader the vocabulary was built to serve. A convention that lives only in reviewers' memories erodes as a team turns over; the same rule encoded as an executable check, a test that fails when `MarkCleared` runs on a consignment short of the destination customs point, holds the name to its promise after the people who first agreed on it have moved on. Naming and testing are the same discipline seen from two sides: the name states the invariant a reader relies on, and the test is what keeps that statement true as the code around it changes.
+
 ## For deeper coverage
 
 - Gamma, Helm, Johnson, and Vlissides built the pattern catalog this chapter borrows its naming argument from: each entry lists a pattern's name and intent before its structure, by design.

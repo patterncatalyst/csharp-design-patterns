@@ -95,8 +95,9 @@ scenario.
 Every chapter (`_docs/NN-*.md`) follows the same shape:
 
 1. **Learning objectives** near the top.
-2. **A diagram** (required for every new chapter).
-3. **Why this matters**, near the top, before the mechanics.
+2. **Why this matters**, near the top, before the mechanics.
+3. **A diagram** (required for every new chapter), placed after "Why this
+   matters" and before the body, matching the sibling books.
 4. The body.
 5. **"Build, run, observe"** on every hands-on chapter, pointing at the matching
    `examples/` demo.

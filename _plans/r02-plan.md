@@ -28,13 +28,13 @@ their five paired diagrams, the single hands-on example
 
 | # | Step | Files | Status |
 |---|------|-------|--------|
-| 1 | Shared build props | `examples/Directory.Build.props` | pending |
-| 2 | ch0 smoke-test example | `examples/00-prerequisites/**` | pending |
-| 3 | Generate 5 diagrams | `diagrams/0{0..4}-*.svg/.excalidraw` | pending |
-| 4 | Register diagrams | `_data/diagrams.yml` | pending |
-| 5 | ch1-ch4 prose | `_docs/0{1..4}-*.md` | pending |
-| 6 | ch0 prose | `_docs/00-prerequisites.md` | pending |
-| 7 | Iteration validation | `_docs/*`, `_plans/` | pending |
+| 1 | Shared build props | `examples/Directory.Build.props` | done |
+| 2 | ch0 smoke-test example | `examples/00-prerequisites/**` | done (6 tests green) |
+| 3 | Generate diagrams (7: 5 primary + ch1/ch3 density figures) | `diagrams/*.svg/.excalidraw` | done |
+| 4 | Register diagrams | `_data/diagrams.yml` (7 entries) | done |
+| 5 | ch1-ch4 prose | `_docs/0{1..4}-*.md` | done |
+| 6 | ch0 prose | `_docs/00-prerequisites.md` | done |
+| 7 | Iteration validation | `_docs/*`, `_plans/` | done |
 
 ## Acceptance criteria
 
@@ -58,8 +58,8 @@ is the bare `{% include codetabs.html langs="Java|C#" %}`, one fenced block per
 label, not wrapped in raw tags.
 
 Iteration-wide: `bundle exec jekyll build` succeeds, all figures render, no leaked
-Liquid; `_data/diagrams.yml` has exactly five entries in chapter order;
-verification notes only in `_plans/`.
+Liquid; `_data/diagrams.yml` has seven entries in chapter order (five primary plus
+the ch1 and ch3 density figures); verification notes only in `_plans/`.
 
 ## Toolchain pins (verified 2026-10-29, SDK 10.0.113)
 
@@ -82,4 +82,25 @@ verification notes only in `_plans/`.
 
 ## r02 verification log
 
-_(filled in Wave D)_
+Opus-validated 2026-10-29, all 10 criteria MET. Evidence:
+
+- `bundle exec jekyll build` clean; all 7 r02 figures render as real SVGs.
+- `examples/00-prerequisites`: `dotnet test` 6/6 green; `scripts/verify.sh` green;
+  tests assert behaviour (value equality, `with`-amendment, constructor validation).
+- Warnings-as-errors + nullable enforced from `examples/Directory.Build.props`.
+- Body word counts (house voice_stats metric): ch0 2441, ch1 2168, ch2 2234,
+  ch3 2099, ch4 2070 (after a closing-paragraph addition to clear the floor). All
+  >= 2000.
+- Voice: 0 ban-tier, 0 em-dash across all five chapters. Code: lgtm-idiomatic-review
+  scan 0 findings.
+- ch2/ch3 feature claims cite Microsoft Learn / the C# spec; zero blog hosts.
+- No `/home/` or username leak; no sibling-site cross-refs; no intra-book numeric
+  chapter cross-references.
+
+Toolchain findings to fold back into the `lgtm-csharp` skill (follow-up, separate
+PR): on this .NET 10 SDK the real `dotnet test` opt-in is a root `global.json`
+`{"test":{"runner":"Microsoft.Testing.Platform"}}` (the
+`TestingPlatformDotnetTestSupport` property is a no-op under MTP v2); each
+nested-`Tests` example needs a `.slnx` so a bare `dotnet test` resolves the test
+project; `dotnet test` now wants `--project` not a bare positional path; CA1707
+(underscore test names) is suppressed in the test csproj only.
