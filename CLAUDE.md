@@ -105,9 +105,11 @@ Every chapter (`_docs/NN-*.md`) follows the same shape:
 7. **"For deeper coverage"** at the end, citing the hub's `books.yml` and this
    book's own `/bibliography/`.
 
-- Prose target: **2,000-2,500 words** of body prose (excluding code and
-  diagrams). 2,000 is a hard floor; 2,500 is a target, not a ceiling — more is
-  fine if value-driven, never padding.
+- Prose target: body prose (excluding code and diagrams) has a **2,000-word hard
+  floor** and a **2,500-word target that is not a ceiling**. There is no hard
+  upper limit; longer is fine when value-driven, never padding. As a chapter
+  approaches or passes 2,500 words, add another diagram to carry the extra
+  density rather than trimming substantive content.
 - Voice: no em-dash (zero tolerance), no rule-of-three, no contrived AI phrasing,
   no confessional register. Run `lgtm-professional-voice` before calling a
   chapter done.
