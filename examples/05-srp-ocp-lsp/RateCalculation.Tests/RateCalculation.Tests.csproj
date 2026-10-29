@@ -1,0 +1,35 @@
+<!-- xUnit v3 + NSubstitute test project for the RateCalculation example.
+     TargetFramework, LangVersion, and Nullable are inherited from
+     examples/Directory.Build.props.
+
+     Versions verified against .NET 10 SDK 10.0.113 on 2026-10-29
+     (xunit.v3, xunit.runner.visualstudio, Microsoft.NET.Test.Sdk per
+     _plans/r03-plan.md; NSubstitute re-surveyed at creation with
+     `dotnet package search NSubstitute`). -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- CA1707 (no underscores in identifiers) fights the house xUnit naming
+         convention (Method_does_thing); suppress it here only, not in the
+         library under test. -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+
+    <!-- Mocking: NSubstitute (no telemetry, no Setup/.Object). Used here to
+         substitute IAuditSink and prove RateCalculator calls it, without a
+         real audit destination. -->
+    <PackageReference Include="NSubstitute" Version="6.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../RateCalculation.csproj" />
+  </ItemGroup>
+
+</Project>

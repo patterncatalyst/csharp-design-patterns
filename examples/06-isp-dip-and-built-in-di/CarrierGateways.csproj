@@ -1,0 +1,22 @@
+<!-- Chapter 6 example: ICarrierGateway behind the built-in DI container.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CarrierGateways.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The built-in DI container: the composition root wires ICarrierGateway
+         and its ISP-segregated facets against a concrete gateway here, not in
+         any consumer. Version surveyed with `dotnet package search
+         Microsoft.Extensions.DependencyInjection` against .NET 10 SDK 10.0.113
+         on 2026-10-29. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>
