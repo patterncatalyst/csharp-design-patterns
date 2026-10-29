@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="40" width="410" height="370" rx="12" fill="#fff8ef" stroke="#ddd"/>
+<text x="32" y="60" font-size="12" font-weight="700" fill="#888">forces first</text>
+<rect x="470" y="40" width="410" height="370" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="482" y="60" font-size="12" font-weight="700" fill="#888">pattern first</text>
+<rect x="40" y="90" width="110" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="95.0" y="128.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Accuracy</text>
+<rect x="165" y="90" width="110" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="220.0" y="128.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Speed</text>
+<rect x="290" y="90" width="110" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="345.0" y="128.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Changeability</text>
+<rect x="115" y="230" width="220" height="80" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="225.0" y="268.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Rate-quote design</text>
+<text x="225.0" y="285.0" font-size="11.5" fill="#555555" text-anchor="middle">shape follows the dominant force</text>
+<rect x="60" y="350" width="330" height="45" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="225.0" y="378.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">rule pipeline, cache, or data table</text>
+<rect x="600" y="90" width="150" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="675.0" y="125.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">“Strategy”</text>
+<rect x="500" y="210" width="110" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="555.0" y="248.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Interface</text>
+<rect x="625" y="210" width="110" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="680.0" y="248.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Impl A</text>
+<rect x="750" y="210" width="110" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="805.0" y="248.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Impl B</text>
+<rect x="625" y="300" width="110" height="60" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="680.0" y="335.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Factory</text>
+<rect x="520" y="375" width="330" height="45" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="685.0" y="403.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ceremony, forces unexamined</text>
+<path d="M95,155 L200,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="153.5" y="186.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">force</text>
+<text x="153.5" y="186.5" font-size="11" fill="#555" text-anchor="middle">force</text>
+<path d="M220,155 L220,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="226.0" y="186.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">force</text>
+<text x="226.0" y="186.5" font-size="11" fill="#555" text-anchor="middle">force</text>
+<path d="M345,155 L260,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="308.5" y="186.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">force</text>
+<text x="308.5" y="186.5" font-size="11" fill="#555" text-anchor="middle">force</text>
+<path d="M225,310 L225,350" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M675,150 L555,210" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M675,150 L680,210" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M675,150 L805,210" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M680,275 L680,300" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M680,360 L680,375" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="225" y="25" font-size="11" fill="#888" text-anchor="middle" font-weight="700">Forces converge on a decision</text>
+<text x="680" y="25" font-size="11" fill="#888" text-anchor="middle" font-weight="700">A pattern name, applied straight to a structure</text>
+</svg>

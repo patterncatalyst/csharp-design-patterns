@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 380" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="30" width="840" height="130" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="50" font-size="12" font-weight="700" fill="#888">1994 catalogue entries</text>
+<rect x="20" y="220" width="840" height="130" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="240" font-size="12" font-weight="700" fill="#888">now a language feature</text>
+<rect x="60" y="70" width="220" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="170.0" y="103.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Observer</text>
+<text x="170.0" y="120.0" font-size="11.5" fill="#555555" text-anchor="middle">hand-rolled subscriber list</text>
+<rect x="330" y="70" width="220" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="440.0" y="103.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Strategy</text>
+<text x="440.0" y="120.0" font-size="11.5" fill="#555555" text-anchor="middle">interface + concrete classes</text>
+<rect x="600" y="70" width="220" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="710.0" y="103.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Null Object</text>
+<text x="710.0" y="120.0" font-size="11.5" fill="#555555" text-anchor="middle">do-nothing stand-in</text>
+<rect x="60" y="260" width="220" height="70" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="170.0" y="293.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">event keyword</text>
+<text x="170.0" y="310.0" font-size="11.5" fill="#555555" text-anchor="middle">compiler-generated add/remove</text>
+<rect x="330" y="260" width="220" height="70" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="440.0" y="293.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">delegate</text>
+<text x="440.0" y="310.0" font-size="11.5" fill="#555555" text-anchor="middle">Func&lt;&gt; / Action&lt;&gt; value</text>
+<rect x="600" y="260" width="220" height="70" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="710.0" y="293.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">nullable reference types</text>
+<text x="710.0" y="310.0" font-size="11.5" fill="#555555" text-anchor="middle">string? checked by the compiler</text>
+<path d="M170,140 L170,260" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M440,140 L440,260" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M710,140 L710,260" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="440" y="18" font-size="11" fill="#888" text-anchor="middle" font-weight="700">Three 1994 assumptions dissolving into C# features</text>
+<text x="440" y="372" font-size="11" fill="#888" text-anchor="middle">Each force the pattern resolved is now resolved by the compiler, not an object graph.</text>
+</svg>

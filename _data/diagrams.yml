@@ -1,5 +1,71 @@
 # Diagram gallery, in file order. Each entry pairs a diagrams/<name>.svg with
 # its editable diagrams/<name>.excalidraw source. Registered by the
 # orchestrator; content authors produce the files and embed the include but do
-# not edit this file. Empty until the first chapter's figure lands.
-[]
+# not edit this file.
+
+- name: 00-prerequisites
+  section: "Ch. 0"
+  title: The local build-and-test loop
+  caption: >-
+    The edit, dotnet build, xUnit v3 run loop every example runs against
+    net10.0: a source change is compiled and exercised by the test suite, and
+    a failing assertion sends you back to the source. The loop runs standalone
+    inside a single example directory, and again across every example at once
+    through scripts/verify.sh.
+
+- name: 01-patterns-as-decisions-under-forces
+  section: "Ch. 1"
+  title: Forces resolving to a rate-quote decision
+  caption: >-
+    The rating problem as three competing forces, accuracy, speed, and
+    changeability, each pulling the rate-quote design in a different
+    direction. The eventual decision is the compromise point among all three,
+    not a win for any single force.
+
+- name: 01-forces-first-vs-pattern-first
+  section: "Ch. 1"
+  title: Starting from forces versus starting from a pattern name
+  caption: >-
+    Two starting points applied to the same rate-quote decision. Forces first
+    lets accuracy, speed, and changeability converge on a shape that fits the
+    problem; pattern first reaches for a name and gets a four-part structure,
+    an interface, two implementations, and a factory, with no force examined
+    along the way.
+
+- name: 02-what-1994-assumed-and-csharp-invalidated
+  section: "Ch. 2"
+  title: Three 1994 assumptions, now a language feature
+  caption: >-
+    Observer, Strategy, and Null Object each existed to compensate for a gap
+    in C++ and Smalltalk. C# closes each gap directly: the event keyword
+    generates the subscriber list, a delegate value replaces the strategy
+    interface, and nullable reference types make the compiler check for
+    absence instead of a stand-in object.
+
+- name: 03-the-divergence-map
+  section: "Ch. 3"
+  title: The Java-vs-C# divergence map
+  caption: >-
+    Ten C# language and runtime features with no Java counterpart: event,
+    delegates, yield and LINQ, nullable reference types, extension members,
+    expression trees, source generators, reified generics, static abstract
+    members, and value types. Each is a self-contained entry a Java-trained
+    reader can file a name under on sight.
+
+- name: 03-reification-vs-erasure
+  section: "Ch. 3"
+  title: Reification versus erasure
+  caption: >-
+    Two compile-and-run pipelines for the same generic container. Roslyn and
+    the CLR JIT specialize List<int> and List<string> into distinct runtime
+    types with no boxing; javac erases List<Integer> and List<String> to one
+    shared class, and an Integer lands boxed on the heap.
+
+- name: 04-naming-patterns-for-teams-and-ai
+  section: "Ch. 4"
+  title: A pattern name as shared vocabulary
+  caption: >-
+    One name, Cleared, read the same way by an engineer, a teammate, and an
+    AI assistant, each one checking the same precondition and postcondition
+    against the code. The name carries across the full consignment lifecycle,
+    booked, loaded, in transit, cleared, and delivered.
