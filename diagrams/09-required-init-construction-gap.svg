@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="190" width="560" height="330" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="210" font-size="12" font-weight="700" fill="#888">Consignment members</text>
+<rect x="20" y="40" width="920" height="120" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="90.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">required closes the gap nullability alone cannot</text>
+<text x="480.0" y="107.5" font-size="11.5" fill="#555555" text-anchor="middle">A required member omitted from an initializer is CS9035, a hard error, not the suppressible CS8618 warning.</text>
+<text x="480.0" y="122.5" font-size="11.5" fill="#555555" text-anchor="middle">The compiler enforces complete, valid construction at the call site; no hand-written constructor needed.</text>
+<rect x="40" y="225" width="520" height="70" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="300.0" y="250.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">required + init</text>
+<text x="300.0" y="267.5" font-size="11.5" fill="#555555" text-anchor="middle">ConsignmentId, Route, Weight</text>
+<text x="300.0" y="282.5" font-size="11.5" fill="#555555" text-anchor="middle">must be set in every object initializer</text>
+<rect x="40" y="305" width="520" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="300.0" y="325.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">init accessor</text>
+<text x="300.0" y="342.5" font-size="11.5" fill="#555555" text-anchor="middle">settable only during construction</text>
+<text x="300.0" y="357.5" font-size="11.5" fill="#555555" text-anchor="middle">immutable for the rest of the object&#x27;s life</text>
+<rect x="40" y="375" width="520" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="300.0" y="403.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">string? ReferenceNumber</text>
+<text x="300.0" y="420.0" font-size="11.5" fill="#555555" text-anchor="middle">legitimately absent, not an error</text>
+<rect x="40" y="445" width="520" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="300.0" y="473.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Money DeclaredValue = Money.Zero</text>
+<text x="300.0" y="490.0" font-size="11.5" fill="#555555" text-anchor="middle">non-required: already has a sensible default</text>
+<rect x="620" y="190" width="320" height="150" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="780.0" y="255.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Initializer: compiles</text>
+<text x="780.0" y="272.5" font-size="11.5" fill="#555555" text-anchor="middle">ConsignmentId, Route, Weight set</text>
+<text x="780.0" y="287.5" font-size="11.5" fill="#555555" text-anchor="middle">ReferenceNumber, DeclaredValue optional</text>
+<rect x="620" y="360" width="320" height="150" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="780.0" y="418.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Initializer: CS9035</text>
+<text x="780.0" y="435.0" font-size="11.5" fill="#555555" text-anchor="middle">Route left unset</text>
+<text x="780.0" y="450.0" font-size="11.5" fill="#555555" text-anchor="middle">Required member Consignment.Route</text>
+<text x="780.0" y="465.0" font-size="11.5" fill="#555555" text-anchor="middle">must be set</text>
+<path d="M560,260 L620,265" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="596.0" y="256.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">all required set</text>
+<text x="596.0" y="256.5" font-size="11" fill="#b8650a" text-anchor="middle">all required set</text>
+<path d="M560,260 L620,435" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="596.0" y="341.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Route omitted</text>
+<text x="596.0" y="341.5" font-size="11" fill="#555" text-anchor="middle">Route omitted</text>
+<path d="M300,160 L300,190" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M780,160 L780,190" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+</svg>

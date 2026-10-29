@@ -161,6 +161,18 @@
     Houston while the first is never written to. Equality between the two
     compares member values, not references.
 
+- name: 09-required-init-construction-gap
+  section: "Ch. 9"
+  title: The required and init contract, compiles versus CS9035
+  caption: >-
+    Consignment's four kinds of member side by side: required, init-only
+    ConsignmentId, Route, and Weight the compiler forces a caller to set;
+    an init accessor settable only during construction; a legitimately
+    absent string? ReferenceNumber; and a non-required DeclaredValue with
+    its own default. One object initializer that sets every required
+    member compiles; one that leaves Route unset fails at compile time with
+    CS9035, never as a suppressible nullable warning.
+
 - name: 10-testing-with-xunit-and-nsubstitute
   section: "Ch. 10"
   title: ShipmentRatingEngine under a four-phase test with NSubstitute doubles

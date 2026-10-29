@@ -224,6 +224,8 @@ would mean anything; a blank or placeholder identifier would be actively
 wrong, which is exactly the case `required` exists to force a caller to
 settle at construction.
 
+{% include excalidraw.html name="09-required-init-construction-gap" caption="Figure 9.2: The required and init contract, compiles versus CS9035." %}
+
 ## Non-destructive amendment with with
 
 `Consignment` exposes three amendment methods, each one a single-expression
