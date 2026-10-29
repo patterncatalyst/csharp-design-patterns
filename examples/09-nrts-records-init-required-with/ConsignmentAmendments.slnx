@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ConsignmentAmendments.csproj" />
+  <Project Path="ConsignmentAmendments.Tests/ConsignmentAmendments.Tests.csproj" />
+</Solution>

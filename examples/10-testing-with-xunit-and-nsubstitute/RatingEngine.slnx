@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RatingEngine.csproj" />
+  <Project Path="RatingEngine.Tests/RatingEngine.Tests.csproj" />
+</Solution>
