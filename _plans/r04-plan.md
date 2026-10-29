@@ -96,4 +96,37 @@ pattern. Path leak in quoted output. Word under floor. Diagram name drift.
 
 ## r04 verification log
 
-_(filled in Wave D)_
+Opus-validated 2026-10-29 (branch `release/r04`). Overall: PASS (after voice repair).
+
+**Build / test (all green):**
+- `examples/07-dispose-and-iasyncdisposable` `dotnet test`: 7 total / 7 succeeded / 0 failed.
+- `examples/08-value-types-struct-span` `dotnet test`: 29 total / 29 succeeded / 0 failed.
+- `scripts/verify.sh`: both new examples auto-discovered and green alongside 00/05/06.
+- `bundle exec jekyll build`: clean, all four r04 figures render.
+
+**Content:** both chapters carry the full spine in order (figure after "Why this
+matters"); "Build, run, observe" quotes the real summaries with matching counts,
+path-sanitized (0 `/home/`, 0 username); exactly one AI sidebar each; body prose
+2973 words (ch7) and 3634 words (ch8) by voice `--stats`, both above the 2000 floor
+and each carrying a second (density) figure; 0 em-dash in docs; no intra-book numeric
+cross-refs; all citations on learn.microsoft.com.
+
+**Diagrams:** four figures (`07-dispose-and-iasyncdisposable`, `07-dispose-pattern-paths`,
+`08-value-types-struct-span`, `08-fixed-width-edi-layout`) each paired on disk, registered
+in `_data/diagrams.yml` (entries 11-14, chapter order), and included in the right chapter.
+
+**Code idiom:** `lgtm-idiomatic-review` scan 0 hits on both examples; ConfigureAwait on
+library awaits, token passed (xUnit1051 clean), sealed managed-only dispose (no finalizer),
+`readonly record struct` with validating init (CA1815), `readonly ref struct` parser kept
+synchronous/non-capturing, InvariantCulture on numeric parses. Both test csprojs set
+IsTestProject + IsPackable false + NoWarn CA1707, pin xunit.v3 4.0.2 / runner 4.0.1 /
+Test.Sdk 18.11.0 / NSubstitute 6.2.0, omit `TestingPlatformDotnetTestSupport`; each example
+has its own `.slnx`.
+
+**Repairs applied this iteration (must-fix + nits):**
+- 10 ban-tier voice hits rewritten in `_docs/07` and `_docs/08`; re-scan now 0 ban-tier
+  on both (watch-tier only).
+- 9 em-dashes removed from the ch8 example's XML doc comments (`Money.cs`,
+  `EdiRecordParser.cs`) and 2 from `examples/08-.../README.md`; ch8 re-tested green.
+- Triad "candidates" and contraction-stiffness flags reviewed and left: they are
+  legitimate technical enumerations / formal register, not rhetorical rule-of-three.

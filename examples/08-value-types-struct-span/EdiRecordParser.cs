@@ -22,12 +22,12 @@ namespace FreightValueTypes;
 /// </para>
 /// <list type="table">
 /// <listheader><term>Field</term><description>Offset, length, example</description></listheader>
-/// <item><term>ConsignmentId</term><description>0, 6 — zero-padded digits, e.g. "004217"</description></item>
-/// <item><term>Bay</term><description>6, 2 — zero-padded digits, e.g. "03"</description></item>
-/// <item><term>Tier</term><description>8, 2 — zero-padded digits, e.g. "02"</description></item>
-/// <item><term>WeightKilograms</term><description>10, 7 — fixed two decimals, e.g. "0125.50"</description></item>
-/// <item><term>Amount</term><description>17, 8 — fixed two decimals, e.g. "00450.75"</description></item>
-/// <item><term>Currency</term><description>25, 3 — three-letter code, e.g. "USD"</description></item>
+/// <item><term>ConsignmentId</term><description>0, 6: zero-padded digits, e.g. "004217"</description></item>
+/// <item><term>Bay</term><description>6, 2: zero-padded digits, e.g. "03"</description></item>
+/// <item><term>Tier</term><description>8, 2: zero-padded digits, e.g. "02"</description></item>
+/// <item><term>WeightKilograms</term><description>10, 7: fixed two decimals, e.g. "0125.50"</description></item>
+/// <item><term>Amount</term><description>17, 8: fixed two decimals, e.g. "00450.75"</description></item>
+/// <item><term>Currency</term><description>25, 3: three-letter code, e.g. "USD"</description></item>
 /// </list>
 /// </remarks>
 public readonly ref struct EdiRecordParser
@@ -53,7 +53,7 @@ public readonly ref struct EdiRecordParser
 
     /// <summary>
     /// Parses <paramref name="segment"/> into <paramref name="record"/>.
-    /// Returns <see langword="false"/> — it never throws — for a segment of
+    /// Returns <see langword="false"/> (it never throws) for a segment of
     /// the wrong length, a non-numeric field, or an unrecognized currency
     /// code.
     /// </summary>
@@ -108,8 +108,8 @@ public readonly ref struct EdiRecordParser
 
     /// <summary>
     /// Matches the three-character currency span against a fixed, known set
-    /// and returns the matching interned literal — never <see cref="ReadOnlySpan{Char}.ToString"/>
-    /// on the span — so a successful parse allocates nothing even for the
+    /// and returns the matching interned literal, never <see cref="ReadOnlySpan{Char}.ToString"/>
+    /// on the span, so a successful parse allocates nothing even for the
     /// one field that ends up as a <see cref="string"/>.
     /// </summary>
     private static bool TryParseCurrency(ReadOnlySpan<char> currencySpan, out string currency)

@@ -1,6 +1,6 @@
 # 08-value-types-struct-span
 
-Three shipping-domain value types — `Money`, `Weight`, and `SlotId` — as
+Three shipping-domain value types, `Money`, `Weight`, and `SlotId`, as
 `readonly record struct` types, plus `EdiRecordParser`, a `readonly ref struct`
 that parses a fixed-width, EDI-style consignment segment straight out of a
 `ReadOnlySpan<char>` with no intermediate string allocation.

@@ -11,7 +11,7 @@ namespace FreightValueTypes;
 /// The primary constructor's parameters are shadowed by the explicit
 /// properties declared in the body, so construction can validate:
 /// <c>new Money(-1m, "USD")</c> throws. That guard does not reach
-/// <c>default(Money)</c> or <c>new Money[3]</c> — every struct has an
+/// <c>default(Money)</c> or <c>new Money[3]</c>, because every struct has an
 /// implicit parameterless state in .NET that bypasses every constructor.
 /// Here that default is <c>Amount == 0m</c> and <c>Currency == null</c>,
 /// which is not a value this type's own members (such as

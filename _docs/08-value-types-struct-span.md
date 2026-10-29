@@ -63,7 +63,7 @@ a view over memory that already exists, sliceable without copying and
 parseable directly, so the fields inside one record never have to become
 their own heap objects just to be read. This chapter works through both
 halves of the same idea against the shipping domain: `Money`, `Weight`, and
-`SlotId` as value types that get equality and immutability for free, and
+`SlotId` as value types that get equality and immutability without boilerplate, and
 `EdiRecordParser`, a span-based parser proven by a measured test to
 allocate nothing at all in its steady state.
 
@@ -203,7 +203,7 @@ that nobody explicitly initializes all produce a `Money` with every field
 set to its own bit-pattern zero, and none of that path ever runs through
 the validating constructor above. That is not a bug in this chapter's
 example; it is a feature of structs that the CLR guarantees for every value
-type, documented plainly: a struct always has an accessible parameterless
+type, and documented: a struct always has an accessible parameterless
 constructor that zero-initializes every field, even when the declared type
 defines its own constructors that look like they should be the only way in.
 `Money`'s own doc comment names the consequence directly: `default(Money)`
@@ -212,7 +212,7 @@ is not a value `Money.ToString()` or any other member can safely assume,
 because the type's own contract promises a three-letter code, validated at
 construction, and a bare default never passed through that validation.
 
-The honest fix is not to pretend the default state doesn't exist or to
+The fix is not to pretend the default state doesn't exist or to
 sprinkle null checks through every member that touches `Currency`. It is to
 decide, type by type, whether the zero-initialized default is itself a
 meaningful value, and supply a type-owned alternative where it isn't.
@@ -422,7 +422,7 @@ collection, records `GC.GetAllocatedBytesForCurrentThread()`, runs a
 hundred thousand more parses, records the counter again, and asserts the
 two readings are identical. That assertion is the chapter's central claim
 turned into a number a test either confirms or fails on: the steady-state
-parse genuinely allocates zero bytes, not "close to zero" or "fewer than
+parse allocates zero bytes, not "close to zero" or "fewer than
 before."
 
 ## When not to use it
@@ -445,7 +445,7 @@ a reference type by nature, and forcing it into a struct to chase the same
 allocation savings would mean giving up the very identity semantics the
 domain concept needs. Inheritance is a third: a struct cannot be a base
 class or derive from another struct, only implement interfaces, so a
-concept that genuinely needs a type hierarchy, several carrier
+concept that needs a type hierarchy, several carrier
 implementations sharing a base class's behavior rather than an interface's
 contract, is not a candidate no matter how small its data looks.
 
@@ -481,7 +481,7 @@ method that then gets held past the lifetime of its backing memory.
 > asked to add a `Span<T>` field to speed up a parser, a generated answer
 > will sometimes store that span on a class or return it from a method in a
 > way that outlives the call, a mistake the compiler would reject outright
-> on a genuine `ref struct` but that a hand-rolled struct hiding a span
+> on a declared `ref struct` but that a hand-rolled struct hiding a span
 > indirectly, boxed inside an object, say, might not catch until a reader
 > traces where the backing memory actually lives. Check a generated
 > struct conversion against the same three questions this chapter asks: is

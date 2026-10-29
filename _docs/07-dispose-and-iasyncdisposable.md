@@ -55,7 +55,7 @@ disk is concerned, never happened. A process crash, a container recycle, or
 code that simply forgot to close the appender before moving on leaves a gap
 between what the application believes it recorded and what the file
 actually contains. .NET gives a program exactly one guaranteed moment to
-close that gap on purpose: the end of a `using` or `await using` scope,
+close that gap: the end of a `using` or `await using` scope,
 which runs before control leaves that scope, not whenever a future
 collection happens to run a finalizer. Everything in this chapter, the
 dispose pattern's guard, the split between synchronous and asynchronous
@@ -98,7 +98,7 @@ the test. That is the entire value proposition of `IDisposable` plus
 to a lexical scope a reader can see on the page, not to generation
 boundaries and finalization queues a reader cannot see at all. The
 [cleaning up unmanaged resources documentation](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/unmanaged)
-states plainly that ".NET's garbage collector does not allocate or release
+states that ".NET's garbage collector does not allocate or release
 unmanaged memory," and more to the point here, it does not promise *when*
 it will run a finalizer that happens to release something at all; a `using`
 scope is the only mechanism in the language that promises a specific
@@ -286,7 +286,7 @@ does matter.
 ## Applying it: `ManifestWriter` and `LedgerAppender` side by side
 
 The two types in this chapter's example look different on the surface,
-synchronous against asynchronous, `FileStream` opened plainly against a
+synchronous against asynchronous, a `FileStream` opened with default options against a
 `FileStream` opened with `FileOptions.Asynchronous` wrapped in a
 `StreamWriter`, but they apply the identical reasoning to two different
 constructors on `FileStream`. `ManifestWriter` opens its file with
@@ -315,7 +315,7 @@ resource requires awaiting something. `ManifestWriter`'s `Stream.Dispose()`
 call is synchronous because flushing an already-flushed, synchronously
 written stream and closing its handle is itself synchronous work; the
 moment a release has to await a flush, as `LedgerAppender`'s does,
-`IAsyncDisposable` is the only contract that can express that honestly
+`IAsyncDisposable` is the only contract that can express that
 without blocking a thread to fake being synchronous.
 
 ## Build, run, observe
