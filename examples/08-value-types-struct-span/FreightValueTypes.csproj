@@ -1,0 +1,14 @@
+<!-- Chapter 8 example: value types (struct / readonly struct / ref struct)
+     and Span<T> / ReadOnlySpan<T>.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);FreightValueTypes.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="FreightValueTypes.csproj" />
+  <Project Path="FreightValueTypes.Tests/FreightValueTypes.Tests.csproj" />
+</Solution>
