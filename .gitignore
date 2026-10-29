@@ -1,0 +1,42 @@
+# ── Jekyll ────────────────────────────────────────────────────────────────────
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+.bundle/
+
+# ── .NET build artifacts ────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+project.lock.json
+artifacts/
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+*.trx
+*.coverage
+*.nupkg
+
+# ── Test / analysis output ─────────────────────────────────────────────────────
+reports/
+coverage/
+
+# ── Diagrams editor scratch ─────────────────────────────────────────────────────
+*.excalidraw.lock
+
+# ── OS / IDE ────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vs/
+.vscode/
+*~
+*.swo
+*.swp
+
+# ── Vendoring / scratch ──────────────────────────────────────────────────────────
+vendor/
+node_modules/
+*.pdf

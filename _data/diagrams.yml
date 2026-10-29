@@ -1,0 +1,5 @@
+# Diagram gallery, in file order. Each entry pairs a diagrams/<name>.svg with
+# its editable diagrams/<name>.excalidraw source. Registered by the
+# orchestrator; content authors produce the files and embed the include but do
+# not edit this file. Empty until the first chapter's figure lands.
+[]

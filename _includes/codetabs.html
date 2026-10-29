@@ -1,0 +1,28 @@
+{%- comment -%}
+  Multi-language code tabs.
+
+  Emits an empty marker; assets/js/codetabs.js absorbs the next N fenced
+  code blocks (N = number of pipe-separated labels) into an accessible
+  tab group. Because the code blocks stay ordinary Markdown fences, Rouge
+  still highlights them at build time — no plugin required.
+
+  Usage (place the bare include, then one fenced block per label, IN THIS
+  ORDER). Do NOT wrap the include in raw tags — that stops Liquid running it:
+
+      {% include codetabs.html langs="Delegate|Interface" %}
+
+      ```csharp
+      // Delegate
+      ```
+      ```csharp
+      // Interface
+      ```
+
+  This book uses codetabs to set two or more MODERN idioms side by side where
+  the choice between them is a real design decision — a delegate against an
+  interface, a record against a struct — and, in the divergence chapters, a
+  "Java|C#" pair that shows where the two languages part ways. It never sets a
+  modern form against a retired one. Selecting a tab syncs every group on the
+  page and is remembered across pages.
+{%- endcomment -%}
+<div class="codetabs" data-langs="{{ include.langs }}"></div>

@@ -1,0 +1,69 @@
+---
+layout: default
+title: Example demos
+description: Runnable companion demos for Design Patterns with .NET / C#. Each builds locally with the .NET 10 SDK, xUnit, and NSubstitute, no containers.
+permalink: /examples/
+---
+
+<section class="hero hero--compact">
+    <div class="container">
+        <span class="hero__eyebrow">Example demos</span>
+        <h1>Runnable companions to the book.</h1>
+        <p class="hero__lead">
+            Every pattern chapter has a demo behind it. Each demo is a
+            self-contained, standalone-buildable .NET project with an xUnit
+            suite, NSubstitute where a collaborator needs substitution, and no
+            containers. Read the matching chapter for context, then build the
+            demo from its directory with the same local .NET 10 SDK the
+            prerequisites chapter installs.
+        </p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="section-heading">Runnable examples</h2>
+        <p class="section-lead">
+            Each example makes a single pattern concrete and runnable with one
+            command. Every card links to the demo's page on this site (a
+            rendering of the README with cross-references), and each page links
+            to the source on GitHub. Each demo also stands alone, so you can
+            build it without reading the book first if you would rather poke at
+            it directly.
+        </p>
+        <div class="cards">
+        {%- assign sorted_examples = site.examples | sort: "order" -%}
+        {%- for e in sorted_examples -%}
+            <a class="card" href="{{ e.url | relative_url }}">
+                <div class="card__eyebrow">{{ e.card_eyebrow }}</div>
+                <h3 class="card__title">{{ e.card_title }}</h3>
+                <p class="card__desc">{{ e.card_blurb }}</p>
+                <div class="card__meta"><span>Read page &rarr;</span></div>
+            </a>
+        {%- endfor %}
+        </div>
+        {%- if sorted_examples.size == 0 -%}
+        <p class="section-lead">The runnable examples ship as the chapters land. Check back as the book fills in.</p>
+        {%- endif -%}
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-soft);">
+    <div class="container container-prose">
+        <h2 class="section-heading">Building every demo</h2>
+        <p>
+            Clone the repo and build every example in one pass with the pinned
+            local toolchain (the .NET 10 SDK; see the prerequisites chapter and
+            <code>scripts/check-prereqs.sh</code>).
+        </p>
+<pre><code>git clone https://github.com/{{ site.github_username }}/{{ site.github_repo }}.git
+cd {{ site.github_repo }}
+./scripts/build.sh
+./scripts/verify.sh
+</code></pre>
+        <p>
+            Every example is also standalone-buildable from its own directory
+            with <code>dotnet test</code>, without configuring the whole repo.
+        </p>
+    </div>
+</section>
