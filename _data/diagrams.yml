@@ -113,6 +113,19 @@
     while the asynchronous path awaits DisposeAsync(), which flushes pending
     writes before it closes.
 
+- name: 07-dispose-pattern-paths
+  section: "Ch. 7"
+  title: Three shapes of the dispose pattern
+  caption: >-
+    Three dispose shapes compared side by side. A sealed type that owns only
+    managed disposables needs nothing more than a guarded Dispose(), an
+    unsealed type that owns an unmanaged handle directly takes the heavier
+    Dispose(bool disposing), finalizer, and GC.SuppressFinalize(this)
+    combination, and a type whose release has to await a flush implements
+    IAsyncDisposable instead. ManifestWriter takes the first path and
+    LedgerAppender takes the third; the middle path stays a correct choice
+    for the day a type actually owns an unmanaged resource on its own.
+
 - name: 08-value-types-struct-span
   section: "Ch. 8"
   title: Inline values and zero-allocation field projection

@@ -187,6 +187,8 @@ with:
 type reaches for the full pattern without an unmanaged resource or a
 finalizer of its own to justify it.
 
+{% include excalidraw.html name="07-dispose-pattern-paths" caption="Figure 7.2: three dispose shapes side by side. A sealed, managed-only type needs only a guarded Dispose(); an unsealed type that owns an unmanaged handle directly takes the heavier Dispose(bool), finalizer, and GC.SuppressFinalize(this) combination; a type whose release has to await a flush implements IAsyncDisposable instead. ManifestWriter takes the first path and LedgerAppender takes the third." %}
+
 The simple, one-method `Dispose()` this chapter already showed is not a
 shortcut taken because the full pattern was too much trouble to write. It
 is the correct amount of pattern for what `ManifestWriter` actually owns: a
