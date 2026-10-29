@@ -1,0 +1,15 @@
+<!-- Chapter 5 example: splitting an overloaded rate calculator into
+     single-responsibility collaborators (SRP), an extensible surcharge
+     pipeline (OCP), and two substitutable pricing strategies (LSP).
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RateCalculation.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

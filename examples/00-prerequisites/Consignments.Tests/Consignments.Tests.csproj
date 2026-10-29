@@ -12,8 +12,8 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <!-- .NET 10 removed the legacy VSTest path; xUnit v3 runs on Microsoft.Testing
-         Platform. This opt-in lets `dotnet test` drive the MTP runner. -->
-    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+         Platform. The runner opt-in is the repo-root global.json
+         ({"test":{"runner":"Microsoft.Testing.Platform"}}), not an MSBuild property. -->
     <!-- CA1707 (no underscores in identifiers) fights the house xUnit naming
          convention (Method_does_thing); suppress it here only, not in the
          library under test. -->

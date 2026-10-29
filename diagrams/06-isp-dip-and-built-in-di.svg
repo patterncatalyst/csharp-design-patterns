@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="10" width="920" height="250" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="30" font-size="12" font-weight="700" fill="#888">ISP: narrow interfaces for narrow consumers</text>
+<rect x="20" y="290" width="920" height="250" rx="12" fill="#fff8ef" stroke="#ddd"/>
+<text x="32" y="310" font-size="12" font-weight="700" fill="#888">DIP: concretes and the container, never named by a consumer</text>
+<rect x="60" y="50" width="250" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="185.0" y="83.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ShipmentRateAdvisor</text>
+<text x="185.0" y="100.0" font-size="11.5" fill="#555555" text-anchor="middle">narrow: rates only</text>
+<rect x="650" y="50" width="250" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="775.0" y="83.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ShipmentBookingService</text>
+<text x="775.0" y="100.0" font-size="11.5" fill="#555555" text-anchor="middle">needs rates + tracking</text>
+<rect x="60" y="170" width="250" height="70" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="185.0" y="203.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICarrierRates</text>
+<text x="185.0" y="220.0" font-size="11.5" fill="#555555" text-anchor="middle">GetRateAsync</text>
+<rect x="370" y="170" width="220" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="203.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICarrierGateway</text>
+<text x="480.0" y="220.0" font-size="11.5" fill="#555555" text-anchor="middle">composes both roles</text>
+<rect x="650" y="170" width="250" height="70" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="775.0" y="203.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICarrierTracking</text>
+<text x="775.0" y="220.0" font-size="11.5" fill="#555555" text-anchor="middle">BookAsync, GetTrackingStatusAsync</text>
+<rect x="200" y="320" width="220" height="70" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="310.0" y="353.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RestCarrierGateway</text>
+<text x="310.0" y="370.0" font-size="11.5" fill="#555555" text-anchor="middle">implements ICarrierGateway</text>
+<rect x="520" y="320" width="220" height="70" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="630.0" y="353.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">FakeCarrierGateway</text>
+<text x="630.0" y="370.0" font-size="11.5" fill="#555555" text-anchor="middle">implements ICarrierGateway</text>
+<rect x="200" y="440" width="560" height="70" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="473.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Built-in DI container</text>
+<text x="480.0" y="490.0" font-size="11.5" fill="#555555" text-anchor="middle">the one place resolving abstraction to concrete</text>
+<path d="M185,120 L185,170" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="191.0" y="139.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">depends on</text>
+<text x="191.0" y="139.0" font-size="11" fill="#555" text-anchor="middle">depends on</text>
+<path d="M775,120 L480,170" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="633.5" y="139.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">depends on (full)</text>
+<text x="633.5" y="139.0" font-size="11" fill="#555" text-anchor="middle">depends on (full)</text>
+<path d="M370,205 L310,205" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="346.0" y="199.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">composed of</text>
+<text x="346.0" y="199.0" font-size="11" fill="#555" text-anchor="middle">composed of</text>
+<path d="M590,205 L650,205" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="626.0" y="199.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">composed of</text>
+<text x="626.0" y="199.0" font-size="11" fill="#555" text-anchor="middle">composed of</text>
+<path d="M310,320 L480,240" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="401.0" y="274.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="401.0" y="274.0" font-size="11" fill="#555" text-anchor="middle">implements</text>
+<path d="M630,320 L480,240" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="561.0" y="274.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="561.0" y="274.0" font-size="11" fill="#555" text-anchor="middle">implements</text>
+<path d="M310,440 L310,390" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="316.0" y="409.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">resolves</text>
+<text x="316.0" y="409.0" font-size="11" fill="#555" text-anchor="middle">resolves</text>
+<path d="M630,440 L630,390" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="636.0" y="409.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">resolves</text>
+<text x="636.0" y="409.0" font-size="11" fill="#555" text-anchor="middle">resolves</text>
+</svg>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CarrierGateways.csproj" />
+  <Project Path="CarrierGateways.Tests/CarrierGateways.Tests.csproj" />
+</Solution>

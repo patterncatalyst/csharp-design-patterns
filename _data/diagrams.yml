@@ -69,3 +69,35 @@
     AI assistant, each one checking the same precondition and postcondition
     against the code. The name carries across the full consignment lifecycle,
     booked, loaded, in transit, cleared, and delivered.
+
+- name: 05-srp-ocp-lsp
+  section: "Ch. 5"
+  title: One calculator split into SRP, OCP, and LSP
+  caption: >-
+    An overloaded rate calculator resolved into single-responsibility
+    collaborators, IRateQuote, ITaxPolicy, and IAuditSink. A
+    SurchargedRateQuote decorator composes the open ISurcharge extension
+    point for Open/Closed, and two pricing calculators substitute for each
+    other through one IRateQuote contract for Liskov Substitution.
+
+- name: 06-isp-dip-and-built-in-di
+  section: "Ch. 6"
+  title: ISP and DIP through the built-in container
+  caption: >-
+    A fat ICarrierGateway split into ICarrierRates and ICarrierTracking.
+    ShipmentRateAdvisor depends on the narrow ICarrierRates abstraction and
+    ShipmentBookingService depends on the full ICarrierGateway, never on
+    RestCarrierGateway or FakeCarrierGateway directly; the built-in DI
+    container is the one place that resolves an abstraction to a concrete
+    type.
+
+- name: 06-singleton-fanout-registration
+  section: "Ch. 6"
+  title: One singleton, three resolvable faces
+  caption: >-
+    One AddSingleton<TGateway>() registration fans out through three factory
+    registrations, ICarrierGateway, ICarrierRates, and ICarrierTracking, all
+    resolving GetRequiredService<TGateway>() back to the same singleton
+    instance. ShipmentRateAdvisor resolves only ICarrierRates and
+    ShipmentBookingService resolves only the full ICarrierGateway, each
+    consumer taking exactly the face it uses.
