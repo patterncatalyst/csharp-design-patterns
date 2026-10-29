@@ -56,7 +56,7 @@ tax or audit, a surcharge pipeline that grows by addition, and two pricing
 strategies that substitute for each other because a test proves it rather
 than assumes it.
 
-{% include excalidraw.html name="05-srp-ocp-lsp" caption="Figure 5.1: TODO caption." %}
+{% include excalidraw.html name="05-srp-ocp-lsp" caption="Figure 5.1: One overloaded rate calculator resolves into single-responsibility collaborators, IRateQuote, ITaxPolicy, and IAuditSink; a SurchargedRateQuote decorator composes the open ISurcharge extension point for OCP; both pricing calculators substitute for each other through one IRateQuote contract for LSP." %}
 
 ## One overloaded calculator, three reasons to break
 
