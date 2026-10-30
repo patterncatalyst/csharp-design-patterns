@@ -1,0 +1,23 @@
+<!-- Chapter 11 example: Strategy dissolved across three levels of ceremony,
+     a delegate, an interface, and a keyed service, all pricing the same
+     RateRequest. TargetFramework, LangVersion, Nullable, etc. are inherited
+     from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RateQuoting.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The built-in DI container's keyed-service support backs Level 3: a
+         pricing strategy is registered once per service level and resolved
+         by that key, instead of branching on it in a consumer. Version
+         surveyed with `dotnet package search` (exact-match mode) against
+         .NET 10 SDK 10.0.113 on 2026-10-29. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>
