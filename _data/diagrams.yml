@@ -202,14 +202,31 @@
   section: "Ch. 11"
   title: One Strategy, three ways to supply it
   caption: >-
-    The same rate-pricing Strategy collapsed to three different shapes feeding
-    one RateCalculator. A plain Func<RateRequest, Money> drops the interface
-    and the class entirely; IPricingStrategy names the abstraction and gives
-    StandardTariff, ExpressTariff, and EconomyTariff a shared contract; a
-    keyed DI container resolves the same three tariffs by a runtime string
-    key instead of a compile-time type. RateCalculator takes the same call
-    shape in and returns the same RateQuote out no matter which level
+    The same rate-pricing Strategy collapsed to three different shapes, each
+    with its own caller. A plain Func<RateRequest, Money> drops the interface
+    and the class entirely, consumed by DelegateRateQuoter; IPricingStrategy
+    names the abstraction and gives StandardTariff, ExpressTariff, and
+    EconomyTariff a shared contract, consumed by StrategyRateQuoter; a keyed
+    DI container resolves the same three tariffs by a runtime string key,
+    consumed by KeyedTariffQuoter and, for a fixed key chosen at
+    construction, ExpressLaneQuoter. All three quoters take the same
+    RateRequest in and return the same RateQuote out no matter which level
     supplied the strategy.
+
+- name: 11-keyed-service-resolution
+  section: "Ch. 11"
+  title: Keyed resolution, an unrecognized key, and the non-keyed trap
+  caption: >-
+    The keyed-DI composition root in AddRateQuoting registering three
+    IPricingStrategy implementations as keyed singletons under "standard",
+    "express", and "economy". KeyedTariffQuoter resolves the matching one at
+    runtime with GetRequiredKeyedService(request.ServiceLevel);
+    ExpressLaneQuoter binds a fixed key at construction with
+    [FromKeyedServices("express")]. An unrecognized key splits behavior:
+    GetRequiredKeyedService throws InvalidOperationException, while
+    GetKeyedService returns null. A plain, keyless GetService<IPricingStrategy>()
+    also returns null, even with three keyed registrations in the container,
+    because keyed and non-keyed lookups are separate graphs.
 
 - name: 12-template-method-and-the-delegate-alternative
   section: "Ch. 12"

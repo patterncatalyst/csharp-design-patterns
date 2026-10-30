@@ -391,6 +391,8 @@ default exists; a type is either resolvable without a key or resolvable
 with one, for each distinct key, and registering it one way buys nothing
 for the other.
 
+{% include excalidraw.html name="11-keyed-service-resolution" caption="Figure 11.2: The keyed-DI composition root registering three IPricingStrategy implementations under the standard, express, and economy keys, KeyedTariffQuoter and ExpressLaneQuoter resolving them at runtime, an unrecognized key throwing from GetRequiredKeyedService but returning null from GetKeyedService, and a plain GetService<IPricingStrategy>() returning null because keyed and non-keyed lookups are separate graphs." %}
+
 ## Build, run, observe
 
 Every command below runs with the local .NET 10 SDK; nothing in this loop
