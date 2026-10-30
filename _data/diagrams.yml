@@ -256,3 +256,60 @@
     2000 JPY handling fee), and their own validation threshold. The order
     is the one thing all three countries share; the slot contents are the
     one thing that is never shared between them.
+
+- name: 13-state-and-finite-state-machines
+  section: "Ch. 13"
+  title: The consignment lifecycle as a finite state machine
+  caption: >-
+    ConsignmentStateMachine.Apply(HandlingEvent) drives every move through
+    Transitions.Next, advancing Booked to Loaded to InTransit to Cleared to
+    Delivered on the Load, Depart, ClearCustoms, and Deliver events.
+    Delayed sits off InTransit as a state the enum defines but that
+    Transitions.Next never reaches; only the probabilistic variant drives a
+    consignment there. An unmatched (status, event) pair, delivering a
+    booked consignment included, is rejected rather than ignored: the
+    switch expression's catch-all arm throws InvalidTransitionException
+    instead of returning a placeholder status.
+
+- name: 13-probabilistic-transit-model
+  section: "Ch. 13"
+  title: The stochastic exit from InTransit
+  caption: >-
+    ProbabilisticTransitMachine.Step draws a value from an injected
+    IRandomSource.NextDouble() at InTransit. A draw below delayProbability
+    sends the consignment to Delayed, which maps straight back to InTransit
+    so the next Step retries the same exit; a draw at or above the
+    threshold progresses the consignment to Cleared and then Delivered.
+    SeededRandomSource wraps that draw in a seeded System.Random, so two
+    machines built on the same seed replay the identical sequence of draws
+    and therefore the identical sequence of statuses, which is what keeps
+    the simulation testable.
+
+- name: 14-command-undo-and-task-returning-commands
+  section: "Ch. 14"
+  title: A booking amendment reified as a command
+  caption: >-
+    IBookingCommand's two methods, Execute and Undo, back four shapes that
+    all act on the same mutable Booking: ChangeServiceLevelCommand and
+    ChangeWeightCommand each snapshot the prior value before overwriting
+    it, AddLineItemCommand's own added LineItem is its snapshot, and
+    DelegateCommand wraps a pair of Action values for a change that does not
+    need its own class. AmendmentQueue enqueues and runs those commands
+    first-in-first-out, then unwinds its execution history
+    last-in-first-out on Undo, with Redo moving a command back from the
+    undone stack to the history stack without ever reconstructing it.
+
+- name: 14-async-command-undo
+  section: "Ch. 14"
+  title: The Task-returning command path
+  caption: >-
+    AsyncAmendmentQueue.RunAsync awaits each queued
+    IAsyncBookingCommand.ExecuteAsync in strict FIFO order before dequeuing
+    the next one; ConfirmAmendmentCommand's ExecuteAsync calls
+    IAmendmentGateway.ConfirmAsync with ConfigureAwait(false), and its
+    UndoAsync calls RevertAsync the same way. UndoAsync walks the executed
+    history back one command at a time, and the caller's CancellationToken
+    threads unchanged from RunAsync and UndoAsync through to every
+    ConfirmAsync and RevertAsync call beneath them, which is what lets the
+    queue preserve order and reverse through the gateway rather than a
+    plain in-memory field.

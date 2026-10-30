@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="330" y="20" width="300" height="70" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="53.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">AsyncAmendmentQueue</text>
+<text x="480.0" y="70.0" font-size="11.5" fill="#555555" text-anchor="middle">RunAsync(token) FIFO / UndoAsync(token) LIFO</text>
+<rect x="365" y="130" width="230" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="158.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IAsyncBookingCommand</text>
+<text x="480.0" y="175.0" font-size="11.5" fill="#555555" text-anchor="middle">ExecuteAsync / UndoAsync(token)</text>
+<rect x="40" y="240" width="240" height="120" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="160.0" y="290.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">CancellationToken</text>
+<text x="160.0" y="307.5" font-size="11.5" fill="#555555" text-anchor="middle">the same token threads</text>
+<text x="160.0" y="322.5" font-size="11.5" fill="#555555" text-anchor="middle">RunAsync -&gt; ExecuteAsync -&gt; ConfirmAsync</text>
+<rect x="365" y="230" width="230" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="258.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ConfirmAmendmentCommand</text>
+<text x="480.0" y="275.0" font-size="11.5" fill="#555555" text-anchor="middle">awaits with ConfigureAwait(false)</text>
+<rect x="365" y="330" width="230" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="358.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IAmendmentGateway</text>
+<text x="480.0" y="375.0" font-size="11.5" fill="#555555" text-anchor="middle">ConfirmAsync / RevertAsync</text>
+<rect x="20" y="460" width="920" height="80" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="498.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">The async queue preserves order and reverses through the gateway</text>
+<text x="480.0" y="515.0" font-size="11.5" fill="#555555" text-anchor="middle">RunAsync awaits each command FIFO; UndoAsync undoes the last one, awaiting RevertAsync</text>
+<path d="M480,90 L480,130" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="486.0" y="104.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">awaits ExecuteAsync FIFO, UndoAsync LIFO</text>
+<text x="486.0" y="104.0" font-size="11" fill="#b8650a" text-anchor="middle">awaits ExecuteAsync FIFO, UndoAsync LIFO</text>
+<path d="M480,190 L480,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="486.0" y="204.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="486.0" y="204.0" font-size="11" fill="#555" text-anchor="middle">implements</text>
+<path d="M280,300 L365,260" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="328.5" y="274.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">same token threaded through</text>
+<text x="328.5" y="274.0" font-size="11" fill="#555" text-anchor="middle">same token threaded through</text>
+<path d="M440,290 L440,330" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="446.0" y="304.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">ExecuteAsync calls ConfirmAsync</text>
+<text x="446.0" y="304.0" font-size="11" fill="#b8650a" text-anchor="middle">ExecuteAsync calls ConfirmAsync</text>
+<path d="M520,290 L520,330" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="526.0" y="304.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">UndoAsync calls RevertAsync</text>
+<text x="526.0" y="304.0" font-size="11" fill="#555" text-anchor="middle">UndoAsync calls RevertAsync</text>
+</svg>

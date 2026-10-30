@@ -1,0 +1,18 @@
+<!-- Chapter 13 example: the State pattern expressed as a finite state machine.
+     A consignment's lifecycle (ConsignmentStateMachine) and a probabilistic
+     transit-delay variant (ProbabilisticTransitMachine) both drive the same
+     ConsignmentStatus states through the same Transitions table. No runtime
+     package reference: this is pure BCL, including System.Random wrapped
+     behind IRandomSource so the probabilistic variant stays testable.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);ConsignmentTracking.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

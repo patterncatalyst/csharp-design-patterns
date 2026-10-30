@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="330" y="20" width="300" height="70" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="53.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">AmendmentQueue</text>
+<text x="480.0" y="70.0" font-size="11.5" fill="#555555" text-anchor="middle">Run() FIFO / Undo() LIFO / Redo()</text>
+<rect x="380" y="130" width="200" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="158.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IBookingCommand</text>
+<text x="480.0" y="175.0" font-size="11.5" fill="#555555" text-anchor="middle">Execute() / Undo()</text>
+<rect x="20" y="230" width="230" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="135.0" y="265.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ChangeServiceLevelCommand</text>
+<rect x="270" y="230" width="180" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="360.0" y="265.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ChangeWeightCommand</text>
+<rect x="470" y="230" width="180" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="560.0" y="265.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">AddLineItemCommand</text>
+<rect x="670" y="230" width="270" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="805.0" y="265.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DelegateCommand(Action, Action)</text>
+<rect x="340" y="340" width="280" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="368.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Booking</text>
+<text x="480.0" y="385.0" font-size="11.5" fill="#555555" text-anchor="middle">ServiceLevel, WeightKilograms, LineItems</text>
+<rect x="20" y="460" width="920" height="80" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="498.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Each command snapshots the prior value before it changes anything</text>
+<text x="480.0" y="515.0" font-size="11.5" fill="#555555" text-anchor="middle">Undo restores exactly what Execute captured, which is what lets AmendmentQueue reverse a FIFO run in LIFO order</text>
+<path d="M480,90 L480,130" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="486.0" y="104.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">enqueues; calls Execute()/Undo()</text>
+<text x="486.0" y="104.0" font-size="11" fill="#b8650a" text-anchor="middle">enqueues; calls Execute()/Undo()</text>
+<path d="M400,190 L135,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="273.5" y="204.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="273.5" y="204.0" font-size="11" fill="#555" text-anchor="middle">implements</text>
+<path d="M440,190 L360,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="406.0" y="204.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="406.0" y="204.0" font-size="11" fill="#555" text-anchor="middle">implements</text>
+<path d="M480,190 L560,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="526.0" y="204.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="526.0" y="204.0" font-size="11" fill="#555" text-anchor="middle">implements</text>
+<path d="M520,190 L805,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="668.5" y="204.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="668.5" y="204.0" font-size="11" fill="#555" text-anchor="middle">implements</text>
+<path d="M135,290 L410,340" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="278.5" y="309.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">snapshots &amp; restores ServiceLevel</text>
+<text x="278.5" y="309.0" font-size="11" fill="#b8650a" text-anchor="middle">snapshots &amp; restores ServiceLevel</text>
+<path d="M360,290 L450,340" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="411.0" y="309.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">snapshots &amp; restores WeightKilograms</text>
+<text x="411.0" y="309.0" font-size="11" fill="#b8650a" text-anchor="middle">snapshots &amp; restores WeightKilograms</text>
+<path d="M560,290 L490,340" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="531.0" y="309.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">adds/removes LineItem</text>
+<text x="531.0" y="309.0" font-size="11" fill="#b8650a" text-anchor="middle">adds/removes LineItem</text>
+<path d="M805,290 L530,340" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="673.5" y="309.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">via Action execute/undo closures</text>
+<text x="673.5" y="309.0" font-size="11" fill="#b8650a" text-anchor="middle">via Action execute/undo closures</text>
+</svg>
