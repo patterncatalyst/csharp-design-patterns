@@ -144,6 +144,8 @@ any one of the three subclasses tells a reviewer everything that
 country does differently; none of the three can tell a reviewer anything
 about step order, because step order was never theirs to control.
 
+{% include excalidraw.html name="12-template-method-step-order" caption="Figure 12.2: The fixed three-slot order, CollectRequiredFields, CalculateDuty, Validate, running left to right for every country, with the United States, Germany, and Japan each plugging their own required fields, duty formula, and validation threshold into the same three slots. The slot order never moves; only what fills each slot changes." %}
+
 ## The delegate form: steps as values
 
 The second half of the example builds the identical skeleton without a
