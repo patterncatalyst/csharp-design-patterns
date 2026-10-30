@@ -122,6 +122,13 @@ Every chapter (`_docs/NN-*.md`) follows the same shape:
   title, never Roman numerals.
 - **No intra-book chapter-number cross-references** ("as we saw in ch8") in prose
   or slides. Name the pattern or idiom instead.
+- **No cross-language comparison.** This is a C# book that stands on its own. Never
+  compare C#/.NET to Java or C++, and never mention or demonstrate cross-language
+  differences ("no Java analogue", "needs workarounds in Java", "the operator story
+  Java can't tell", a Java/Spring contrast). Say what C# and .NET do, in the
+  positive: "C# and .NET support this pattern by doing X." The book's thesis is
+  **temporal**, modern C# 14 / .NET 10 against the GoF-era (1994) assumptions a
+  pattern was written under, never one language against another.
 - Companion decks are the **last** deliverable for a release iteration: 101, 201
   (idiomatic C#), 301 (testing/legacy/AI), and 401 (concurrency patterns).
 
