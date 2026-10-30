@@ -1,0 +1,16 @@
+<!-- Chapter 18 example: Adapter reconciles three carriers with genuinely
+     different native shapes behind one ICarrierGateway, Facade collapses
+     validation, quoting, and customs filing behind one booking call, and
+     Bridge lets a label kind and a label renderer vary independently.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CarrierIntegration.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>
