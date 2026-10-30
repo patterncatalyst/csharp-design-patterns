@@ -430,6 +430,8 @@ directions on the same pair of colleagues, and that a reply reaching
 `declarationDesk` never required `DutyDesk` to hold a reference back to
 `DeclarationDesk` to send it.
 
+{% include excalidraw.html name="22-mediator-colleagues" caption="Figure 22.2: CustomsMediator implements IClearanceMediator and routes a message from DeclarationDesk to DutyDesk and a reply back the other way; each colleague calls Send only on the mediator, never on the other colleague directly, and Send never echoes a message back into the sender's own Inbox." %}
+
 ## Build, run, observe
 
 Every stage and every colleague in this example is a synchronous,

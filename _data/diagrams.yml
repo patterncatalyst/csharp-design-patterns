@@ -473,3 +473,57 @@
     Assert.Same checks directly, while an unrecognized code throws
     UnknownPortCodeException or UnknownCommodityCodeException instead of
     returning a stale or default value.
+
+- name: 21-observer-the-event-keyword
+  section: "Ch. 21"
+  title: An event with two subscribers and a retained history
+  caption: >-
+    ConsignmentTracker declares one event, EventHandler<HandlingReportedEventArgs>?
+    HandlingReported, and raises it from Report through a null-conditional
+    Invoke, so a tracker with nobody listening never throws. CustomerNotifier
+    and AuditLog each subscribe with += and can detach with -=, and either one
+    can stop listening without changing what the other one receives. Report
+    also appends each HandlingEvent to History before the event ever fires, so
+    a reader can ask the tracker what happened regardless of who was
+    listening at the time it happened.
+
+- name: 21-event-and-iobservable
+  section: "Ch. 21"
+  title: A hot stream beside an event that remembers
+  caption: >-
+    HandlingEventStream wraps a System.Reactive Subject<HandlingEvent> and
+    exposes only the IObservable<HandlingEvent> half through Events, so a
+    caller can subscribe but never push a value into it directly. Publish
+    forwards to OnNext and Complete forwards to OnCompleted, delivering to
+    whichever RecordingObserver instances are already subscribed at that
+    moment. The Subject is a hot sequence with no replay buffer, so a
+    RecordingObserver that subscribes after an earlier Publish misses that
+    event entirely, the one gap ConsignmentTracker's retained History never
+    leaves open.
+
+- name: 22-mediator-and-chain-of-responsibility
+  section: "Ch. 22"
+  title: Four stages in order, a halt, and a mediator that picks the route
+  caption: >-
+    CustomsClearancePipeline.Standard wires DocumentCheckStage,
+    DutyCalculationStage, InspectionStage, and ReleaseStage into one chain
+    through SetNext, with every ClearanceStage.Handle call recording its own
+    stage name into a shared ClearanceContext and passing the declaration on
+    only while the running ClearanceResult stays cleared. A halt at any stage
+    returns a non-cleared ClearanceResult immediately, and every stage after
+    it is never reached. CustomsMediator, implementing IClearanceMediator,
+    separately routes a message between DeclarationDesk and DutyDesk, two
+    colleagues that never hold a reference to each other.
+
+- name: 22-mediator-colleagues
+  section: "Ch. 22"
+  title: Two colleagues, one mediator, and no echo back to the sender
+  caption: >-
+    CustomsMediator implements IClearanceMediator and is the only thing
+    DeclarationDesk and DutyDesk depend on to reach each other; calling Send
+    hands the mediator a message and a reference to the sender itself, never
+    the name of a recipient. CustomsMediator routes by checking
+    ReferenceEquals against each registered colleague and delivers to
+    whichever one did not send the message, so a reply travels the same
+    path in the other direction without either desk ever holding a direct
+    reference back to the one that sent it.

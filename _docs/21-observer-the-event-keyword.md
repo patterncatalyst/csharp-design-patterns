@@ -358,6 +358,8 @@ needs to see history, the subscriber has to ask something other than the
 the observable side of this pairing was never built to remember what it
 already sent.
 
+{% include excalidraw.html name="21-event-and-iobservable" caption="Figure 21.2: HandlingEventStream wraps a System.Reactive Subject<HandlingEvent> and exposes only IObservable<HandlingEvent> through Events; Publish forwards to OnNext and Complete forwards to OnCompleted, reaching a RecordingObserver subscribed to it, and a late subscriber misses whatever the hot Subject already pushed, unlike ConsignmentTracker's retained History." %}
+
 `HandlingEventStream` carries one naming detail in a single sentence: a
 Roslyn analyzer flags a type named `*Stream` as implying an implementation
 of `System.IO.Stream`, which this class is not, and the
