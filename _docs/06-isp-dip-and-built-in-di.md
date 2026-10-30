@@ -4,7 +4,7 @@ order: 6
 layout: tutorial
 sectionid: docs
 part: "principles"
-description: "Interface segregation and dependency inversion where the DI container ships in the base class library, contrasted with the framework-choice world of Java."
+description: "Interface segregation and dependency inversion where the dependency injection container ships in the base class library, ready to register and resolve with no separate framework decision to make."
 ---
 
 <!-- EXAMPLE (shipping domain): ICarrierGateway behind a DI registration. -->
@@ -202,17 +202,13 @@ simulated network call.
 
 C# code reaching for two abstractions still has to answer one question
 neither interface answers on its own: which concrete type backs them at
-runtime. In a Java or Jakarta EE codebase that question is usually answered
-by a framework choice made up front, Spring or CDI, each bringing its own
-container package, its own component-scanning conventions, and its own
-learning curve before a team writes its first `@Autowired` field. .NET
-answers it differently: the dependency injection container,
-`Microsoft.Extensions.DependencyInjection`, is part of the platform the
-[.NET dependency injection documentation](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection/overview)
-describes as "a built-in part of the framework, along with configuration,
-logging, and the options pattern." There is no separate framework decision
-to make before a project can register a service; the container is already a
-NuGet package reference away, the same one pinned in this chapter's
+runtime. .NET answers it as part of the platform itself: the dependency
+injection container, `Microsoft.Extensions.DependencyInjection`, is
+described by the [.NET dependency injection documentation](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection/overview)
+as "a built-in part of the framework, along with configuration, logging,
+and the options pattern." There is no separate framework decision to make
+before a project can register a service; the container is already a NuGet
+package reference away, the same one pinned in this chapter's
 `CarrierGateways.csproj`.
 
 Every consumer in this library resolves `ICarrierGateway`, `ICarrierRates`,
@@ -364,9 +360,9 @@ consumer; further splitting past that point adds files without adding a
 seam any consumer needs.
 
 The built-in container itself is cheap enough that reaching for it even on
-a small graph like this chapter's five registrations costs little, since
-there's no separate package decision to weigh the way there would be
-choosing between Spring and a hand-rolled factory in another ecosystem.
+a small graph like this chapter's five registrations costs little: there's
+no separate package to add or framework decision to weigh, just a handful
+of `AddSingleton` calls in the composition root.
 That said, a composition root can still be over-engineered in the other
 direction: wrapping a single, permanent, always-production dependency in an
 interface and a DI registration when the class that uses it is the only

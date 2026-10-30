@@ -4,7 +4,7 @@ order: 41
 layout: tutorial
 sectionid: docs
 part: "changing-inherited-code"
-description: "The finding that inverts expectations: you cannot override to make a seam, so Feathers matters more in C# than in Java."
+description: "The finding that inverts expectations: you cannot override to make a seam, so Feathers matters all the more in C#."
 ---
 
 <!-- EXAMPLE (shipping domain): A legacy RateEngine: sealed, non-virtual, untestable. -->

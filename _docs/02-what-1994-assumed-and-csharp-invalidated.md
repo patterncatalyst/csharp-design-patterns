@@ -28,8 +28,8 @@ By the end of this chapter you can:
 
 ## Why this matters
 
-A C# engineer who learned design patterns from a C++ or Java book carries
-habits suited to those languages' constraints, not C#'s. Faced with "this
+A C# engineer who learned design patterns from the 1994 catalogue carries
+habits suited to the constraints of its era, not C#'s. Faced with "this
 rate quote needs to vary by customer," that training reaches for an
 interface, a concrete class per variation, and a factory to wire them
 together, because that was the only type-safe way to parameterize behavior
