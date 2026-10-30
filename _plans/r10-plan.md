@@ -105,4 +105,38 @@ word floor.
 
 ## r10 verification log
 
-_(filled in Wave D)_
+Opus-validated 2026-10-30 (branch `release/r10`). Overall: PASS, no must-fixes, no repair round.
+
+**Build / test (all green):**
+- `examples/21-observer-the-event-keyword` `dotnet test`: 7/7.
+- `examples/22-mediator-and-chain-of-responsibility` `dotnet test`: 7/7.
+- `scripts/verify.sh`: both new examples auto-discovered and green alongside the rest.
+- `bundle exec jekyll build`: clean, all four r10 figures render.
+
+**Content:** both chapters full spine in order (figure after "Why this matters"); "Build, run,
+observe" quotes real counts (7/7), path-sanitized (0 `/home/`, 0 username); exactly one AI sidebar
+each in "When not to use it"; body prose 2928 (ch21) / 2956 (ch22), each with a secondary figure;
+0 em-dash; citations learn.microsoft.com + GoF (pearson).
+
+**NO CROSS-LANGUAGE:** grep for Java/JVM/erasure/C++/Spring across both docs, both example trees
+(.cs + README), the four new diagrams.yml captions, and the four SVGs = ZERO. ch22 mentions Kestrel
+/ ASP.NET Core middleware exactly once as an illustration-only sentence (no code), allowed.
+
+**CROSS-CHAPTER REFS LIGHT:** no numeric cross-refs; all "chapter" hits are self-references.
+
+**Diagrams (name-accuracy gate):** four figures (#39-42, chapter order) each paired on disk,
+registered, included in the right chapter; every SVG label + caption token verified present in the
+example source. No drift. (Generated after green code with locked names.)
+
+**Code idiom:** `lgtm-idiomatic-review` 0 hits on both. ch21: generic EventHandler<T> (CA1003),
+raise method named Report not Raise* (CA1030), null-conditional raise, System.Reactive Subject<T>
+(not hand-rolled), HandlingEventStream CA1711 via scoped SuppressMessage. ch22: chain halts via
+returned result (no broad catch / CA1031), colleagues depend only on IClearanceMediator,
+IReadOnlyList exposure. Both test csprojs set IsTestProject + IsPackable false + NoWarn CA1707, pin
+the four packages, omit TestingPlatformDotnetTestSupport; each example own `.slnx`; ch21 pins
+System.Reactive 7.0.0, ch22 no runtime package. Em-dash across both examples' .cs + README = 0.
+
+**Voice:** `lgtm-professional-voice` 0 ban-tier on both (watch-tier only, left as-is per prior
+iterations). Editorializing-family grep clean.
+
+**Part 8 half complete** (ch21-22; ch23-24 remain for r11).
