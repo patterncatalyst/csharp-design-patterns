@@ -383,6 +383,8 @@ category that needs the explicit-replacement treatment this section
 walks through, and `LineItems` is this example's case of exactly that
 category.
 
+{% include excalidraw.html name="16-with-prototype-shallow-copy" caption="Figure 16.2: A with expression copies every member of BookingTemplates.StandardDomestic and overrides only the ones named, leaving the template untouched. LineItems is reference-typed, so a with expression that never mentions it shares the template's own list; the spread, LineItems = [.. template.LineItems, extra], replaces it with a fresh list instead, growing the clone's count by one while the template's own count stays unchanged." %}
+
 ## Build, run, observe
 
 Every command below runs with the local .NET 10 SDK; nothing in this

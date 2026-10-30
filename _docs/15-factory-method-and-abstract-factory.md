@@ -382,6 +382,8 @@ anywhere; the only carrier-specific thing in the call is the type argument
 itself, and the compiler checks that argument against `ICarrier` before the
 call is even allowed to compile.
 
+{% include excalidraw.html name="15-type-keyed-carrier-registry" caption="Figure 15.2: CarrierRegistry.Register<TCarrier> writes a factory into a Dictionary<Type, object> keyed by typeof(TCarrier), and FactoryFor reads it back by the same key. Adding Airco costs one Register<Airco> call with no edit to CarrierRegistry, and an unregistered carrier throws UnknownCarrierException instead of returning null." %}
+
 ## Build, run, observe
 
 Every gateway in this example computes a deterministic response instead of

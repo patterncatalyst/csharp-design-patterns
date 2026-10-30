@@ -301,6 +301,8 @@ with no container and no scaffolding to work around, while the sharing
 guarantee production code relies on lives entirely in the registration,
 not the type.
 
+{% include excalidraw.html name="17-di-lifetime-resolution" caption="Figure 17.2: A singleton resolution returns the identical TariffTable every time; a transient CountingTariffSource returns a new instance every call; a scoped CountingTariffSource returns the same instance within one scope and a different one in the next. Registering ITariffSource as scoped under a singleton LazyTariffTable and building the provider with ValidateScopes = true turns that captive dependency into an InvalidOperationException at resolution time, with LoadCount never exceeding one." %}
+
 ## The captive-dependency pitfall
 
 A singleton that depends on something shorter-lived is the specific
