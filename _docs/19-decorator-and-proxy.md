@@ -471,6 +471,8 @@ is the code that actually runs between a caller and a target, and it runs
 because `DispatchProxy.Create` built an object that routes through it, not
 because any method in the example carries a custom attribute at all.
 
+{% include excalidraw.html name="19-di-decoration-and-dispatchproxy" caption="Figure 19.2: ServiceCollectionExtensions.AddRatePipeline registers IRateCalculator as a factory that resolves BaseRateCalculator from the container and wraps it in all three decorators; LoggingRateProxy, a DispatchProxy subclass, intercepts every call in Invoke, records the invoked member in InvokedMembers, and forwards it to its own Target, with RateProxyFactory.Wrap building the proxy and assigning that Target." %}
+
 ## Build, run, observe
 
 Every calculator, decorator, gateway, and proxy in this example is a pure,

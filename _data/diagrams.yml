@@ -394,3 +394,82 @@
     ValidateScopes = true turns that captive dependency into an
     InvalidOperationException at resolution time, and
     CountingTariffSource.LoadCount still never exceeds one.
+
+- name: 18-adapter-facade-bridge
+  section: "Ch. 18"
+  title: Three carriers, one gateway, one booking call, one label
+  caption: >-
+    FastlineSoapClient, SeabrightRestClient, and AircoLegacyClient are three
+    native carrier clients with nothing in common, each adapted to the same
+    ICarrierGateway by its own FastlineGatewayAdapter, SeabrightGatewayAdapter,
+    or AircoGatewayAdapter. ShipmentBookingFacade sequences an
+    IAddressValidator, that adapted ICarrierGateway, and an ICustomsFiler
+    behind one Book call and returns a ShipmentConfirmation. ShipmentLabel is
+    the Bridge abstraction: StandardShipmentLabel and ReturnShipmentLabel each
+    build their own content and render it through whichever ILabelRenderer
+    they were constructed with, PdfLabelRenderer or ZplLabelRenderer, so a
+    label kind and an output format vary independently.
+
+- name: 18-conversion-operators
+  section: "Ch. 18"
+  title: Implicit for a safe widening, explicit for anything that can lose data
+  caption: >-
+    Money converts out to decimal implicitly, because every cent count maps
+    to one exact dollars-and-cents figure, and ToDecimal is the named
+    alternate a caller can reach without the operator syntax. Converting a
+    decimal back down to Money is explicit, because a value like 1.005m has
+    no exact whole-cent representation, and FromDecimal names that same
+    rounding step. Kilograms and Pounds convert explicitly in both
+    directions instead, since a unit change, not a rounding of the same
+    figure, is what the cast signals there, and ToPounds and ToKilograms
+    name each direction by hand.
+
+- name: 19-decorator-and-proxy
+  section: "Ch. 19"
+  title: A fixed wrapping order and a cache standing in the same place
+  caption: >-
+    BaseRateCalculator is wrapped by DiscountRateDecorator, then
+    SurchargeRateDecorator, then TaxRateDecorator, each implementing the
+    same IRateCalculator as the layer underneath it, carrying a 100-kilogram
+    quote from 500.00 to 450.00 to 472.50 to 510.30 as it passes through.
+    CachingRateGatewayProxy implements the identical ICarrierRateGateway as
+    the SlowCarrierRateGateway it wraps, and answers a repeated request from
+    its own cache instead of calling the slow gateway again.
+
+- name: 19-di-decoration-and-dispatchproxy
+  section: "Ch. 19"
+  title: A composition root that wraps, and a proxy that intercepts
+  caption: >-
+    ServiceCollectionExtensions.AddRatePipeline registers IRateCalculator as
+    a factory that resolves BaseRateCalculator from the container and wraps
+    it in all three decorators, so every consumer that asks for
+    IRateCalculator resolves the same fully wrapped chain. LoggingRateProxy,
+    a DispatchProxy subclass, intercepts every call made through it in
+    Invoke, records the invoked member in InvokedMembers, and forwards the
+    call to its own Target; RateProxyFactory.Wrap is the one place that
+    builds the proxy and assigns that Target.
+
+- name: 20-composite-and-flyweight
+  section: "Ch. 20"
+  title: One interface for a leaf and a branch, one instance per code
+  caption: >-
+    IConsignmentNode gives a ShipmentParcel leaf and a Consolidation branch
+    the same TotalWeightKilograms and Parcels() surface, so a Consolidation
+    sums and flattens its children recursively whether a child is another
+    parcel or another consolidation nested underneath it. PortCodeRegistry
+    builds its set of PortCode values once and hands back the same shared
+    instance on every later Get call, so two parcels bound for the same port
+    point at the identical object rather than two separately built copies.
+
+- name: 20-flyweight-frozen-pool
+  section: "Ch. 20"
+  title: FrozenDictionary once, shared instances or a named exception after
+  caption: >-
+    PortCodeRegistry and CommodityCodeRegistry each build their lookup table
+    once with ToFrozenDictionary into a FrozenDictionary<string, PortCode>
+    or a FrozenDictionary<string, CommodityCode>, then serve every later
+    lookup from that same read-optimized structure. A known code returns
+    the identical interned instance on every call, the reference equality
+    Assert.Same checks directly, while an unrecognized code throws
+    UnknownPortCodeException or UnknownCommodityCodeException instead of
+    returning a stale or default value.

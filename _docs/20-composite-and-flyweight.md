@@ -308,6 +308,8 @@ mirror all four against `CommodityCodeRegistry`, down to
 than the port registry throws, so a caller catching one never accidentally
 swallows the other.
 
+{% include excalidraw.html name="20-flyweight-frozen-pool" caption="Figure 20.2: PortCodeRegistry and CommodityCodeRegistry each build their lookup table once with ToFrozenDictionary into a FrozenDictionary<string, PortCode> or a FrozenDictionary<string, CommodityCode>, then serve every later lookup from that same structure; a known code returns the identical interned instance every time, and an unrecognized code throws UnknownPortCodeException or UnknownCommodityCodeException instead of a stale or default value." %}
+
 ## Build, run, observe
 
 Every type in this example is in-memory data: no network call and no file

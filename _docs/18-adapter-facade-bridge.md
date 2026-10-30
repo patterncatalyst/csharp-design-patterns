@@ -415,6 +415,8 @@ caller working through reflection or a serializer that cannot invoke an
 operator syntactically still has a method to call. An analyzer that flags a
 conversion operator with no named alternate is catching exactly this gap.
 
+{% include excalidraw.html name="18-conversion-operators" caption="Figure 18.2: Money converts out to decimal implicitly, matched by the named ToDecimal, and converts in from decimal explicitly, matched by FromDecimal; Kilograms and Pounds convert explicitly in both directions, matched by ToPounds and ToKilograms, because a unit change rather than a rounding is what each cast signals." %}
+
 ## Build, run, observe
 
 Every carrier client in this example computes its quote from a

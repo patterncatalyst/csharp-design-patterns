@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="20" width="920" height="190" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="40" font-size="12" font-weight="700" fill="#888">Adapter</text>
+<rect x="20" y="220" width="920" height="130" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="240" font-size="12" font-weight="700" fill="#888">Facade</text>
+<rect x="20" y="360" width="920" height="180" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="380" font-size="12" font-weight="700" fill="#888">Bridge</text>
+<rect x="40" y="55" width="200" height="40" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="140.0" y="80.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">FastlineSoapClient</text>
+<rect x="280" y="55" width="210" height="40" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="385.0" y="80.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">FastlineGatewayAdapter</text>
+<rect x="40" y="105" width="200" height="40" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="140.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">SeabrightRestClient</text>
+<rect x="280" y="105" width="210" height="40" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="385.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">SeabrightGatewayAdapter</text>
+<rect x="40" y="155" width="200" height="40" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="140.0" y="180.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">AircoLegacyClient</text>
+<rect x="280" y="155" width="210" height="40" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="385.0" y="180.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">AircoGatewayAdapter</text>
+<rect x="760" y="70" width="160" height="100" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="840.0" y="118.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICarrierGateway</text>
+<text x="840.0" y="135.0" font-size="11.5" fill="#555555" text-anchor="middle">one shared interface</text>
+<rect x="40" y="240" width="260" height="45" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="170.0" y="260.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ShipmentBookingFacade</text>
+<text x="170.0" y="277.5" font-size="11.5" fill="#555555" text-anchor="middle">Book(): validate, quote, file</text>
+<rect x="40" y="300" width="190" height="45" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="135.0" y="328.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IAddressValidator</text>
+<rect x="260" y="300" width="190" height="45" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="355.0" y="328.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICarrierGateway</text>
+<rect x="480" y="300" width="190" height="45" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="575.0" y="328.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICustomsFiler</text>
+<rect x="700" y="300" width="220" height="45" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="810.0" y="328.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ShipmentConfirmation</text>
+<rect x="40" y="385" width="200" height="45" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="140.0" y="413.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">StandardShipmentLabel</text>
+<rect x="40" y="445" width="200" height="45" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="140.0" y="473.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ReturnShipmentLabel</text>
+<rect x="270" y="410" width="200" height="70" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="370.0" y="443.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ShipmentLabel</text>
+<text x="370.0" y="460.0" font-size="11.5" fill="#555555" text-anchor="middle">Render() delegates to renderer</text>
+<rect x="500" y="410" width="140" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="570.0" y="450.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ILabelRenderer</text>
+<rect x="670" y="385" width="200" height="45" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="770.0" y="413.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">PdfLabelRenderer</text>
+<rect x="670" y="445" width="200" height="45" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="770.0" y="473.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ZplLabelRenderer</text>
+<path d="M240,75 L280,75" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="266.0" y="69.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">native call</text>
+<text x="266.0" y="69.0" font-size="11" fill="#555" text-anchor="middle">native call</text>
+<path d="M490,75 L760,95" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="631.0" y="79.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="631.0" y="79.0" font-size="11" fill="#b8650a" text-anchor="middle">implements</text>
+<path d="M240,125 L280,125" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="266.0" y="119.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">native call</text>
+<text x="266.0" y="119.0" font-size="11" fill="#555" text-anchor="middle">native call</text>
+<path d="M490,125 L760,120" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="631.0" y="116.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="631.0" y="116.5" font-size="11" fill="#b8650a" text-anchor="middle">implements</text>
+<path d="M240,175 L280,175" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="266.0" y="169.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">native call</text>
+<text x="266.0" y="169.0" font-size="11" fill="#555" text-anchor="middle">native call</text>
+<path d="M490,175 L760,150" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="631.0" y="156.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="631.0" y="156.5" font-size="11" fill="#b8650a" text-anchor="middle">implements</text>
+<path d="M170,285 L135,300" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="158.5" y="286.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Book() runs</text>
+<text x="158.5" y="286.5" font-size="11" fill="#b8650a" text-anchor="middle">Book() runs</text>
+<path d="M230,322 L260,322" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="251.0" y="316.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">then quotes</text>
+<text x="251.0" y="316.0" font-size="11" fill="#b8650a" text-anchor="middle">then quotes</text>
+<path d="M450,322 L480,322" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="471.0" y="316.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">then files</text>
+<text x="471.0" y="316.0" font-size="11" fill="#b8650a" text-anchor="middle">then files</text>
+<path d="M670,322 L700,322" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="691.0" y="316.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">returns</text>
+<text x="691.0" y="316.0" font-size="11" fill="#b8650a" text-anchor="middle">returns</text>
+<path d="M240,407 L270,430" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="261.0" y="412.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">extends</text>
+<text x="261.0" y="412.5" font-size="11" fill="#555" text-anchor="middle">extends</text>
+<path d="M240,467 L270,460" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="261.0" y="457.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">extends</text>
+<text x="261.0" y="457.5" font-size="11" fill="#555" text-anchor="middle">extends</text>
+<path d="M470,445 L500,445" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="491.0" y="439.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">renders through</text>
+<text x="491.0" y="439.0" font-size="11" fill="#b8650a" text-anchor="middle">renders through</text>
+<path d="M640,428 L670,407" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="661.0" y="411.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implemented by</text>
+<text x="661.0" y="411.5" font-size="11" fill="#555" text-anchor="middle">implemented by</text>
+<path d="M640,462 L670,467" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="661.0" y="458.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implemented by</text>
+<text x="661.0" y="458.5" font-size="11" fill="#555" text-anchor="middle">implemented by</text>
+</svg>
