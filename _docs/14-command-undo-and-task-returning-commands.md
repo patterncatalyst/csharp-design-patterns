@@ -181,7 +181,7 @@ field required.
 ## Delegates as commands
 
 `IBookingCommand` is a one-method-pair interface, and a one-off amendment
-that will never earn its own named class is a natural fit for the delegate
+that does not warrant its own named class is a natural fit for the delegate
 dissolution this book has used for Strategy and Template Method: two plain
 `Action` values standing in for a hand-written implementation.
 `DelegateCommand` is that form:
@@ -349,9 +349,8 @@ happened hides a caller bug instead of surfacing it.
 ## The snapshot rule: value, not reference
 
 `AmendmentQueueTests.Undo_restores_the_exact_snapshot_even_after_later_commands_changed_the_value`
-is the test that earns its own section, because it proves a correctness
-property that is easy to get wrong in a way that compiles cleanly and
-passes every simpler test. The scenario: a booking starts at 10 kilograms,
+proves a correctness property that is easy to get wrong in a way that
+compiles cleanly and passes every simpler test. The scenario: a booking starts at 10 kilograms,
 a `ChangeWeightCommand` moves it to 20, a second `ChangeWeightCommand`
 moves it to 30, both run through `AmendmentQueue.Run`. Undoing once should
 bring the weight back to 20, the value immediately before the second

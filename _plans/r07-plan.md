@@ -112,4 +112,44 @@ place" ban idiom; Liquid `{{ }}`; .slnx/global.json; CA1707 test-only; path leak
 
 ## r07 verification log
 
-_(filled in Wave D)_
+Opus-validated 2026-10-30 (branch `release/r07`). Overall: PASS (one nit-repair round, no must-fixes).
+
+**Build / test (all green):**
+- `examples/13-state-and-finite-state-machines` `dotnet test`: 9 total / 9 succeeded / 0 failed.
+- `examples/14-command-undo-and-task-returning-commands` `dotnet test`: 12 total / 12 succeeded / 0 failed.
+- `scripts/verify.sh`: both new examples auto-discovered and green alongside 00/05/06/07/08/09/10/11/12.
+- `bundle exec jekyll build`: clean, all four r07 figures render.
+
+**Content:** both chapters full spine in order (figure after "Why this matters"); "Build, run,
+observe" quotes real counts (9 / 12), path-sanitized (0 `/home/`, 0 username); exactly one AI
+sidebar each in "When not to use it"; body prose 3302 words (ch13) and 4590 words (ch14), both
+above floor and each with a density figure; 0 em-dash; no intra-book numeric cross-refs;
+citations learn.microsoft.com + GoF (pearson).
+
+**NO CROSS-LANGUAGE COMPARISON (new rule):** grep for Java/C++/Spring/erasure/"no X analogue"
+across both docs, both example trees (.cs + README), all four new diagrams.yml captions, and all
+four SVGs = ZERO hits. Rule is now in CLAUDE.md.
+
+**Diagrams (name-accuracy gate after r06 regression):** four figures
+(`13-state-and-finite-state-machines`, `13-probabilistic-transit-model`,
+`14-command-undo-and-task-returning-commands`, `14-async-command-undo`) each paired on disk,
+registered in `_data/diagrams.yml` (entries 23-26, chapter order), included in the right chapter.
+Diagrams were generated AFTER the code was green, fed the locked type names; validator extracted
+every SVG label + caption token and confirmed each exists in the example. No drift.
+
+**Code idiom:** `lgtm-idiomatic-review` scan 0 hits on both examples. ch13: switch `_ =>` arm,
+`InvalidTransitionException` CA1032 ctors, CA5394 handled via scoped pragma (not global), injected
+`IRandomSource`. ch14: ConfigureAwait(false) on library awaits, token threaded, CA1711 via scoped
+`[SuppressMessage]` (not global). Both test csprojs set IsTestProject + IsPackable false + NoWarn
+CA1707, pin the four packages, omit TestingPlatformDotnetTestSupport; each example has its own
+`.slnx`; neither library pins a runtime NuGet package. Em-dash across both examples' .cs + README
+= 0.
+
+**Voice:** `lgtm-professional-voice` scan 0 ban-tier on both docs.
+
+**Repairs this iteration:** two "earn(s) its own [class/section]" editorializing nits in ch14
+reworded (one was also meta-narration about the chapter's own structure) - re-grep now clean.
+The user-flagged ch10 kicker ("...not from hope") was also fixed in this branch, and that
+editorializing pattern was added to the lgtm-professional-voice scanner (lgtm-skills PR #79).
+
+**Part 5 is complete** (ch11-14 across r06 + r07).
