@@ -197,3 +197,30 @@
     matchers, including the await an async Received check needs. Arg
     matchers work on both sides, narrowing a stub or a verification to the
     argument that actually matters.
+
+- name: 11-strategy-delegates-interfaces-keyed-services
+  section: "Ch. 11"
+  title: One Strategy, three ways to supply it
+  caption: >-
+    The same rate-pricing Strategy collapsed to three different shapes feeding
+    one RateCalculator. A plain Func<RateRequest, Money> drops the interface
+    and the class entirely; IPricingStrategy names the abstraction and gives
+    StandardTariff, ExpressTariff, and EconomyTariff a shared contract; a
+    keyed DI container resolves the same three tariffs by a runtime string
+    key instead of a compile-time type. RateCalculator takes the same call
+    shape in and returns the same RateQuote out no matter which level
+    supplied the strategy.
+
+- name: 12-template-method-and-the-delegate-alternative
+  section: "Ch. 12"
+  title: A fixed skeleton, two ways to vary the steps
+  caption: >-
+    The same three-step customs workflow, CollectRequiredFields, then
+    CalculateDuty, then Validate, built two ways. The inheritance form seals
+    Build() on an abstract DeclarationBase so no subclass can reorder the
+    steps, while GermanyDeclaration and JapanDeclaration override each step
+    for their own tariff rules. The delegate form moves the same sealed
+    order into DeclarationEngine.Build(), which takes a DeclarationSteps
+    record of Func<> values instead of a subclass. Both paths produce the
+    same CustomsDeclaration; only the steps vary by country, never the
+    order they run in.

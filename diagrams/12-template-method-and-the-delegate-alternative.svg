@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="20" width="430" height="390" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="40" font-size="12" font-weight="700" fill="#888">inheritance form</text>
+<rect x="510" y="20" width="430" height="390" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="522" y="40" font-size="12" font-weight="700" fill="#888">delegate form</text>
+<rect x="50" y="50" width="370" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="235.0" y="83.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">abstract DeclarationBase</text>
+<text x="235.0" y="100.0" font-size="11.5" fill="#555555" text-anchor="middle">sealed Build(): Collect → CalculateDuty → Validate</text>
+<rect x="50" y="150" width="175" height="90" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="137.5" y="193.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">GermanyDeclaration</text>
+<text x="137.5" y="210.0" font-size="11.5" fill="#555555" text-anchor="middle">overrides all three steps</text>
+<rect x="245" y="150" width="175" height="90" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="332.5" y="193.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">JapanDeclaration</text>
+<text x="332.5" y="210.0" font-size="11.5" fill="#555555" text-anchor="middle">overrides all three steps</text>
+<rect x="50" y="300" width="370" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="235.0" y="328.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">CustomsDeclaration</text>
+<text x="235.0" y="345.0" font-size="11.5" fill="#555555" text-anchor="middle">produced by Build()</text>
+<rect x="540" y="50" width="370" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="725.0" y="83.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DeclarationEngine.Build(DeclarationSteps)</text>
+<text x="725.0" y="100.0" font-size="11.5" fill="#555555" text-anchor="middle">same fixed order: Collect → CalculateDuty → Validate</text>
+<rect x="540" y="150" width="175" height="90" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="627.5" y="193.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Germany DeclarationSteps</text>
+<text x="627.5" y="210.0" font-size="11.5" fill="#555555" text-anchor="middle">Func&lt;&gt; for all three steps</text>
+<rect x="735" y="150" width="175" height="90" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="822.5" y="193.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Japan DeclarationSteps</text>
+<text x="822.5" y="210.0" font-size="11.5" fill="#555555" text-anchor="middle">Func&lt;&gt; for all three steps</text>
+<rect x="540" y="300" width="370" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="725.0" y="328.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">CustomsDeclaration</text>
+<text x="725.0" y="345.0" font-size="11.5" fill="#555555" text-anchor="middle">produced by Build(steps)</text>
+<rect x="20" y="430" width="920" height="100" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="478.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">The skeleton and the step order are fixed</text>
+<text x="480.0" y="495.0" font-size="11.5" fill="#555555" text-anchor="middle">Build always runs Collect, then CalculateDuty, then Validate; only the steps vary by country</text>
+<path d="M137,120 L137,150" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="143.0" y="129.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">override steps</text>
+<text x="143.0" y="129.0" font-size="11" fill="#555" text-anchor="middle">override steps</text>
+<path d="M332,120 L332,150" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="338.0" y="129.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">override steps</text>
+<text x="338.0" y="129.0" font-size="11" fill="#555" text-anchor="middle">override steps</text>
+<path d="M137,240 L137,300" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="143.0" y="264.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">produces</text>
+<text x="143.0" y="264.0" font-size="11" fill="#b8650a" text-anchor="middle">produces</text>
+<path d="M332,240 L332,300" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="338.0" y="264.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">produces</text>
+<text x="338.0" y="264.0" font-size="11" fill="#b8650a" text-anchor="middle">produces</text>
+<path d="M627,150 L627,120" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="633.0" y="129.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">passed as steps</text>
+<text x="633.0" y="129.0" font-size="11" fill="#555" text-anchor="middle">passed as steps</text>
+<path d="M822,150 L822,120" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="828.0" y="129.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">passed as steps</text>
+<text x="828.0" y="129.0" font-size="11" fill="#555" text-anchor="middle">passed as steps</text>
+<path d="M725,120 L725,300" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="731.0" y="204.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">produces</text>
+<text x="731.0" y="204.0" font-size="11" fill="#b8650a" text-anchor="middle">produces</text>
+</svg>
