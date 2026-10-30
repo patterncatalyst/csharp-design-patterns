@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ConsignmentTracking.csproj" />
+  <Project Path="ConsignmentTracking.Tests/ConsignmentTracking.Tests.csproj" />
+</Solution>

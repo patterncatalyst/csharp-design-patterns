@@ -1,0 +1,27 @@
+<!-- Chapter 21 example: Observer expressed two ways on the same handling
+     feed. ConsignmentTracker is the idiomatic CLR shape, a multicast
+     EventHandler<T> event. HandlingEventStream is the reach-past-event
+     shape for when a subscriber needs composition, backpressure, or a
+     completion signal: System.Reactive's IObservable<T>. TargetFramework,
+     LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);ConsignmentTracking.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- HandlingEventStream wraps a Subject<T> from System.Reactive, the
+         reach-past-event option when a subscriber needs more than a
+         multicast delegate gives: composition operators, a completion
+         signal, or a uniform error channel. Version surveyed with
+         `dotnet package search` (exact-match mode) against .NET 10 SDK
+         10.0.113 on 2026-10-30; 7.0.0 is the current stable release. -->
+    <PackageReference Include="System.Reactive" Version="7.0.0" />
+  </ItemGroup>
+
+</Project>
