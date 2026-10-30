@@ -31,8 +31,8 @@ By the end of this chapter you can:
 ## Why this matters
 
 Every chapter after this one hands a class to a test and trusts the result.
-That trust has to come from somewhere, and it comes from the suite in this
-chapter, not from hope. A `ShipmentRatingEngine` that quotes a consignment by
+This chapter builds the suite that result rests on. A `ShipmentRatingEngine`
+that quotes a consignment by
 calling out to a carrier's rate API, applying a jurisdiction's tax rules, and
 writing a compliance record has three real-world dependencies that a test
 cannot afford to touch: a network call to a carrier that may be down, rate
