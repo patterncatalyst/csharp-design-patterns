@@ -520,7 +520,7 @@ a bare calculator.
 
 ## When not to use it
 
-A Decorator chain earns the interface and the extra class per layer only
+A Decorator chain justifies the interface and the extra class per layer only
 when more than one layer is actually possible, or when a layer needs to
 come off without touching the ones around it. A single adjustment that
 every shipment always gets, a jurisdiction with exactly one tax rate and

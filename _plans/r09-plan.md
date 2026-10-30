@@ -110,4 +110,43 @@ test-only; path leaks; word floor.
 
 ## r09 verification log
 
-_(filled in Wave D)_
+Opus-validated 2026-10-30 (branch `release/r09`). Overall: PASS (one editorializing nit fixed).
+
+**Build / test (all green):**
+- `examples/18-adapter-facade-bridge` `dotnet test`: 14/14.
+- `examples/19-decorator-and-proxy` `dotnet test`: 14/14.
+- `examples/20-composite-and-flyweight` `dotnet test`: 11/11.
+- `scripts/verify.sh`: all three new examples auto-discovered and green alongside the rest.
+- `bundle exec jekyll build`: clean, all six r09 figures render.
+
+**Content:** all three chapters full spine in order (figure after "Why this matters"); "Build,
+run, observe" quotes real counts (14/14/11), path-sanitized (0 `/home/`, 0 username); exactly one
+AI sidebar each in "When not to use it"; body prose 3532 (ch18) / 3922 (ch19) / 2936 (ch20), each
+with a density figure; 0 em-dash; citations learn.microsoft.com + GoF (pearson).
+
+**NO CROSS-LANGUAGE (risk spots = ch18 conversion operators, ch19 DispatchProxy):** grep for
+Java/JVM/erasure/C++/Spring across all three docs, all three example trees (.cs + README), the six
+new diagrams.yml captions (#33-38), and the six SVGs = ZERO. (Pre-existing "C++ and Smalltalk" in
+ch2/ch3 diagrams.yml entries is the accepted historical grounding, out of r09 scope.)
+
+**CROSS-CHAPTER REFS LIGHT:** no intra-book numeric cross-refs; all "chapter"/"later"/"earlier"
+hits are self-references. No pointer to another chapter by number or title.
+
+**Diagrams (name-accuracy gate):** six figures (#33-38, chapter order) each paired on disk,
+registered, included in the right chapter. Every SVG label + caption token verified present in the
+example source. No drift. (Generated after green code with locked names.)
+
+**Code idiom:** `lgtm-idiomatic-review` 0 hits on all three. ch18: implicit only for Money->decimal
+widening, explicit for decimal->Money + Kilograms<->Pounds, CA2225 named alternates. ch19:
+DispatchProxy (interface, Invoke signature, Target after Create), DI decoration via factory,
+caching proxy (Received(1)/Calls). ch20: ToFrozenDictionary, flyweights are sealed CLASS not
+record, IReadOnlyList exposure. All test csprojs set IsTestProject + IsPackable false + NoWarn
+CA1707, pin the four packages, omit TestingPlatformDotnetTestSupport; each example own `.slnx`;
+ch18/ch20 no runtime package; ch19 MEDI 10.0.14; AddressValidationException /
+UnknownPortCodeException / UnknownCommodityCodeException have CA1032 three ctors. Em-dash across all
+three examples' .cs + README = 0.
+
+**Voice:** `lgtm-professional-voice` 0 ban-tier on all three. One editorializing nit fixed
+(`_docs/19:523` "earns the interface" -> "justifies the interface").
+
+**Part 7 is complete** (ch18-20).
