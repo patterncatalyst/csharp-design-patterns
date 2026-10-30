@@ -118,4 +118,43 @@ CA1032 3 ctors on the two custom exceptions.
 
 ## r08 verification log
 
-_(filled in Wave D)_
+Opus-validated 2026-10-30 (branch `release/r08`). Overall: PASS, no must-fixes, no repair round.
+
+**Build / test (all green):**
+- `examples/15-factory-method-and-abstract-factory` `dotnet test`: 14/14.
+- `examples/16-builder-required-members-prototype-with` `dotnet test`: 5/5.
+- `examples/17-singleton-lazy-and-di-lifetimes` `dotnet test`: 15/15.
+- `scripts/verify.sh`: all three new examples auto-discovered and green alongside the rest.
+- `bundle exec jekyll build`: clean, all six r08 figures render.
+
+**Content:** all three chapters full spine in order (figure after "Why this matters"); "Build,
+run, observe" quotes real counts (14/5/15), path-sanitized (0 `/home/`, 0 username); exactly one
+AI sidebar each in "When not to use it"; body prose 3107 (ch15) / 3578 (ch16) / 3512 (ch17),
+each with a density figure; 0 em-dash; citations learn.microsoft.com + GoF (pearson).
+
+**NO CROSS-LANGUAGE (highest-risk = ch15 reified generics):** grep for Java/JVM/erasure/C++/Spring
+across all three docs, all three example trees (.cs + README), the six new diagrams.yml captions,
+and all six SVGs = ZERO. Reification described positively ("a generic type argument in C# is
+available at runtime").
+
+**CROSS-CHAPTER REFS LIGHT (new rule):** no intra-book numeric cross-refs; all "chapter" hits are
+self-referential ("this chapter") or within-chapter section pointers. No pointer to another
+chapter by number or title.
+
+**Diagrams (name-accuracy gate):** six figures (#27-32, chapter order) each paired on disk,
+registered, included in the right chapter. Every SVG label + caption token verified present in the
+example source. No drift. (Generated after green code with locked names.)
+
+**Code idiom:** `lgtm-idiomatic-review` 0 hits on all three. ch15: ICarrier static-abstract Code
+(CA1040 handled), typeof(TCarrier) key + where-constraints + registered factory (no Activator).
+ch16: required members + records + `with` + collection-spread, no "before" code. ch17: Lazy<T>
+ExecutionAndPublication, static singleton + explicit static ctor, MEDI lifetimes + captive-
+dependency via ValidateScopes. All test csprojs set IsTestProject + IsPackable false + NoWarn
+CA1707, pin the four packages, omit TestingPlatformDotnetTestSupport; each example own `.slnx`;
+ch15/16 no runtime package; ch17 MEDI 10.0.14; UnknownCarrierException + BookingValidationException
+have CA1032 three ctors. Em-dash across all three examples' .cs + README = 0.
+
+**Voice:** `lgtm-professional-voice` 0 ban-tier on all three (watch-tier only). Editorializing
+family grep clean.
+
+**Part 6 is complete** (ch15-17). No repairs were needed this iteration.
