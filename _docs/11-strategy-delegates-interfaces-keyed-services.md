@@ -20,7 +20,7 @@ By the end of this chapter you can:
 - Build a `DelegateRateQuoter` that prices a request through a plain
   `Func<RateRequest, Money>`, with no `IPricingStrategy` interface or
   implementing class anywhere in the type.
-- Decide when a named `IPricingStrategy` interface earns its place over a
+- Decide when a named `IPricingStrategy` interface is the better fit than a
   bare delegate, and implement three strategies, `StandardTariff`,
   `ExpressTariff`, and `EconomyTariff`, that a `StrategyRateQuoter` resolves
   with no caller-side branching on which one it holds.
@@ -69,7 +69,7 @@ algorithm vary without any of that cost, in increasing order of ceremony.
 A plain `Func<RateRequest, Money>` delegate is a Strategy with nothing
 built on top of it: a lambda is the algorithm, and swapping it is passing
 a different one in. A named `IPricingStrategy` interface is the textbook
-GoF shape, earning its keep once an algorithm needs a name, a home for its
+GoF shape, justified once an algorithm needs a name, a home for its
 own tests, or a place in the domain vocabulary a team actually discusses.
 A keyed service registered in the built-in dependency injection container
 goes a step further still: the string that picks the algorithm is no
@@ -168,7 +168,7 @@ right for a pricing rule that exists for one call site, one test, or one
 short-lived experiment and has no other reason to be a citizen of the
 domain model.
 
-## Level 2: when the interface earns its place
+## Level 2: when to define an interface
 
 A delegate stops being the right answer the moment a pricing rule needs to
 be more than a lambda somebody wrote inline: a named thing a team discusses
@@ -243,7 +243,7 @@ builds one `StrategyRateQuoter` against `new StandardTariff()` and a second
 against `new ExpressTariff()`, quotes the same 100-kilogram request to
 Singapore through each, and asserts 400.00 USD from the first and 650.00
 USD from the second, with `Assert.NotEqual` confirming the two prices
-genuinely differ. `Economy_strategy_prices_under_standard_from_the_same_caller_type`
+differ by design. `Economy_strategy_prices_under_standard_from_the_same_caller_type`
 does the same against `EconomyTariff` and gets 300.00 USD. In every case
 `StrategyRateQuoter` itself is the identical type, unmodified, across all
 three strategies; only the constructor argument changes. That is what the
@@ -365,7 +365,7 @@ handling, determines which registration applies, an express-only
 processing lane being the clearest case: every request that reaches it
 gets the express tariff, regardless of what string it happens to carry.
 
-Two correctness traps around keyed services are worth knowing before
+Two correctness traps around keyed services matter before
 reaching for them, and both are proven directly by this example's tests
 rather than left as unverified claims. First, `GetRequiredKeyedService`
 and `GetKeyedService` disagree about what to do with an unregistered key:
@@ -442,7 +442,7 @@ exists only because the pattern says it should, not because a second
 tariff is coming or a test needs to substitute one. The direction worth
 defaulting toward is the dissolve this chapter demonstrates, interface
 down to delegate, not the reverse; reach for `IPricingStrategy` only once
-a second named implementation genuinely exists, a consumer needs to be
+a second named implementation exists, a consumer needs to be
 tested against a substitute, or the algorithm is about to be registered in
 a container the way this chapter's third tier does.
 
@@ -474,14 +474,14 @@ request, with no code anywhere that would otherwise have to branch on it.
 > have a second implementation, because "add an abstraction" is the
 > reflexive answer to "make this swappable" regardless of whether a swap
 > is actually planned. Check a generated answer against the two questions
-> this chapter asks directly: does the selecting value genuinely arrive as
+> this chapter asks directly: does the selecting value arrive as
 > runtime data the code does not control, which is what a keyed
 > registration is for, and does a second implementation of the interface
 > actually exist or is clearly coming, which is what the interface itself
 > is for. A dictionary a developer populates by hand with every valid key
 > already known at compile time is not configurability; it is the
 > container's own job, done worse and left untested by the suite the
-> container's own keyed-service tests already provide for free.
+> container's own keyed-service tests already provide without extra code.
 
 ## For deeper coverage
 

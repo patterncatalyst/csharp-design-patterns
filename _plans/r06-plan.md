@@ -104,4 +104,44 @@ leaks; word floor; diagram name drift; TODO-caption trap on primary figures (Wav
 
 ## r06 verification log
 
-_(filled in Wave D)_
+Opus-validated 2026-10-29 (branch `release/r06`). Overall: PASS (after repair round).
+
+**Build / test (all green):**
+- `examples/11-strategy-delegates-interfaces-keyed-services` `dotnet test`: 13 total / 13 succeeded / 0 failed.
+- `examples/12-template-method-and-the-delegate-alternative` `dotnet test`: 9 total / 9 succeeded / 0 failed.
+- `scripts/verify.sh`: both new examples auto-discovered and green alongside 00/05/06/07/08/09/10.
+- `bundle exec jekyll build`: clean, all four r06 figures render.
+
+**Content:** both chapters carry the full spine in order (figure after "Why this matters");
+"Build, run, observe" quotes the real summaries with matching counts (13 / 9), path-sanitized
+(0 `/home/`, 0 username); exactly one AI sidebar each in "When not to use it"; body prose
+~3287 words (ch11) and ~3266 words (ch12), both above the 2000 floor and each carrying a
+second (density) figure; 0 em-dash in docs; no intra-book numeric cross-refs; ch11 cites MS
+Learn DI/keyed-services, ch12 cites GoF + MS Learn (records, equality).
+
+**Diagrams (extra scrutiny after the name-drift catch):** four figures
+(`11-strategy-delegates-interfaces-keyed-services`, `11-keyed-service-resolution`,
+`12-template-method-and-the-delegate-alternative`, `12-template-method-step-order`) each
+paired on disk, registered in `_data/diagrams.yml` (entries 19-22, chapter order), included in
+the right chapter. The two primary figures were REGENERATED mid-iteration to fix invented
+class names (ch11 "RateCalculator" -> real DelegateRateQuoter/StrategyRateQuoter/
+KeyedTariffQuoter; ch12 "DeclarationBase"/"GermanyDeclaration" -> CustomsDeclarationBuilder/
+...Builder). Validator confirmed every type named in every SVG and caption exists in the
+respective example.
+
+**Code idiom:** `lgtm-idiomatic-review` scan 0 hits on both examples. ch11 keyed DI correct
+(`AddKeyedSingleton` x3, `GetRequiredKeyedService` vs `GetKeyedService`, `[FromKeyedServices]`,
+non-keyed-returns-null and unknown-key-throws both proven). ch12 abstract base analyzer-clean
+(CA1012 protected ctor, CA1051 no public fields, sealed non-virtual `Build`). Both test csprojs
+set IsTestProject + IsPackable false + NoWarn CA1707, pin the four packages, omit
+`TestingPlatformDotnetTestSupport`; each example has its own `.slnx`; ch11 pins MEDI 10.0.14.
+Em-dash scan across both examples' `.cs` and README = 0.
+
+**Repairs applied this iteration:**
+- Diagram name drift (see above): both primary figures regenerated with correct class names +
+  captions fixed, before validation.
+- 19 ban-tier voice hits rewritten across `_docs/11` and `_docs/12` (earns its place / earning
+  its keep / genuinely / worth knowing/naming/guaranteeing / for free / deliberately built /
+  honest comparison/fix), including the two section-heading idioms ("when to define an
+  interface", "Where inheritance still fits") and a bibliography back-reference; re-scan now 0
+  ban-tier on both (watch-tier only).

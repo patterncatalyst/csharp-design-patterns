@@ -4,7 +4,7 @@ order: 12
 layout: tutorial
 sectionid: docs
 part: "selecting-varying-behavior"
-description: "Where an inheritance-based skeleton still earns its place, and where a delegate replaces it."
+description: "Where an inheritance-based skeleton still fits, and where a delegate replaces it."
 ---
 
 <!-- EXAMPLE (shipping domain): Customs declaration generation, varying by destination country. -->
@@ -213,12 +213,12 @@ same thing with three recording `Func<>` values passed straight into
 Neither test inspects source code or relies on a reader trusting that
 `Build` wasn't edited; each one calls the method and watches what actually
 ran, which is the same standard this book has applied to every other
-invariant worth guaranteeing.
+invariant it guarantees.
 
-## Where inheritance still earns its place
+## Where inheritance still fits
 
 Replacing an inheritance hierarchy with a record of delegates is not a
-universal upgrade, and this example is deliberately built so that the
+universal upgrade, and this example is built so that the
 trade is visible rather than asserted. The delegate form wins cleanly here
 because every step is a pure function of the `Shipment` it's handed: no
 step needs to call another step, no step needs state that persists across
@@ -231,7 +231,7 @@ balance shifts back toward a class.
 A shared protected helper is the first case. If every country's
 `CalculateDuty` needed to apply the same currency-rounding helper, or the
 same lookup against a shared tariff table, a base class gives every
-subclass that helper for free as a protected method, inherited without
+subclass that helper as a protected method, inherited without
 being re-wired at every call site. A `DeclarationSteps` value has no
 equivalent: the helper has to be a separate static method or a captured
 local that every lambda references by hand, which works but scatters the
@@ -241,7 +241,7 @@ once on the base type.
 State shared across steps is the second case. This example's three steps
 never need to pass information to each other beyond what each receives
 fresh in `shipment`; `CalculateDuty` doesn't need to know what
-`CollectRequiredFields` just decided. A workflow where step two genuinely
+`CollectRequiredFields` just decided. A workflow where step two
 needs a value step one computed, a running total, a flag set partway
 through, fits a class far better than a record of independent functions,
 because instance fields on the subclass carry that state naturally across
@@ -250,7 +250,7 @@ return values and parameters by hand or capture a mutable variable across
 lambdas, which reintroduces by convention the same shared-state bug surface
 the pattern exists to avoid.
 
-A genuine type hierarchy a consumer pattern-matches on is the third case.
+A real type hierarchy a consumer pattern-matches on is the third case.
 If code elsewhere in the system needed to ask "is this a European Union
 declaration builder" and branch on the answer, or needed to register
 builders in a dictionary keyed by `Type` for a plugin-style lookup, the
@@ -278,7 +278,7 @@ behavior would need that behavior passed in explicitly as yet another
 delegate.
 
 None of this makes one form of Template Method categorically better than
-the other. Both are modern, idiomatic C#, and the honest comparison this
+the other. Both are modern, idiomatic C#, and the comparison this
 chapter draws is which one costs less for a specific shape of variation,
 not which one is the newer or more fashionable choice. Pure, independent,
 per-country functions with no shared helper, no cross-step state, and no
@@ -328,10 +328,10 @@ var declaration = DeclarationEngine.Build(shipment, CountrySteps.Japan);
 Proving the two forms agree sounds like it should be a single equality
 assertion: build a declaration both ways and assert the two records are
 equal. That assertion does not do what it looks like it does here, and the
-reason is worth naming precisely because it recurs anywhere a record
+reason matters precisely because it recurs anywhere a record
 carries a collection behind an interface type. `CustomsDeclaration` declares
 `RequiredFields` and `ValidationMessages` as `IReadOnlyList<string>`. The
-compiler-generated `Equals` a record gets for free compares each member
+compiler-generated `Equals` a record gets automatically compares each member
 using `EqualityComparer<T>.Default` for that member's declared type, and for
 an interface type like `IReadOnlyList<string>` with no overridden equality
 of its own, `EqualityComparer<IReadOnlyList<string>>.Default` falls back to
@@ -411,7 +411,7 @@ implementation in sight does not need an abstract base class or a
 things in order, because a skeleton built for variation that never arrives
 is an abstraction with a carrying cost and no buyer. The customs example in
 this chapter earns the pattern because three real countries, each with a
-genuinely different formula and threshold, exist today and a fourth is a
+a different formula and threshold, exist today and a fourth is a
 realistic addition; a system with one destination country hardcoded and no
 second one planned should write `BuildUnitedStatesDeclaration` as an
 ordinary method and stop there.
@@ -419,12 +419,12 @@ ordinary method and stop there.
 The second failure mode is reaching for Template Method when the "steps"
 being split don't actually share a skeleton at all, only a superficial
 resemblance in their parameter lists. If one country's declaration process
-genuinely needs a fourth step the others skip entirely, or needs its three
+needs a fourth step the others skip entirely, or needs its three
 steps in a different order because its customs authority processes duty
 before confirming required fields, forcing that country through the same
 fixed `Build` sequence as the other two produces a subclass, or a
 `DeclarationSteps` value, that lies about following a shared process it
-doesn't actually follow. The honest fix at that point is not a four-step
+doesn't actually follow. The fix at that point is not a four-step
 template with an optional fourth hook bolted on; it's recognizing that the
 country in question isn't a variation of the same algorithm and doesn't
 belong behind the same skeleton.
@@ -449,7 +449,7 @@ belong behind the same skeleton.
 
 ## For deeper coverage
 
-- Gamma, Helm, Johnson, and Vlissides, [*Design Patterns: Elements of Reusable Object-Oriented Software*](https://www.pearson.com/en-us/subject-catalog/p/design-patterns-elements-of-reusable-object-oriented-software/P200000009480) (Addison-Wesley, 1994): the original statement of Template Method, including the base-class-calls-concrete-operations variation this chapter's "where inheritance still earns its place" section draws on.
+- Gamma, Helm, Johnson, and Vlissides, [*Design Patterns: Elements of Reusable Object-Oriented Software*](https://www.pearson.com/en-us/subject-catalog/p/design-patterns-elements-of-reusable-object-oriented-software/P200000009480) (Addison-Wesley, 1994): the original statement of Template Method, including the base-class-calls-concrete-operations variation this chapter's "where inheritance still fits" section draws on.
 - Microsoft Learn, [Records](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/records): the authority for how compiler-generated record equality compares each declared member, including the interface-typed collection member this chapter's parity-test section depends on.
 - Microsoft Learn, [Equality comparisons](https://learn.microsoft.com/en-us/dotnet/standard/base-types/equality-comparisons): the authority for `EqualityComparer<T>.Default` falling back to reference equality for a type with no overridden equality member.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).
