@@ -1,0 +1,24 @@
+<!-- Chapter 19 example: Decorator composes a rating pipeline from independent
+     layers, and Proxy sits in front of a collaborator twice over, once as a
+     caching proxy in front of a slow carrier gateway, and once as a
+     runtime DispatchProxy intercepting an IRateCalculator. TargetFramework,
+     LangVersion, Nullable, etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RateComposition.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Backs the DI-decoration layer: ServiceCollectionExtensions builds the
+         decorator chain once, in the composition root, instead of a consumer
+         calling "new" on each layer. Version surveyed with
+         `dotnet package search` (exact-match mode) against .NET 10 SDK
+         10.0.113 on 2026-10-30. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>
