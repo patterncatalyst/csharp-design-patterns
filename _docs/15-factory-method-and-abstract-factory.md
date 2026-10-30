@@ -4,7 +4,7 @@ order: 15
 layout: tutorial
 sectionid: docs
 part: "creating-objects-under-control"
-description: "How reified generics change these patterns, with typeof(T), constructor constraints, and type-keyed registries replacing Java's erasure workarounds."
+description: "How reified generics change these patterns, with typeof(T), constructor constraints, and type-keyed registries."
 ---
 
 <!-- EXAMPLE (shipping domain): A gateway per carrier, resolved by type through IGateway<TCarrier>. -->

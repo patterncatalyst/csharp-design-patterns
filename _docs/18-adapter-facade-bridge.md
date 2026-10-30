@@ -4,7 +4,7 @@ order: 18
 layout: tutorial
 sectionid: docs
 part: "composing-adapting-structure"
-description: "The three structural adapters, plus the implicit and explicit conversion operators C# has and Java does not."
+description: "The three structural adapters, plus C#'s implicit and explicit conversion operators."
 ---
 
 <!-- EXAMPLE (shipping domain): Three carrier APIs behind one interface, with Money and Weight unit conversions via operators. -->

@@ -44,22 +44,24 @@
 
 - name: 03-the-divergence-map
   section: "Ch. 3"
-  title: The Java-vs-C# divergence map
+  title: The modern C# feature map
   caption: >-
-    Ten C# language and runtime features with no Java counterpart: event,
-    delegates, yield and LINQ, nullable reference types, extension members,
-    expression trees, source generators, reified generics, static abstract
-    members, and value types. Each is a self-contained entry a Java-trained
-    reader can file a name under on sight.
+    Ten C# language and runtime features, each mapped against the 1994
+    catalogue's pattern shape it reshapes: event, delegates, yield and LINQ,
+    nullable reference types, extension members, expression trees, source
+    generators, reified generics, static abstract members, and value types.
+    The catalogue's own examples were written in C++ and Smalltalk; each
+    entry here is a self-contained name a reader can file on sight.
 
-- name: 03-reification-vs-erasure
+- name: 03-reification-pipeline
   section: "Ch. 3"
-  title: Reification versus erasure
+  title: How the CLR specializes a generic type
   caption: >-
-    Two compile-and-run pipelines for the same generic container. Roslyn and
-    the CLR JIT specialize List<int> and List<string> into distinct runtime
-    types with no boxing; javac erases List<Integer> and List<String> to one
-    shared class, and an Integer lands boxed on the heap.
+    A single compile-and-run pipeline for a generic container. Roslyn
+    compiles List<int> and List<string> as separate instantiations, and the
+    CLR JIT produces two distinct, specialized runtime types, each storing
+    its element inline with no boxing. Reification is a CLR guarantee from
+    .NET's first release.
 
 - name: 04-naming-patterns-for-teams-and-ai
   section: "Ch. 4"
