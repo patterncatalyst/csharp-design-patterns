@@ -1,0 +1,15 @@
+<!-- Chapter 14 example: Command as a reversible, queueable unit of work, in
+     both a synchronous form (IBookingCommand, undo by restored snapshot) and
+     a Task-returning async form (IAsyncBookingCommand, against a gateway
+     collaborator). TargetFramework, LangVersion, Nullable, etc. are inherited
+     from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);BookingAmendments.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>
