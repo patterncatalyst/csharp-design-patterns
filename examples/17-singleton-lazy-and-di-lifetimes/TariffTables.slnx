@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TariffTables.csproj" />
+  <Project Path="TariffTables.Tests/TariffTables.Tests.csproj" />
+</Solution>
