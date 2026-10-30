@@ -1,0 +1,17 @@
+<!-- Chapter 12 example: Template Method, shown two ways against a shared
+     customs-declaration scenario. CustomsDeclarationBuilder is the classic
+     abstract-base-class form with a sealed template method and protected
+     step overrides; DeclarationEngine is the modern delegate-record
+     alternative, running the same fixed step order over a DeclarationSteps
+     value. TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CustomsDocumentation.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

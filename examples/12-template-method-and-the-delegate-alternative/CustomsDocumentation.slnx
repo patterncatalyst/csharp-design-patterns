@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CustomsDocumentation.csproj" />
+  <Project Path="CustomsDocumentation.Tests/CustomsDocumentation.Tests.csproj" />
+</Solution>
