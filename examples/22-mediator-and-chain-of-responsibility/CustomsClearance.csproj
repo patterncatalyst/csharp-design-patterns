@@ -1,0 +1,15 @@
+<!-- Chapter 22 example: a customs declaration moves through a Chain of
+     Responsibility of clearance stages, any one of which can halt it, and two
+     clearance desks coordinate only through a Mediator, never through a
+     direct reference to each other. TargetFramework, LangVersion, Nullable,
+     etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CustomsClearance.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

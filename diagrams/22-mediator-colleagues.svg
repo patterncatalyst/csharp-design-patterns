@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="20" width="920" height="500" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="40" font-size="12" font-weight="700" fill="#888">Mediator routes between colleagues</text>
+<rect x="80" y="90" width="320" height="100" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="240.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DeclarationDesk</text>
+<text x="240.0" y="147.5" font-size="11.5" fill="#555555" text-anchor="middle">extends ClearanceColleague</text>
+<text x="240.0" y="162.5" font-size="11.5" fill="#555555" text-anchor="middle">Send(message) -&gt; Mediator.Send(message, this)</text>
+<rect x="560" y="90" width="320" height="100" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="720.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DutyDesk</text>
+<text x="720.0" y="147.5" font-size="11.5" fill="#555555" text-anchor="middle">extends ClearanceColleague</text>
+<text x="720.0" y="162.5" font-size="11.5" fill="#555555" text-anchor="middle">Send(message) -&gt; Mediator.Send(message, this)</text>
+<rect x="330" y="270" width="300" height="110" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="308.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">CustomsMediator</text>
+<text x="480.0" y="325.0" font-size="11.5" fill="#555555" text-anchor="middle">implements IClearanceMediator</text>
+<text x="480.0" y="340.0" font-size="11.5" fill="#555555" text-anchor="middle">Send(message, sender)</text>
+<text x="480.0" y="355.0" font-size="11.5" fill="#555555" text-anchor="middle">routes by ReferenceEquals(sender, ...)</text>
+<rect x="180" y="430" width="600" height="65" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="460.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Each colleague points only at Mediator, never at the other colleague.</text>
+<text x="480.0" y="477.5" font-size="11.5" fill="#555555" text-anchor="middle">A sender&#x27;s own message never lands back in its own Inbox.</text>
+<path d="M200,190 L400,270" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="530.0" y="455.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Send(message, this)</text>
+<text x="530.0" y="455.0" font-size="11" fill="#b8650a" text-anchor="middle">Send(message, this)</text>
+<path d="M560,270 L760,190" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="1400.0" y="455.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Receive(message)</text>
+<text x="1400.0" y="455.0" font-size="11" fill="#b8650a" text-anchor="middle">Receive(message)</text>
+<path d="M760,190 L560,270" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="1400.0" y="390.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Send(message, this)</text>
+<text x="1400.0" y="390.0" font-size="11" fill="#555" text-anchor="middle">Send(message, this)</text>
+<path d="M400,270 L200,190" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="530.0" y="390.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Receive(message)</text>
+<text x="530.0" y="390.0" font-size="11" fill="#555" text-anchor="middle">Receive(message)</text>
+<text x="480" y="15" font-size="13" fill="#888" text-anchor="middle" font-weight="700">CustomsMediator routes a message from one colleague to the other and back</text>
+</svg>

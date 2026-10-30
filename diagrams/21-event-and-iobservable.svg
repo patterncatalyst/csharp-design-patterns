@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="20" width="920" height="220" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="40" font-size="12" font-weight="700" fill="#888">HandlingEventStream</text>
+<rect x="20" y="260" width="920" height="160" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="280" font-size="12" font-weight="700" fill="#888">RecordingObserver (IObserver&lt;HandlingEvent&gt;)</text>
+<rect x="60" y="60" width="380" height="110" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="250.0" y="105.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">HandlingEventStream</text>
+<text x="250.0" y="122.5" font-size="11.5" fill="#555555" text-anchor="middle">wraps Subject&lt;HandlingEvent&gt;</text>
+<text x="250.0" y="137.5" font-size="11.5" fill="#555555" text-anchor="middle">IObservable&lt;HandlingEvent&gt; Events</text>
+<rect x="520" y="60" width="380" height="110" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="710.0" y="113.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Publish(HandlingEvent) -&gt; OnNext</text>
+<text x="710.0" y="130.0" font-size="11.5" fill="#555555" text-anchor="middle">Complete() -&gt; OnCompleted</text>
+<rect x="300" y="300" width="360" height="100" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="340.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RecordingObserver</text>
+<text x="480.0" y="357.5" font-size="11.5" fill="#555555" text-anchor="middle">OnNext / OnCompleted / OnError</text>
+<text x="480.0" y="372.5" font-size="11.5" fill="#555555" text-anchor="middle">Received, Completed, Error</text>
+<rect x="60" y="440" width="840" height="90" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="475.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Subject&lt;HandlingEvent&gt; is a hot stream: a RecordingObserver that subscribes</text>
+<text x="480.0" y="492.5" font-size="11.5" fill="#555555" text-anchor="middle">after an earlier Publish misses that event. ConsignmentTracker.History</text>
+<text x="480.0" y="507.5" font-size="11.5" fill="#555555" text-anchor="middle">retains every reported event instead, for any reader that asks later.</text>
+<path d="M440,115 L520,115" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="486.0" y="109.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">forwards to</text>
+<text x="486.0" y="109.0" font-size="11" fill="#555" text-anchor="middle">forwards to</text>
+<path d="M480,300 L480,170" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="486.0" y="229.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Subscribe</text>
+<text x="486.0" y="229.0" font-size="11" fill="#555" text-anchor="middle">Subscribe</text>
+<path d="M480,400 L480,440" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="480" y="15" font-size="13" fill="#888" text-anchor="middle" font-weight="700">HandlingEventStream publishes through IObservable&lt;T&gt; to RecordingObserver</text>
+</svg>

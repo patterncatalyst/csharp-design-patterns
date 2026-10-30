@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CustomsClearance.csproj" />
+  <Project Path="CustomsClearance.Tests/CustomsClearance.Tests.csproj" />
+</Solution>
