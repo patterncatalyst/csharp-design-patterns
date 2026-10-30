@@ -1,0 +1,15 @@
+<!-- Chapter 15 example: Factory Method (CarrierDispatcher.CreateGateway and its
+     delegate alternative) and Abstract Factory (ICarrierGatewayFactory<TCarrier>)
+     over a gateway-per-carrier that a type-keyed CarrierRegistry resolves by
+     typeof(TCarrier). TargetFramework, LangVersion, Nullable, etc. are
+     inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CarrierProvisioning.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

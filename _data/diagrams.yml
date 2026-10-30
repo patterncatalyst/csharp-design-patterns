@@ -315,3 +315,82 @@
     ConfirmAsync and RevertAsync call beneath them, which is what lets the
     queue preserve order and reverse through the gateway rather than a
     plain in-memory field.
+
+- name: 15-factory-method-and-abstract-factory
+  section: "Ch. 15"
+  title: One overridable step, one matched family, one type-keyed registry
+  caption: >-
+    CarrierDispatcher fixes a build, send, parse sequence and leaves
+    CreateGateway as its one overridable step, matched by
+    DelegateCarrierDispatcher through a constructor-supplied
+    Func<ICarrierGateway> instead of a subclass.
+    ICarrierGatewayFactory<TCarrier> produces a matched ICarrierGateway,
+    IShipmentRequestBuilder, and IShipmentResponseParser as one family per
+    carrier, and CarrierRegistry stores each family by typeof(TCarrier), so
+    a dispatch resolves one by its reified type argument and returns a
+    ShipmentConfirmation.
+
+- name: 15-type-keyed-carrier-registry
+  section: "Ch. 15"
+  title: Registering, resolving, and extending by typeof(T)
+  caption: >-
+    CarrierRegistry.Register<TCarrier> writes a factory into a
+    Dictionary<Type, object> keyed by typeof(TCarrier), and FactoryFor
+    reads it back by the identical key with no cast a caller has to write.
+    Adding Airco costs one Register<Airco> call with no edit to
+    CarrierRegistry itself, while asking for a carrier that was never
+    registered throws UnknownCarrierException rather than returning null or
+    a stale factory. A generic method's type argument is available at the
+    point it runs, which is what makes typeof(T) a reliable dictionary key.
+
+- name: 16-builder-required-members-prototype-with
+  section: "Ch. 16"
+  title: Three paths to the same BookingRequest
+  caption: >-
+    An object initializer that sets the required Origin, Destination, and
+    DeclaredValue members fails to compile under CS9035 if one is missing.
+    BookingRequestBuilder.Build() accumulates state through fluent calls
+    and raises BookingValidationException on a missing or invalid field
+    instead. BookingTemplates.StandardDomestic is cloned and amended with a
+    with expression. All three paths produce a BookingRequest that
+    Assert.Equal confirms is an equal record value.
+
+- name: 16-with-prototype-shallow-copy
+  section: "Ch. 16"
+  title: with leaves the template untouched, the spread leaves it unchanged
+  caption: >-
+    Cloning BookingTemplates.StandardDomestic with a with expression copies
+    every member and overrides only the ones named, leaving the template
+    itself untouched. LineItems is a reference-typed member, so a with
+    expression that never mentions it shares the template's own list; the
+    collection-expression spread, LineItems = [.. template.LineItems,
+    extra], replaces that member with a brand-new list instead, so the
+    amended clone's item count grows by one while the template's own count
+    stays exactly where it was.
+
+- name: 17-singleton-lazy-and-di-lifetimes
+  section: "Ch. 17"
+  title: One tariff table, three ways to guarantee one instance
+  caption: >-
+    ClassicTariffTable guarantees one instance with a private constructor
+    and a static Instance property, LazyTariffTable guarantees it with a
+    Lazy<TariffTable> built ExecutionAndPublication, and an AddSingleton
+    registration gets the same guarantee from the built-in DI container
+    with no static field at all. AddScoped and AddTransient registrations
+    of the same CountingTariffSource contrast the lifetimes beyond
+    Singleton, and CountingTariffSource.LoadCount stays at one across every
+    tier.
+
+- name: 17-di-lifetime-resolution
+  section: "Ch. 17"
+  title: Same, different, and caught by scope validation
+  caption: >-
+    A singleton resolution returns the identical TariffTable every time,
+    Assert.Same; a transient resolution of CountingTariffSource returns a
+    new instance every call, Assert.NotSame; and a scoped resolution
+    returns the same instance within one scope but a different one in the
+    next. Registering ITariffSource as scoped under an AddSingleton
+    LazyTariffTable and building the provider with ServiceProviderOptions
+    ValidateScopes = true turns that captive dependency into an
+    InvalidOperationException at resolution time, and
+    CountingTariffSource.LoadCount still never exceeds one.

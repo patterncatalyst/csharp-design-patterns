@@ -1,0 +1,25 @@
+<!-- Chapter 17 example: Singleton dissolved across three levels of ceremony,
+     a hand-rolled Lazy<T> wrapper, a classic static-instance singleton, and
+     the built-in DI container's own lifetimes, all guarding the same
+     expensive-to-load tariff table. TargetFramework, LangVersion, Nullable,
+     etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);TariffTables.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The built-in DI container's lifetimes (singleton, scoped, transient)
+         back the Tier 3 half of this example, resolving the same ITariffSource
+         and TariffTable that the hand-rolled Lazy<T> wrapper guards manually
+         in Tier 2. Version surveyed with `dotnet package search` (exact-match
+         mode) against .NET 10 SDK 10.0.113 on 2026-10-30; still current, no
+         newer 10.0.x shipped since the chapter 11 survey. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>

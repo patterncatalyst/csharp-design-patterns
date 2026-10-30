@@ -1,0 +1,14 @@
+<!-- Chapter 16 example: Builder dissolved by required members and collection
+     expressions, and Prototype expressed as `with`, both producing the same
+     BookingRequest. TargetFramework, LangVersion, Nullable, etc. are
+     inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);BookingRequests.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

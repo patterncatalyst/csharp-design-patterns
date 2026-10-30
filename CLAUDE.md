@@ -122,6 +122,12 @@ Every chapter (`_docs/NN-*.md`) follows the same shape:
   title, never Roman numerals.
 - **No intra-book chapter-number cross-references** ("as we saw in ch8") in prose
   or slides. Name the pattern or idiom instead.
+- **Keep cross-chapter references light.** Beyond the numeric ban above, do not lean
+  on other chapters even by title or topic ("the Strategy chapter covers...", "we
+  build on the testing chapter"). Each chapter stands alone: explain what the reader
+  needs where they need it, and name the pattern or idiom in place rather than
+  pointing elsewhere. An occasional light pointer is fine; a chapter that keeps
+  deferring to or depending on others is not.
 - **No cross-language comparison.** This is a C# book that stands on its own. Never
   compare C#/.NET to Java or C++, and never mention or demonstrate cross-language
   differences ("no Java analogue", "needs workarounds in Java", "the operator story
