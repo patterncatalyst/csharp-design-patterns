@@ -1,0 +1,19 @@
+<!-- Chapter 20 example: Composite builds a consignment out of parcels and
+     nested consolidations that both answer the same IConsignmentNode
+     questions, and Flyweight interns the port and commodity codes every
+     parcel on the tree points at. TargetFramework, LangVersion, Nullable,
+     etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);ConsignmentRouting.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <!-- No runtime PackageReference: System.Collections.Frozen, which backs
+       the Flyweight registries, ships in the shared framework for .NET 10
+       and needs no NuGet package. -->
+
+</Project>

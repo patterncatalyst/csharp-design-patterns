@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RateComposition.csproj" />
+  <Project Path="RateComposition.Tests/RateComposition.Tests.csproj" />
+</Solution>
