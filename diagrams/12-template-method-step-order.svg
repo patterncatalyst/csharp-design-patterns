@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="138" width="290" height="235" rx="12" fill="#ffffff" stroke="#ddd"/>
+<rect x="335" y="138" width="290" height="235" rx="12" fill="#ffffff" stroke="#ddd"/>
+<rect x="650" y="138" width="290" height="235" rx="12" fill="#ffffff" stroke="#ddd"/>
+<rect x="20" y="55" width="290" height="68" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="165.0" y="87.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Step 1: CollectRequiredFields</text>
+<text x="165.0" y="104.0" font-size="11.5" fill="#555555" text-anchor="middle">same for every country, in this order</text>
+<rect x="28" y="146" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="165.0" y="169.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">United States</text>
+<text x="165.0" y="186.0" font-size="11.5" fill="#555555" text-anchor="middle">Importer of Record, HTS Code,</text>
+<text x="165.0" y="201.0" font-size="11.5" fill="#555555" text-anchor="middle">Country of Origin</text>
+<rect x="28" y="223" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="165.0" y="246.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Germany</text>
+<text x="165.0" y="263.0" font-size="11.5" fill="#555555" text-anchor="middle">EORI Number, Commodity Code,</text>
+<text x="165.0" y="278.0" font-size="11.5" fill="#555555" text-anchor="middle">Incoterms</text>
+<rect x="28" y="300" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="165.0" y="323.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Japan</text>
+<text x="165.0" y="340.0" font-size="11.5" fill="#555555" text-anchor="middle">Importer Tax ID, HS Code,</text>
+<text x="165.0" y="355.0" font-size="11.5" fill="#555555" text-anchor="middle">Certificate of Origin</text>
+<rect x="335" y="55" width="290" height="68" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="87.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Step 2: CalculateDuty</text>
+<text x="480.0" y="104.0" font-size="11.5" fill="#555555" text-anchor="middle">same for every country, in this order</text>
+<rect x="343" y="146" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="480.0" y="169.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">United States</text>
+<text x="480.0" y="186.0" font-size="11.5" fill="#555555" text-anchor="middle">2.5% of declared value</text>
+<text x="480.0" y="201.0" font-size="11.5" fill="#555555" text-anchor="middle">(USD, rounded to cents)</text>
+<rect x="343" y="223" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="480.0" y="246.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Germany</text>
+<text x="480.0" y="263.0" font-size="11.5" fill="#555555" text-anchor="middle">19% of declared value</text>
+<text x="480.0" y="278.0" font-size="11.5" fill="#555555" text-anchor="middle">(EUR, rounded to cents)</text>
+<rect x="343" y="300" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="480.0" y="323.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Japan</text>
+<text x="480.0" y="340.0" font-size="11.5" fill="#555555" text-anchor="middle">5% of declared value</text>
+<text x="480.0" y="355.0" font-size="11.5" fill="#555555" text-anchor="middle">+ 2000 JPY handling fee</text>
+<rect x="650" y="55" width="290" height="68" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="795.0" y="87.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Step 3: Validate</text>
+<text x="795.0" y="104.0" font-size="11.5" fill="#555555" text-anchor="middle">same for every country, in this order</text>
+<rect x="658" y="146" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="795.0" y="169.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">United States</text>
+<text x="795.0" y="186.0" font-size="11.5" fill="#555555" text-anchor="middle">flag over 2500.00 USD</text>
+<text x="795.0" y="201.0" font-size="11.5" fill="#555555" text-anchor="middle">formal entry required</text>
+<rect x="658" y="223" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="795.0" y="246.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Germany</text>
+<text x="795.0" y="263.0" font-size="11.5" fill="#555555" text-anchor="middle">flag over 1000 kg</text>
+<text x="795.0" y="278.0" font-size="11.5" fill="#555555" text-anchor="middle">customs broker required</text>
+<rect x="658" y="300" width="274" height="65" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="795.0" y="323.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Japan</text>
+<text x="795.0" y="340.0" font-size="11.5" fill="#555555" text-anchor="middle">flag over 200000 JPY</text>
+<text x="795.0" y="355.0" font-size="11.5" fill="#555555" text-anchor="middle">customs inspection required</text>
+<rect x="20" y="410" width="920" height="100" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="458.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">The order never changes</text>
+<text x="480.0" y="475.0" font-size="11.5" fill="#555555" text-anchor="middle">Only the three slots&#x27; contents vary, by country, never by step</text>
+<path d="M165.0,123 L165.0,138" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M480.0,123 L480.0,138" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M795.0,123 L795.0,138" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M310,89 L335,89" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="328.5" y="83.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">then</text>
+<text x="328.5" y="83.0" font-size="11" fill="#b8650a" text-anchor="middle">then</text>
+<path d="M625,89 L650,89" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="643.5" y="83.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">then</text>
+<text x="643.5" y="83.0" font-size="11" fill="#b8650a" text-anchor="middle">then</text>
+<text x="480" y="26" font-size="11" fill="#888" text-anchor="middle" font-weight="700">The slot order never changes</text>
+<text x="480" y="42" font-size="11" fill="#888" text-anchor="middle">CollectRequiredFields → CalculateDuty → Validate, every country, every time</text>
+</svg>
