@@ -386,6 +386,8 @@ exactly what CA5394 asks a reviewer to confirm before a suppression goes
 in, and it belongs next to the suppression itself rather than in a
 code-review comment thread that will not travel with the file.
 
+{% include excalidraw.html name="13-probabilistic-transit-model" caption="Figure 13.2: The stochastic exit from InTransit. ProbabilisticTransitMachine.Step draws IRandomSource.NextDouble() and compares it against delayProbability, sending the consignment to Delayed and back to InTransit to retry below the threshold, or on to Cleared and Delivered at or above it. SeededRandomSource wraps that draw in a seeded System.Random so two machines built on the same seed replay the identical sequence of statuses." %}
+
 ## Build, run, observe
 
 The example lives in `examples/13-state-and-finite-state-machines` and is

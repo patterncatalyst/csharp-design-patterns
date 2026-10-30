@@ -549,6 +549,8 @@ written justification explaining the name describes the domain concept, an
 amendment queue a booking system's operators already call by that name, not
 a claim that the type satisfies the `Queue<T>` contract.
 
+{% include excalidraw.html name="14-async-command-undo" caption="Figure 14.2: The Task-returning command path. AsyncAmendmentQueue.RunAsync awaits each IAsyncBookingCommand.ExecuteAsync in FIFO order; ConfirmAmendmentCommand calls IAmendmentGateway.ConfirmAsync and RevertAsync with ConfigureAwait(false) on every await. UndoAsync walks the executed history back one command at a time, and the caller's CancellationToken threads unchanged from RunAsync and UndoAsync through to every gateway call beneath them." %}
+
 ## Build, run, observe
 
 The example lives in
