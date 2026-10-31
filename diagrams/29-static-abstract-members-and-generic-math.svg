@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="360" y="40" width="260" height="90" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="490.0" y="75.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IRateable&lt;TSelf&gt;</text>
+<text x="490.0" y="92.5" font-size="11.5" fill="#555555" text-anchor="middle">static abstract Money BaseRate { get; }</text>
+<text x="490.0" y="107.5" font-size="11.5" fill="#555555" text-anchor="middle">static abstract Money RateOf(TSelf shipment)</text>
+<rect x="360" y="180" width="260" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="490.0" y="215.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RateBook.Quote&lt;T&gt;(shipment)</text>
+<text x="490.0" y="232.5" font-size="11.5" fill="#555555" text-anchor="middle">where T : IRateable&lt;T&gt;</text>
+<text x="490.0" y="247.5" font-size="11.5" fill="#555555" text-anchor="middle">return T.RateOf(shipment)</text>
+<rect x="40" y="360" width="260" height="140" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="170.0" y="420.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ParcelShipment : IRateable&lt;ParcelShipment&gt;</text>
+<text x="170.0" y="437.5" font-size="11.5" fill="#555555" text-anchor="middle">BaseRate =&gt; 4.50m</text>
+<text x="170.0" y="452.5" font-size="11.5" fill="#555555" text-anchor="middle">RateOf adds a per-kilogram surcharge</text>
+<rect x="350" y="360" width="260" height="140" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="420.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">FreightPallet : IRateable&lt;FreightPallet&gt;</text>
+<text x="480.0" y="437.5" font-size="11.5" fill="#555555" text-anchor="middle">BaseRate =&gt; 35.00m</text>
+<text x="480.0" y="452.5" font-size="11.5" fill="#555555" text-anchor="middle">RateOf adds weight and per-pallet charges</text>
+<rect x="660" y="360" width="260" height="140" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="790.0" y="420.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DocumentEnvelope : IRateable&lt;DocumentEnvelope&gt;</text>
+<text x="790.0" y="437.5" font-size="11.5" fill="#555555" text-anchor="middle">BaseRate =&gt; 2.00m</text>
+<text x="790.0" y="452.5" font-size="11.5" fill="#555555" text-anchor="middle">RateOf adds a per-page fee</text>
+<path d="M490,130 L490,180" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M490,270 L170,360" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M490,270 L480,360" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M490,270 L790,360" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="480" y="20" font-size="13" fill="#888" text-anchor="middle" font-weight="700">RateBook.Quote&lt;T&gt; dispatches through the type parameter alone, with no instance in hand</text>
+</svg>

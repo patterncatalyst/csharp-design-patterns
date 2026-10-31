@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="360" y="50" width="240" height="80" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="95.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">CarrierShipment</text>
+<rect x="90" y="220" width="320" height="120" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="250.0" y="270.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">extension(CarrierShipment) block</text>
+<text x="250.0" y="287.5" font-size="11.5" fill="#555555" text-anchor="middle">static CarrierShipment Empty</text>
+<text x="250.0" y="302.5" font-size="11.5" fill="#555555" text-anchor="middle">static CarrierShipment FromKilograms(kilograms, destinationCode)</text>
+<rect x="550" y="220" width="320" height="120" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="710.0" y="270.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">classic this-parameter form</text>
+<text x="710.0" y="287.5" font-size="11.5" fill="#555555" text-anchor="middle">NormalisedDestination(this CarrierShipment shipment)</text>
+<text x="710.0" y="302.5" font-size="11.5" fill="#555555" text-anchor="middle">shipment.DestinationCode.Trim().ToUpperInvariant()</text>
+<rect x="280" y="430" width="400" height="90" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="473.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">CarrierShipmentExtensions</text>
+<text x="480.0" y="490.0" font-size="11.5" fill="#555555" text-anchor="middle">one static class, two member-declaration syntaxes</text>
+<path d="M400,130 L250,220" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="331.0" y="169.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">extension block</text>
+<text x="331.0" y="169.0" font-size="11" fill="#b8650a" text-anchor="middle">extension block</text>
+<path d="M560,130 L710,220" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="641.0" y="169.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">this parameter</text>
+<text x="641.0" y="169.0" font-size="11" fill="#b8650a" text-anchor="middle">this parameter</text>
+<path d="M250,340 L360,430" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M710,340 L600,430" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="480" y="24" font-size="13" fill="#888" text-anchor="middle" font-weight="700">Two member-declaration syntaxes, both resolving onto the same CarrierShipment type</text>
+</svg>

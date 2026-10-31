@@ -606,3 +606,82 @@
     [.. memento.Lines] rather than aliasing the memento's list, so a later
     mutation on the restored booking can never reach back into the snapshot
     the caretaker is still holding.
+
+- name: 25-extension-members
+  section: "Ch. 25"
+  title: An unowned sealed type, decorated from the outside
+  caption: >-
+    CarrierShipment is a sealed vendor type with a constructor and read-only
+    WeightGrams, DestinationCode, and DeclaredValueMinorUnits properties only,
+    a stand-in for a third-party SDK this book's examples cannot modify.
+    CarrierShipmentExtensions attaches every behavior those examples need from
+    outside that file: instance extension properties WeightKilograms and
+    IsHeavy, an instance extension method WithAddedWeight, static extension
+    members Empty and FromKilograms, and an extension operator +, all without
+    CarrierShipment.cs ever changing again.
+
+- name: 25-extension-block-and-classic-form
+  section: "Ch. 25"
+  title: Two member-declaration syntaxes, one target type
+  caption: >-
+    CarrierShipmentExtensions declares its static extension members inside an
+    extension(CarrierShipment) block, the C# 14 form that produces Empty and
+    FromKilograms(kilograms, destinationCode). The same static class also
+    declares NormalisedDestination with the classic this CarrierShipment
+    shipment parameter, the extension-method syntax C# has always had. Both
+    forms resolve onto CarrierShipment at a call site, coexisting in the one
+    static class.
+
+- name: 26-expression-trees
+  section: "Ch. 26"
+  title: One rule authored as data, read two different ways
+  caption: >-
+    TariffExpressionLibrary.WeightRate is an
+    Expression<Func<RateRequest, decimal>>, the lambda r => r.WeightKilograms
+    * 2.50m captured as a tree of Expression nodes rather than compiled code.
+    RateDescriber, an ExpressionVisitor, calls Visit(rule.Body) inside
+    Describe(rule) and renders that tree as a string without ever running it.
+    Expression<T>.Compile() takes the same tree and produces a
+    Func<RateRequest, decimal> delegate, the form that actually executes the
+    rule against a RateRequest.
+
+- name: 26-expressionvisitor-rewrite
+  section: "Ch. 26"
+  title: Visiting without evaluating, and splicing without mutating
+  caption: >-
+    ReferencedPropertyCollector, an ExpressionVisitor, overrides VisitMember
+    inside Collect(rule) to record which RateRequest properties a rule
+    touches, never evaluating the tree. RateInflator overrides VisitConstant
+    inside Inflate(rule, factor) to scale every decimal constant by a factor,
+    returning a brand-new Expression<Func<RateRequest, decimal>> because
+    expression trees are immutable. PredicateComposer.And(left, right) uses a
+    ParameterReplacer to rebind right's parameter onto left's, then joins the
+    two bodies with Expression.AndAlso into a single lambda over one shared
+    parameter.
+
+- name: 29-static-abstract-members-and-generic-math
+  section: "Ch. 29"
+  title: Dispatch through the type parameter, no instance required
+  caption: >-
+    IRateable<TSelf> declares static abstract Money BaseRate and static
+    abstract Money RateOf(TSelf shipment), a contract three concrete
+    shipment types each implement: ParcelShipment, FreightPallet, and
+    DocumentEnvelope. RateBook.Quote<T>(shipment), constrained to where T :
+    IRateable<T>, calls T.RateOf(shipment) and reaches whichever concrete
+    type's static member the caller supplied, entirely through the type
+    parameter, with RateBook.BaseRateOf<T>() reading T.BaseRate the same way
+    without constructing an instance at all.
+
+- name: 29-generic-math-over-money
+  section: "Ch. 29"
+  title: One Sum<T> body over a custom type and a built-in one
+  caption: >-
+    Money implements IAdditionOperators<Money, Money, Money>,
+    IAdditiveIdentity<Money, Money>, IMultiplyOperators<Money, decimal, Money>,
+    IComparisonOperators<Money, Money, bool>, and IComparable<Money> from
+    System.Numerics. Totals.Sum<T>(values), constrained to
+    IAdditionOperators<T, T, T> and IAdditiveIdentity<T, T>, seeds its total
+    from T.AdditiveIdentity and folds with total += value, the same method
+    body producing a Money total from an IEnumerable<Money> and a decimal
+    total from an IEnumerable<decimal>, since decimal already implements
+    INumber<decimal>.
