@@ -1,0 +1,16 @@
+<!-- Chapter 26 example: tariff rules are authored directly as
+     System.Linq.Expressions.Expression<TDelegate> trees, so they can be
+     inspected, described, rewritten, and recombined as data before they are
+     ever compiled and run. System.Linq.Expressions ships in the BCL, so this
+     project takes no package reference at all. TargetFramework, LangVersion,
+     Nullable, etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);TariffExpressions.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

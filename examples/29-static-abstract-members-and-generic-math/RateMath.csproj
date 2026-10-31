@@ -1,0 +1,21 @@
+<!-- Chapter 29 example: shipment rate quoting built entirely on static
+     abstract interface members and the in-framework System.Numerics generic
+     math interfaces. Money is a value type that opts into the BCL's
+     arithmetic operator interfaces, IRateable<TSelf> is a book-defined
+     generic-math-shaped contract whose static members are looked up through
+     the type parameter, and RateBook/Totals are generic algorithms written
+     once against those interfaces. No external package: the generic math
+     interfaces (IAdditionOperators, IAdditiveIdentity, IMultiplyOperators,
+     IComparisonOperators, INumber, ...) ship in System.Runtime as of .NET 7+.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RateMath.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

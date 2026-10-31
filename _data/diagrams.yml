@@ -606,3 +606,132 @@
     [.. memento.Lines] rather than aliasing the memento's list, so a later
     mutation on the restored booking can never reach back into the snapshot
     the caretaker is still holding.
+
+- name: 25-extension-members
+  section: "Ch. 25"
+  title: An unowned sealed type, decorated from the outside
+  caption: >-
+    CarrierShipment is a sealed vendor type with a constructor and read-only
+    WeightGrams, DestinationCode, and DeclaredValueMinorUnits properties only,
+    a stand-in for a third-party SDK this book's examples cannot modify.
+    CarrierShipmentExtensions attaches every behavior those examples need from
+    outside that file: instance extension properties WeightKilograms and
+    IsHeavy, an instance extension method WithAddedWeight, static extension
+    members Empty and FromKilograms, and an extension operator +, all without
+    CarrierShipment.cs ever changing again.
+
+- name: 25-extension-block-and-classic-form
+  section: "Ch. 25"
+  title: Two member-declaration syntaxes, one target type
+  caption: >-
+    CarrierShipmentExtensions declares its static extension members inside an
+    extension(CarrierShipment) block, the C# 14 form that produces Empty and
+    FromKilograms(kilograms, destinationCode). The same static class also
+    declares NormalisedDestination with the classic this CarrierShipment
+    shipment parameter, the extension-method syntax C# has always had. Both
+    forms resolve onto CarrierShipment at a call site, coexisting in the one
+    static class.
+
+- name: 25-adapting-an-unowned-type
+  section: "Ch. 25"
+  title: Decorating a type you cannot modify, without mutating it
+  caption: >-
+    CarrierShipment sits inside CarrierParcels.Vendor, a stand-in for
+    third-party SDK code this book's examples cannot change: its
+    WeightGrams, DestinationCode, and DeclaredValueMinorUnits never move
+    once constructed. CarrierShipmentExtensions attaches every behavior
+    from outside that boundary, instance extension members
+    WeightKilograms and IsHeavy that read the shipment without touching
+    it, static extension members Empty and FromKilograms that need no
+    instance at all, and the extension operator + with its Add
+    alternate. WithAddedWeight(grams) makes the no-mutation rule
+    concrete: it reads shipment.WeightGrams and returns new(...), a
+    brand-new CarrierShipment, leaving the original the vendor handed
+    over exactly as it was.
+
+- name: 26-expression-trees
+  section: "Ch. 26"
+  title: One rule authored as data, read two different ways
+  caption: >-
+    TariffExpressionLibrary.WeightRate is an
+    Expression<Func<RateRequest, decimal>>, the lambda r => r.WeightKilograms
+    * 2.50m captured as a tree of Expression nodes rather than compiled code.
+    RateDescriber, an ExpressionVisitor, calls Visit(rule.Body) inside
+    Describe(rule) and renders that tree as a string without ever running it.
+    Expression<T>.Compile() takes the same tree and produces a
+    Func<RateRequest, decimal> delegate, the form that actually executes the
+    rule against a RateRequest.
+
+- name: 26-expressionvisitor-rewrite
+  section: "Ch. 26"
+  title: Visiting without evaluating, and splicing without mutating
+  caption: >-
+    ReferencedPropertyCollector, an ExpressionVisitor, overrides VisitMember
+    inside Collect(rule) to record which RateRequest properties a rule
+    touches, never evaluating the tree. RateInflator overrides VisitConstant
+    inside Inflate(rule, factor) to scale every decimal constant by a factor,
+    returning a brand-new Expression<Func<RateRequest, decimal>> because
+    expression trees are immutable. PredicateComposer.And(left, right) uses a
+    ParameterReplacer to rebind right's parameter onto left's, then joins the
+    two bodies with Expression.AndAlso into a single lambda over one shared
+    parameter.
+
+- name: 26-inspecting-a-tree
+  section: "Ch. 26"
+  title: Reading a rule without running it, compiling one that does
+  caption: >-
+    TariffExpressionLibrary.WeightRate is the same kind of
+    Expression<Func<RateRequest, decimal>> rule on both sides of this
+    figure. ReferencedPropertyCollector, an ExpressionVisitor, calls
+    Visit(rule.Body) inside Collect(rule) and its VisitMember override
+    records which RateRequest properties, such as WeightKilograms, the
+    rule touches, producing an IReadOnlyCollection<string> without ever
+    compiling or invoking the rule. Expression<Func<RateRequest,
+    decimal>>.Compile() takes the identical tree down a different path:
+    it produces a Func<RateRequest, decimal> delegate that, once
+    invoked against a RateRequest, actually executes the rule, the
+    LINQ-provider distinction between inspecting a tree as data and
+    running it as code.
+
+- name: 29-static-abstract-members-and-generic-math
+  section: "Ch. 29"
+  title: Dispatch through the type parameter, no instance required
+  caption: >-
+    IRateable<TSelf> declares static abstract Money BaseRate and static
+    abstract Money RateOf(TSelf shipment), a contract three concrete
+    shipment types each implement: ParcelShipment, FreightPallet, and
+    DocumentEnvelope. RateBook.Quote<T>(shipment), constrained to where T :
+    IRateable<T>, calls T.RateOf(shipment) and reaches whichever concrete
+    type's static member the caller supplied, entirely through the type
+    parameter, with RateBook.BaseRateOf<T>() reading T.BaseRate the same way
+    without constructing an instance at all.
+
+- name: 29-generic-math-over-money
+  section: "Ch. 29"
+  title: One Sum<T> body over a custom type and a built-in one
+  caption: >-
+    Money implements IAdditionOperators<Money, Money, Money>,
+    IAdditiveIdentity<Money, Money>, IMultiplyOperators<Money, decimal, Money>,
+    IComparisonOperators<Money, Money, bool>, and IComparable<Money> from
+    System.Numerics. Totals.Sum<T>(values), constrained to
+    IAdditionOperators<T, T, T> and IAdditiveIdentity<T, T>, seeds its total
+    from T.AdditiveIdentity and folds with total += value, the same method
+    body producing a Money total from an IEnumerable<Money> and a decimal
+    total from an IEnumerable<decimal>, since decimal already implements
+    INumber<decimal>.
+
+- name: 29-irateable-static-dispatch
+  section: "Ch. 29"
+  title: Three static contracts, one generic quote, one generic total
+  caption: >-
+    ParcelShipment, FreightPallet, and DocumentEnvelope each implement
+    IRateable<TSelf> with their own static Money BaseRate and static
+    RateOf(shipment): 4.50m plus a per-kilogram surcharge, 35.00m plus
+    weight and per-pallet charges, and 2.00m plus a per-page fee.
+    RateBook.Quote<T>(shipment), constrained to where T : IRateable<T>,
+    calls T.RateOf(shipment) for whichever concrete type the caller
+    passes, and the resulting IEnumerable<Money> quotes feed
+    Totals.Sum<T>(values), which seeds its total from
+    T.AdditiveIdentity and folds with total += value until one Money
+    total comes out, a single generic path from three independent
+    static contracts to one aggregate.

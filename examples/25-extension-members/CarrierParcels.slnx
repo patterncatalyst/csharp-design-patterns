@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CarrierParcels.csproj" />
+  <Project Path="CarrierParcels.Tests/CarrierParcels.Tests.csproj" />
+</Solution>
