@@ -1,0 +1,30 @@
+<!-- Chapter 27 example: a Roslyn incremental source generator reads
+     carriers.manifest at compile time and emits one ICarrierGateway
+     implementation per row plus a GeneratedCarrierRegistry, so adding a
+     carrier is a one-line data change rather than a new hand-written class.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The generator and its tests live in subdirectories of this one;
+         exclude both so this library's own compile item group does not also
+         pick up their sources. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CarrierManifest.Generation/**;CarrierManifest.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- OutputItemType="Analyzer" loads the generator assembly as a compiler
+         analyzer instead of a normal dependency; ReferenceOutputAssembly="false"
+         keeps the generator's own netstandard2.0 assembly out of this
+         project's output, since nothing here calls into it directly. -->
+    <ProjectReference Include="CarrierManifest.Generation/CarrierManifest.Generation.csproj"
+                       OutputItemType="Analyzer"
+                       ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="carriers.manifest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,38 @@
+<!-- Chapter 27 generator project. Source generators run inside the host
+     compiler process, so this targets netstandard2.0 (overriding the net10.0
+     that examples/Directory.Build.props sets for every other example; the
+     last PropertyGroup written wins) so it loads under any host compiler, not
+     just a .NET 10 one.
+
+     Microsoft.CodeAnalysis.CSharp is pinned to 5.0.0, not NuGet-latest
+     (5.9.0): the .NET 10 SDK 10.0.113 host compiler IS Roslyn 5.0.0, and a
+     generator assembly referencing a NEWER Microsoft.CodeAnalysis.CSharp than
+     the host fails to load with CS9057 under warnings-as-errors. Verified in
+     a throwaway spike project (2026-10-31): 5.0.0 loads cleanly in-process
+     and a trivial RegisterPostInitializationOutput generator's output
+     compiled and was callable from a net10.0 consumer; 5.9.0 was not tried
+     against this host because the version skew is already documented by the
+     SDK/Roslyn release notes, so no step-down below 5.0.0 was needed. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!-- Turns on the extended RS1xxx analyzer-author rule set (no file IO,
+         no banned APIs, netstandard2.0-only dependencies, and more) on top of
+         Microsoft.CodeAnalysis.Analyzers below. -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

@@ -735,3 +735,73 @@
     T.AdditiveIdentity and folds with total += value until one Money
     total comes out, a single generic path from three independent
     static contracts to one aggregate.
+
+- name: 27-source-generators
+  section: "Ch. 27"
+  title: One manifest, one generator, no runtime registry
+  caption: >-
+    carriers.manifest is an AdditionalFiles entry listing the DHLX, FDXG,
+    UPSX, and USPS rows. CarrierGatewayGenerator, an IIncrementalGenerator,
+    reads it at build time and emits one <Code>CarrierGateway adapter per
+    row, such as DHLXCarrierGateway, plus a GeneratedCarrierRegistry
+    exposing All and Find(code). That generated registry replaces a
+    hand-written runtime registry that would otherwise reflect over loaded
+    assemblies at process startup, so the trim- and AOT-compiled output
+    never performs that scan.
+
+- name: 27-incremental-generator-pipeline
+  section: "Ch. 27"
+  title: Parsing to an equatable model so unchanged input is cached
+  caption: >-
+    The incremental pipeline behind CarrierGatewayGenerator.
+    AdditionalTextsProvider surfaces carriers.manifest, Parse(text,
+    cancellationToken) turns each file into a CarrierManifestModel, a
+    readonly record struct wrapping an EquatableArray<CarrierEntry>, and
+    Collect().Select(Combine) merges every parsed manifest into one model
+    before RegisterSourceOutput(model, Emit) runs. Because
+    CarrierManifestModel compares by value through EquatableArray<T>, an
+    unchanged manifest produces an unchanged model and the pipeline skips
+    Emit entirely.
+
+- name: 27-generated-registry-vs-reflection
+  section: "Ch. 27"
+  title: A compile-time registry needs no runtime scan
+  caption: >-
+    CarrierGatewayGenerator builds GeneratedCarrierRegistry from
+    carriers.manifest at compile time, statically referencing each
+    <Code>CarrierGateway adapter it emits, so CarrierDispatch.ResolveEndpoint
+    calls GeneratedCarrierRegistry.Find(code) against references that already
+    exist in source. The runtime alternative it replaces calls
+    Assembly.GetTypes() to scan loaded assemblies at process startup and
+    builds its lookup table from whatever the scan finds, a path that
+    trimming can remove types out from under and that native AOT does not
+    fully support.
+
+- name: 28-roslyn-analyzers
+  section: "Ch. 28"
+  title: Flagging decimal money on a wire contract at compile time
+  caption: >-
+    MoneyAsDecimalAnalyzer, a DiagnosticAnalyzer reporting DiagnosticId
+    SHIP0001, inspects every type carrying [WireContract] during
+    compilation. RateQuoteContract and BookingChargeContract pass: both
+    model money as long minor units, AmountMinorUnits and
+    PriceMinorUnits. InternalRateCalculation carries no [WireContract],
+    so its decimal Amount is never even examined. A [WireContract] type
+    with a decimal money property is where the analyzer reports
+    SHIP0001, a build-time warning surfaced at the offending property's
+    location.
+
+- name: 28-analyzer-diagnostic-pipeline
+  section: "Ch. 28"
+  title: From compilation start to a reported diagnostic
+  caption: >-
+    Initialize(context) registers RegisterCompilationStartAction, which
+    resolves the marker symbol for "WireContracts.WireContractAttribute"
+    through start.Compilation.GetTypeByMetadataName and returns early if
+    it is missing. Once resolved, RegisterSymbolAction(ctx =>
+    AnalyzeType(ctx, marker), SymbolKind.NamedType) runs for every named
+    type; AnalyzeType checks type.GetAttributes().Any(...) for the
+    marker, then walks the type's members for any IPropertySymbol whose
+    Type.SpecialType is System_Decimal, calling
+    context.ReportDiagnostic(Rule, location, property.Name, type.Name)
+    on each one it finds.

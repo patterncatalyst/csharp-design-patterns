@@ -1,0 +1,43 @@
+<!-- xUnit v3 test project for the chapter 27 source generator. These tests
+     drive the generator directly with a raw CSharpGeneratorDriver rather than
+     a xunit-v2-era *.Testing.Xunit verifier package, so Microsoft.CodeAnalysis.CSharp
+     is pinned here too (same 5.0.0 host-matched version as the generator
+     project; see CarrierManifest.Generation.csproj for why). TargetFramework,
+     LangVersion, and Nullable are inherited from examples/Directory.Build.props.
+
+     Versions verified against .NET 10 SDK 10.0.113 on 2026-10-29 (xunit.v3,
+     xunit.runner.visualstudio, Microsoft.NET.Test.Sdk, and NSubstitute
+     re-surveyed with `dotnet package search`), matching every other example's
+     test project in this repo. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- CA1707 (no underscores in identifiers) fights the house xUnit naming
+         convention (Method_does_thing); suppress it here only, not in the
+         library or generator under test. -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+
+    <!-- Mocking: NSubstitute (no telemetry, no Setup/.Object). Not needed to
+         drive the generator directly, but kept available and pinned for
+         consistency with every other example's test project. -->
+    <PackageReference Include="NSubstitute" Version="6.2.0" />
+
+    <!-- Drives CarrierGatewayGenerator in-process with CSharpGeneratorDriver
+         instead of a pre-built verifier package. Pinned to the host compiler
+         version (5.0.0), same as the generator project. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../CarrierManifest.Generation/CarrierManifest.Generation.csproj" />
+  </ItemGroup>
+
+</Project>

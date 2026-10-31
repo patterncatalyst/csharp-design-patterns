@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="CarrierManifest.csproj" />
+  <Project Path="CarrierManifest.Generation/CarrierManifest.Generation.csproj" />
+  <Project Path="CarrierManifest.Tests/CarrierManifest.Tests.csproj" />
+</Solution>
