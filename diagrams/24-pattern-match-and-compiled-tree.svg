@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="40" y="240" width="260" height="120" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="170.0" y="290.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">TariffRule tree</text>
+<text x="170.0" y="307.5" font-size="11.5" fill="#555555" text-anchor="middle">Sum of Surcharge(PerKilogram(3), 20%)</text>
+<text x="170.0" y="322.5" font-size="11.5" fill="#555555" text-anchor="middle">and FlatFee(15)</text>
+<rect x="380" y="100" width="260" height="90" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="510.0" y="143.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">TariffEvaluator.Evaluate(tree, shipment)</text>
+<text x="510.0" y="160.0" font-size="11.5" fill="#555555" text-anchor="middle">recursive switch expression</text>
+<rect x="380" y="370" width="260" height="90" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="510.0" y="413.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">TariffCompiler.Compile(tree)(shipment)</text>
+<text x="510.0" y="430.0" font-size="11.5" fill="#555555" text-anchor="middle">compiled delegate invocation</text>
+<rect x="720" y="100" width="200" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="820.0" y="140.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">decimal result</text>
+<rect x="720" y="390" width="200" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="820.0" y="430.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">decimal result</text>
+<rect x="720" y="230" width="200" height="110" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="820.0" y="275.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Assert.Equal</text>
+<text x="820.0" y="292.5" font-size="11.5" fill="#555555" text-anchor="middle">same shipment,</text>
+<text x="820.0" y="307.5" font-size="11.5" fill="#555555" text-anchor="middle">same decimal, both paths agree</text>
+<path d="M300,270 L380,150" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="346.0" y="204.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">read via Evaluate</text>
+<text x="346.0" y="204.0" font-size="11" fill="#b8650a" text-anchor="middle">read via Evaluate</text>
+<path d="M300,320 L380,410" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="346.0" y="359.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">read via Compile</text>
+<text x="346.0" y="359.0" font-size="11" fill="#b8650a" text-anchor="middle">read via Compile</text>
+<path d="M640,145 L720,135" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M640,415 L720,425" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M820,170 L820,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M820,390 L820,340" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="480" y="35" font-size="11" fill="#888" text-anchor="middle" font-weight="700">Compiled_delegate_matches_the_pattern_matching_evaluator</text>
+</svg>

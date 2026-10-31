@@ -1,0 +1,17 @@
+<!-- Chapter 23 example: a consignment's tracking history exercises both
+     iterator idioms in the same domain. ConsignmentHistory.Paginate is a
+     synchronous `yield return` iterator over an eagerly validated page size,
+     StagesReached is plain LINQ over the same buffered events, and
+     CarrierEventFeed/LiveTrackingReader stream the same kind of event through
+     IAsyncEnumerable<T> with cooperative cancellation. TargetFramework,
+     LangVersion, Nullable, etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);TrackingHistory.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

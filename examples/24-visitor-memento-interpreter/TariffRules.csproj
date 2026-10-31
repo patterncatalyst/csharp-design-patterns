@@ -1,0 +1,17 @@
+<!-- Chapter 24 example: a shipment tariff is expressed as a closed TariffRule
+     expression tree (the Interpreter grammar), evaluated two ways: a
+     pattern-matching Visitor-style evaluator, and a real Interpreter compiled
+     to a delegate with System.Linq.Expressions. A Memento lets a
+     BookingOriginator checkpoint and roll back amendments to a shipment
+     booking. TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);TariffRules.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

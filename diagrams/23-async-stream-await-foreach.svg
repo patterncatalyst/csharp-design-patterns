@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="40" y="60" width="340" height="440" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="52" y="80" font-size="12" font-weight="700" fill="#888">producer</text>
+<rect x="560" y="60" width="360" height="440" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="572" y="80" font-size="12" font-weight="700" fill="#888">consumer</text>
+<rect x="60" y="110" width="300" height="120" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="210.0" y="160.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">CarrierEventFeed.StreamAsync(consignmentId, cancellationToken)</text>
+<text x="210.0" y="177.5" font-size="11.5" fill="#555555" text-anchor="middle">async IAsyncEnumerable&lt;TrackingEvent&gt;</text>
+<text x="210.0" y="192.5" font-size="11.5" fill="#555555" text-anchor="middle">[EnumeratorCancellation] cancellationToken</text>
+<rect x="580" y="110" width="320" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="740.0" y="153.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">LiveTrackingReader.CollectAsync</text>
+<text x="740.0" y="170.0" font-size="11.5" fill="#555555" text-anchor="middle">await foreach ... .WithCancellation(cancellationToken)</text>
+<rect x="580" y="250" width="320" height="100" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="740.0" y="290.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">LiveTrackingReader.CollectUntilAsync</text>
+<text x="740.0" y="307.5" font-size="11.5" fill="#555555" text-anchor="middle">await foreach ... .WithCancellation(cancellationToken)</text>
+<text x="740.0" y="322.5" font-size="11.5" fill="#555555" text-anchor="middle">break when trackingEvent.Stage == stop</text>
+<rect x="580" y="400" width="320" height="80" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="740.0" y="438.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">enumerator disposed on break</text>
+<text x="740.0" y="455.0" font-size="11.5" fill="#555555" text-anchor="middle">feed never asked for the rest</text>
+<path d="M360,150 L580,150" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="476.0" y="144.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">yield return trackingEvent</text>
+<text x="476.0" y="144.0" font-size="11" fill="#b8650a" text-anchor="middle">yield return trackingEvent</text>
+<path d="M360,230 L580,290" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="476.0" y="254.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">yield return trackingEvent</text>
+<text x="476.0" y="254.0" font-size="11" fill="#b8650a" text-anchor="middle">yield return trackingEvent</text>
+<path d="M740,350 L740,400" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="746.0" y="369.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">break</text>
+<text x="746.0" y="369.0" font-size="11" fill="#555" text-anchor="middle">break</text>
+<path d="M580,440 L360,200" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="476.0" y="314.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">no further events requested</text>
+<text x="476.0" y="314.0" font-size="11" fill="#555" text-anchor="middle">no further events requested</text>
+<text x="480" y="35" font-size="11" fill="#888" text-anchor="middle" font-weight="700">WithCancellation(cancellationToken) on the caller reaches the [EnumeratorCancellation] parameter on the callee</text>
+</svg>

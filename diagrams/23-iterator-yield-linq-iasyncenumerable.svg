@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="40" y="60" width="280" height="220" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="52" y="80" font-size="12" font-weight="700" fill="#888">ConsignmentHistory</text>
+<rect x="360" y="300" width="560" height="220" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="372" y="320" font-size="12" font-weight="700" fill="#888">IEnumerable&lt;TrackingPage&gt;, lazily produced</text>
+<rect x="60" y="100" width="240" height="80" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="180.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Paginate(pageSize)</text>
+<text x="180.0" y="147.5" font-size="11.5" fill="#555555" text-anchor="middle">validates eagerly</text>
+<text x="180.0" y="162.5" font-size="11.5" fill="#555555" text-anchor="middle">throws before returning</text>
+<rect x="60" y="220" width="240" height="80" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="180.0" y="258.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">private PaginateIterator(pageSize)</text>
+<text x="180.0" y="275.0" font-size="11.5" fill="#555555" text-anchor="middle">yield return TrackingPage</text>
+<rect x="400" y="160" width="240" height="90" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="520.0" y="195.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">compiler-generated</text>
+<text x="520.0" y="212.5" font-size="11.5" fill="#555555" text-anchor="middle">iterator state machine</text>
+<text x="520.0" y="227.5" font-size="11.5" fill="#555555" text-anchor="middle">(MoveNext)</text>
+<rect x="380" y="340" width="160" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="460.0" y="380.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">TrackingPage 1</text>
+<rect x="560" y="340" width="160" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="640.0" y="380.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">TrackingPage 2</text>
+<rect x="740" y="340" width="160" height="70" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="820.0" y="373.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">TrackingPage 3</text>
+<text x="820.0" y="390.0" font-size="11.5" fill="#555555" text-anchor="middle">not yet produced</text>
+<rect x="360" y="470" width="560" height="60" rx="9" fill="#eef4fb" stroke="#2f6db5" stroke-width="2"/>
+<text x="640.0" y="505.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">caller: foreach (var page in history.Paginate(pageSize))</text>
+<path d="M180,180 L180,220" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="186.0" y="194.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">returns the iterator, body not run yet</text>
+<text x="186.0" y="194.0" font-size="11" fill="#555" text-anchor="middle">returns the iterator, body not run yet</text>
+<path d="M300,250 L400,230" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="356.0" y="234.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">yield return compiles to</text>
+<text x="356.0" y="234.0" font-size="11" fill="#b8650a" text-anchor="middle">yield return compiles to</text>
+<path d="M460,250 L460,340" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="466.0" y="289.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">MoveNext produces one page</text>
+<text x="466.0" y="289.0" font-size="11" fill="#b8650a" text-anchor="middle">MoveNext produces one page</text>
+<path d="M540,375 L560,375" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="556.0" y="369.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">MoveNext()</text>
+<text x="556.0" y="369.0" font-size="11" fill="#555" text-anchor="middle">MoveNext()</text>
+<path d="M720,375 L740,375" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="736.0" y="369.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">MoveNext()</text>
+<text x="736.0" y="369.0" font-size="11" fill="#555" text-anchor="middle">MoveNext()</text>
+<path d="M640,410 L640,470" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="646.0" y="434.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">foreach pulls one page per iteration</text>
+<text x="646.0" y="434.0" font-size="11" fill="#b8650a" text-anchor="middle">foreach pulls one page per iteration</text>
+<text x="480" y="35" font-size="11" fill="#888" text-anchor="middle" font-weight="700">the yield return dissolve: a method becomes a compiler-built state machine</text>
+</svg>
