@@ -340,7 +340,7 @@ types satisfying one constraint.
 
 ## When not to use it
 
-A `static abstract` interface member earns its cost when more than one type
+A `static abstract` interface member is worth its complexity when more than one type
 needs to supply the same type-level operation and a generic algorithm needs
 to reach it without an instance in hand. A single shipment type with no
 plan to add a second rate schedule gets nothing from `IRateable<TSelf>` that

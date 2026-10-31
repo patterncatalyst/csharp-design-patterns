@@ -632,6 +632,23 @@
     forms resolve onto CarrierShipment at a call site, coexisting in the one
     static class.
 
+- name: 25-adapting-an-unowned-type
+  section: "Ch. 25"
+  title: Decorating a type you cannot modify, without mutating it
+  caption: >-
+    CarrierShipment sits inside CarrierParcels.Vendor, a stand-in for
+    third-party SDK code this book's examples cannot change: its
+    WeightGrams, DestinationCode, and DeclaredValueMinorUnits never move
+    once constructed. CarrierShipmentExtensions attaches every behavior
+    from outside that boundary, instance extension members
+    WeightKilograms and IsHeavy that read the shipment without touching
+    it, static extension members Empty and FromKilograms that need no
+    instance at all, and the extension operator + with its Add
+    alternate. WithAddedWeight(grams) makes the no-mutation rule
+    concrete: it reads shipment.WeightGrams and returns new(...), a
+    brand-new CarrierShipment, leaving the original the vendor handed
+    over exactly as it was.
+
 - name: 26-expression-trees
   section: "Ch. 26"
   title: One rule authored as data, read two different ways
@@ -659,6 +676,23 @@
     two bodies with Expression.AndAlso into a single lambda over one shared
     parameter.
 
+- name: 26-inspecting-a-tree
+  section: "Ch. 26"
+  title: Reading a rule without running it, compiling one that does
+  caption: >-
+    TariffExpressionLibrary.WeightRate is the same kind of
+    Expression<Func<RateRequest, decimal>> rule on both sides of this
+    figure. ReferencedPropertyCollector, an ExpressionVisitor, calls
+    Visit(rule.Body) inside Collect(rule) and its VisitMember override
+    records which RateRequest properties, such as WeightKilograms, the
+    rule touches, producing an IReadOnlyCollection<string> without ever
+    compiling or invoking the rule. Expression<Func<RateRequest,
+    decimal>>.Compile() takes the identical tree down a different path:
+    it produces a Func<RateRequest, decimal> delegate that, once
+    invoked against a RateRequest, actually executes the rule, the
+    LINQ-provider distinction between inspecting a tree as data and
+    running it as code.
+
 - name: 29-static-abstract-members-and-generic-math
   section: "Ch. 29"
   title: Dispatch through the type parameter, no instance required
@@ -685,40 +719,6 @@
     body producing a Money total from an IEnumerable<Money> and a decimal
     total from an IEnumerable<decimal>, since decimal already implements
     INumber<decimal>.
-
-- name: 25-adapting-an-unowned-type
-  section: "Ch. 25"
-  title: Decorating a type you cannot modify, without mutating it
-  caption: >-
-    CarrierShipment sits inside CarrierParcels.Vendor, a stand-in for
-    third-party SDK code this book's examples cannot change: its
-    WeightGrams, DestinationCode, and DeclaredValueMinorUnits never move
-    once constructed. CarrierShipmentExtensions attaches every behavior
-    from outside that boundary, instance extension members
-    WeightKilograms and IsHeavy that read the shipment without touching
-    it, static extension members Empty and FromKilograms that need no
-    instance at all, and the extension operator + with its Add
-    alternate. WithAddedWeight(grams) makes the no-mutation rule
-    concrete: it reads shipment.WeightGrams and returns new(...), a
-    brand-new CarrierShipment, leaving the original the vendor handed
-    over exactly as it was.
-
-- name: 26-inspecting-a-tree
-  section: "Ch. 26"
-  title: Reading a rule without running it, compiling one that does
-  caption: >-
-    TariffExpressionLibrary.WeightRate is the same kind of
-    Expression<Func<RateRequest, decimal>> rule on both sides of this
-    figure. ReferencedPropertyCollector, an ExpressionVisitor, calls
-    Visit(rule.Body) inside Collect(rule) and its VisitMember override
-    records which RateRequest properties, such as WeightKilograms, the
-    rule touches, producing an IReadOnlyCollection<string> without ever
-    compiling or invoking the rule. Expression<Func<RateRequest,
-    decimal>>.Compile() takes the identical tree down a different path:
-    it produces a Func<RateRequest, decimal> delegate that, once
-    invoked against a RateRequest, actually executes the rule, the
-    LINQ-provider distinction between inspecting a tree as data and
-    running it as code.
 
 - name: 29-irateable-static-dispatch
   section: "Ch. 29"

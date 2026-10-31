@@ -429,4 +429,61 @@ BCL (no runtime package); no cross-language token anywhere; ch25 primary figure 
 
 ## r12 verification log
 
-(To be completed by the Wave D Opus validator.)
+Opus-validated 2026-10-31 (branch `release/r12`). Overall: PASS (PASS-WITH-NITS at validation; both
+nits fixed in a repair pass: ch29 "earns its cost" -> "is worth its complexity"; the three density
+diagrams.yml entries reordered into strict chapter order beside their siblings).
+
+**Build / test (all green, 0 warnings — warnings-as-errors):**
+- `examples/25-extension-members` `dotnet test`: 10/10.
+- `examples/26-expression-trees` `dotnet test`: 13/13.
+- `examples/29-static-abstract-members-and-generic-math` `dotnet test`: 12/12.
+- `scripts/verify.sh`: all three auto-discovered and green alongside the rest (24 suites, 0 failures).
+- `bundle exec jekyll build`: clean, all nine r12 figures render.
+
+**Content:** three chapters full spine in order (primary figure after "Why this matters"); "Build,
+run, observe" quotes real counts (10/13/12), path-sanitized (0 `/home/`, 0 username); exactly one AI
+sidebar each in "When not to use it"; body prose 3072 (ch25) / 3184 (ch26) / 2866 (ch29) per the
+validator's count, each with a density figure; 0 em-dash; primary citations learn.microsoft.com + C#
+language spec (ch26 adds a light GoF Visitor pearson cite for ExpressionVisitor).
+
+**ch25 feasibility gate:** FULL feature set shipped — instance extension properties (WeightKilograms,
+IsHeavy), static extension members (Empty, FromKilograms), and the extension operator + all compile and
+test green on SDK 10.0.113 / LangVersion 14.0. No fallback needed. CA1708 scope-suppressed with a
+justified SuppressMessage (analyzer false positive on paired instance/static extension blocks); CA2225
+satisfied with the Add named alternate; classic this-form NormalisedDestination coexists.
+
+**ch26 distinctness from merged ch24:** namespace TariffExpressions (ch24 was TariffRules); no
+TariffRule/TariffCompiler/TariffEvaluator/Shipment/Memento reuse. Real System.Linq.Expressions trees:
+TariffExpressionLibrary authored as Expression<Func<...>> data; RateDescriber/ReferencedPropertyCollector
+/RateInflator/ParameterReplacer derive from ExpressionVisitor; ReferencedPropertyCollector reads without
+executing (divide-by-zero rule collects cleanly, throws only on Compile); RateInflator returns a new tree
+scaling only decimal constants; PredicateComposer.And unifies parameters via ParameterReplacer + AndAlso.
+
+**ch29 reframe gate:** front-matter description no longer contains CRTP or "policy-based design"; reads
+the positive C#-only line. Money implements IAdditionOperators/IAdditiveIdentity/IMultiplyOperators/
+IComparisonOperators/IComparable<Money> from System.Numerics with CA2225 Add/Multiply alternates;
+IRateable<TSelf> self-constraint; RateBook.Quote<T>/BaseRateOf<T> dispatch through the type parameter;
+Totals.Sum<T> folds from T.AdditiveIdentity over both Money and built-in decimal.
+
+**NO CROSS-LANGUAGE:** grep for Java/JVM/erasure/C++/CRTP/Spring/Smalltalk/policy-based (case-insensitive)
+across the three docs, three example trees (.cs + README), the new diagrams.yml captions, and the nine
+SVGs = ZERO.
+
+**CROSS-CHAPTER REFS LIGHT:** no numeric cross-refs; no title/topic pointers; all "chapter" hits are
+self-references. ch26 does not lean on the merged Visitor/Interpreter chapter (Visitor appears only as
+the BCL ExpressionVisitor type and a single allowed GoF cite).
+
+**Diagrams (name-drift gate):** nine figures each paired on disk (.svg + .excalidraw), registered in
+diagrams.yml (now 57 entries, r12 block in strict chapter order after the repair), included in the right
+chapter by name; every SVG label + caption token verified present in the example source.
+
+**Code idiom:** `lgtm-idiomatic-review` 0 hits on all three. All three test csprojs set IsTestProject +
+IsPackable false + NoWarn CA1707, pin the four packages, omit TestingPlatformDotnetTestSupport; each
+example its own .slnx; all three libraries pure BCL (no runtime package). Em-dash across all .cs +
+README = 0.
+
+**Voice:** `lgtm-professional-voice` 0 ban-tier on all three (watch-tier left as-is). `grep -c
+"TODO caption"` = 0. The one avoid-list phrase the validator flagged ("earns its cost") was reworded.
+
+**Part 9 pure-BCL subset (ch25, ch26, ch29) COMPLETE; ch27 (source generators) + ch28 (analyzers)
+deferred to r13 as planned.**
