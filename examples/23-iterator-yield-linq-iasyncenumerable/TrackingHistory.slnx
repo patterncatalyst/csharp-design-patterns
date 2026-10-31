@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TrackingHistory.csproj" />
+  <Project Path="TrackingHistory.Tests/TrackingHistory.Tests.csproj" />
+</Solution>
