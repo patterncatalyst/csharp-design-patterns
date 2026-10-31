@@ -437,4 +437,48 @@ standard net10.0 + xUnit v3 toolchain throughout (NOT the Roslyn netstandard2.0 
 
 ## r14 verification log
 
-<!-- Opus fills this in during Wave D. -->
+Opus-validated 2026-10-31 (branch `release/r14`). Verdict: PASS (PASS-WITH-NITS at validation; both
+caption nits fixed in a repair pass: diagrams.yml #63 "a singleton snapshot" -> "a long-lived singleton
+value" to match the correct include caption; diagrams.yml #71 "awaits real network I/O" -> "awaits real
+work" since the fake awaits `Task.Delay(0, ct)`; the 17 watch-tier voice lines left as-is per prior
+iterations). Part 10 (ch30-32, "Patterns the Platform Defines") is COMPLETE. The NEW short-caption rule
+was applied and holds: all 9 include captions (25-34 words, 0 angle-bracket generics) and all 9
+diagrams.yml captions are short human glosses, not identifier inventories. This iteration RETURNED to
+the standard net10.0 + xUnit v3 toolchain.
+
+- Tests (live): examples/30-the-options-pattern 12 passed / 0 failed; examples/31-tester-doer-and-the-
+  result-debate 23 passed / 0 failed; examples/32-tap-and-async-conventions 10 passed / 0 failed; zero
+  warnings under warnings-as-errors. scripts/verify.sh green (all three auto-discovered via
+  *.Tests/*.csproj, whole suite 29 projects green). scripts/build.sh 0 Warning(s) 0 Error(s). jekyll clean.
+- Toolchain: standard net10.0 library + xUnit v3 (xunit.v3 4.0.2, xunit.runner.visualstudio 4.0.1,
+  Microsoft.NET.Test.Sdk 18.11.0, NSubstitute 6.2.0). ch30 library pins the four Options runtime
+  packages (Microsoft.Extensions.DependencyInjection / .Options / .Options.ConfigurationExtensions /
+  .Configuration) all at 10.0.14; ch31 + ch32 are pure BCL (zero PackageReference in the library
+  csproj). All three test csprojs omit TestingPlatformDotnetTestSupport, set IsTestProject +
+  IsPackable=false + NoWarn;CA1707. Each example has its own .slnx.
+- ch30 ValidateOnStart: shipped the FULL direct IStartupValidator path (not the documented fallback) -
+  resolve IStartupValidator, Validate() throws OptionsValidationException naming Endpoint +
+  TimeoutSeconds + RetryBudget for invalid config, throws nothing for valid. OnChange deterministic:
+  mutate the MemoryConfigurationProvider + IConfigurationRoot.Reload(), assert watcher.Observed CONTAINS
+  RetryBudget==9 (contains, not an exact callback count). No file watcher, no Thread.Sleep.
+  IOptionsSnapshot resolved inside provider.CreateScope().
+- ch31 idiom: Result<T> readonly record struct (Success/Failure factories; Map composes/short-circuits);
+  CA1000 (Result<T>) and CA1822 (two instance services) suppressed WITH justification. Both styles proven
+  to agree over a shared input set; the tradeoff is stated, no side picked; Result<T> framed as a C#
+  community idiom, no "like Rust"/functional/monadic framing.
+- ch32 idiom: FakeCarrierGateway deterministic (DateTimeOffset injected via ctor; tests pass UnixEpoch; no
+  wall-clock), ConfigureAwait(false) on every library await, ValueTask<bool> on the synchronous
+  IsReachableAsync fast path, synchronous RecordingProgress double (not Progress<T>). Reflection tests
+  enforce the Async suffix + CancellationToken on every Task/ValueTask member.
+- Content: full spine each (primary figure after "Why this matters"); ## Build, run, observe quotes real
+  path-sanitized dotnet test output (0 /home/, 0 username, counts 12/23/10); exactly one
+  > **AI sidebar.** per chapter in "When not to use it"; "For deeper coverage" cites Microsoft Learn (+
+  the Framework Design Guidelines via Learn for ch31) as primary; no GoF. Body prose ~2587 / ~2633 /
+  ~2590 words, each with a density figure. em-dash == 0 across docs + .cs + README; 0 ban-tier; 0
+  "capstone"; no numeric cross-chapter refs (ch32's only forward pointer is the generic "concurrency
+  material").
+- Figures: 3 per chapter, all paired .svg + .excalidraw on disk, registered in _data/diagrams.yml
+  #63-#71 in chapter order (now 71 entries). Name-drift gate clean; NO-CROSS-LANGUAGE gate 0 hits across
+  docs + example trees + new captions + new SVGs.
+
+**Part 10 is COMPLETE (ch30-32).**

@@ -811,7 +811,7 @@
   title: One options type, bound once, consumed three ways
   caption: >-
     CarrierGatewayOptions binds once from configuration, then reaches
-    callers three ways: a singleton snapshot, a per-request snapshot, and
+    callers three ways: a long-lived singleton value, a per-request snapshot, and
     a monitor that tracks the current value across reloads.
 
 - name: 30-options-change-notification
@@ -874,6 +874,6 @@
   section: "Ch. 32"
   title: A Task for real work, a ValueTask for the fast path
   caption: >-
-    DispatchAsync returns a Task because it awaits real network I/O, while
+    DispatchAsync returns a Task because it awaits real work, while
     IsReachableAsync returns an already-completed ValueTask on its usual
     synchronous path, avoiding an allocation for work that never went async.
