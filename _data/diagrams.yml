@@ -822,6 +822,14 @@
     RetryBudgetWatcher is notified immediately. A validator wired in at
     startup fails the host before any of this runs against bad config.
 
+- name: 30-options-validation-on-start
+  section: "Ch. 30"
+  title: Collecting every failure before the host ever starts
+  caption: >-
+    CarrierGatewayOptionsValidator collects every failure reason instead of
+    stopping at the first one, then ValidateOnStart fails the host at
+    startup, before any caller can use the bad configuration.
+
 - name: 31-tester-doer-and-the-result-debate
   section: "Ch. 31"
   title: One decision, two shapes, Try-Parse beside Result
@@ -838,6 +846,14 @@
     A Result value carries its own failure reason and keeps composing
     through later steps. Neither shape wins outright.
 
+- name: 31-result-composition
+  section: "Ch. 31"
+  title: Chaining through a failure reason, or branching by hand
+  caption: >-
+    Result's Map method chains a success through each step and
+    short-circuits on the first failure, while the bool-and-out shape
+    forces a caller to branch immediately after every call.
+
 - name: 32-tap-and-async-conventions
   section: "Ch. 32"
   title: ICarrierGateway's async surface follows TAP conventions
@@ -853,3 +869,11 @@
     Dispatching a batch checks for cancellation before each item and
     reports progress after it, so a caller watching the progress
     consumer sees steady updates until a cancellation stops the loop.
+
+- name: 32-task-valuetask-shape
+  section: "Ch. 32"
+  title: A Task for real work, a ValueTask for the fast path
+  caption: >-
+    DispatchAsync returns a Task because it awaits real network I/O, while
+    IsReachableAsync returns an already-completed ValueTask on its usual
+    synchronous path, avoiding an allocation for work that never went async.

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="20" width="920" height="240" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="40" font-size="12" font-weight="700" fill="#888">real asynchronous work</text>
+<rect x="20" y="280" width="920" height="260" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="300" font-size="12" font-weight="700" fill="#888">usually-synchronous fast path</text>
+<rect x="60" y="70" width="260" height="120" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="190.0" y="120.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICarrierGateway</text>
+<text x="190.0" y="137.5" font-size="11.5" fill="#555555" text-anchor="middle">.DispatchAsync(request)</text>
+<text x="190.0" y="152.5" font-size="11.5" fill="#555555" text-anchor="middle">awaits network I/O</text>
+<rect x="400" y="70" width="230" height="120" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="515.0" y="120.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Task&lt;DispatchReceipt&gt;</text>
+<text x="515.0" y="137.5" font-size="11.5" fill="#555555" text-anchor="middle">allocated for the</text>
+<text x="515.0" y="152.5" font-size="11.5" fill="#555555" text-anchor="middle">pending operation</text>
+<rect x="700" y="70" width="200" height="120" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="800.0" y="120.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">caller awaits,</text>
+<text x="800.0" y="137.5" font-size="11.5" fill="#555555" text-anchor="middle">receipt arrives</text>
+<text x="800.0" y="152.5" font-size="11.5" fill="#555555" text-anchor="middle">once it&#x27;s ready</text>
+<rect x="60" y="350" width="260" height="120" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="190.0" y="400.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICarrierGateway</text>
+<text x="190.0" y="417.5" font-size="11.5" fill="#555555" text-anchor="middle">.IsReachableAsync()</text>
+<text x="190.0" y="432.5" font-size="11.5" fill="#555555" text-anchor="middle">no I/O to await</text>
+<rect x="400" y="350" width="230" height="120" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="515.0" y="400.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ValueTask&lt;bool&gt;</text>
+<text x="515.0" y="417.5" font-size="11.5" fill="#555555" text-anchor="middle">already completed,</text>
+<text x="515.0" y="432.5" font-size="11.5" fill="#555555" text-anchor="middle">nothing allocated</text>
+<rect x="700" y="350" width="200" height="120" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="800.0" y="408.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">caller reads the</text>
+<text x="800.0" y="425.0" font-size="11.5" fill="#555555" text-anchor="middle">result immediately</text>
+<path d="M320,130 L400,130" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="366.0" y="124.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">returns</text>
+<text x="366.0" y="124.0" font-size="11" fill="#555" text-anchor="middle">returns</text>
+<path d="M630,130 L700,130" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="671.0" y="124.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">await</text>
+<text x="671.0" y="124.0" font-size="11" fill="#b8650a" text-anchor="middle">await</text>
+<path d="M320,410 L400,410" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="366.0" y="404.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">returns</text>
+<text x="366.0" y="404.0" font-size="11" fill="#555" text-anchor="middle">returns</text>
+<path d="M630,410 L700,410" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="671.0" y="404.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">no allocation</text>
+<text x="671.0" y="404.0" font-size="11" fill="#b8650a" text-anchor="middle">no allocation</text>
+<text x="480" y="530" font-size="12" fill="#555" text-anchor="middle">one interface, two return shapes, each matched to how often the member actually goes asynchronous</text>
+</svg>

@@ -276,6 +276,8 @@ overwhelming majority of real calls. `DispatchAsync` and
 something, so there is no synchronous path for `ValueTask<TResult>` to pay
 off against.
 
+{% include excalidraw.html name="32-task-valuetask-shape" caption="Figure 32.3: DispatchAsync returns a Task because it awaits real work, while IsReachableAsync returns an already-completed ValueTask on its usual synchronous path, avoiding an allocation." %}
+
 ## Library code and ConfigureAwait(false)
 
 Every await inside `FakeCarrierGateway` ends in `.ConfigureAwait(false)`.

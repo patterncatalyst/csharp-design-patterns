@@ -313,6 +313,8 @@ failure a deployment pipeline sees names every bad setting in one message
 instead of surfacing one problem at a time as each path happens to be
 exercised.
 
+{% include excalidraw.html name="30-options-validation-on-start" caption="Figure 30.3: CarrierGatewayOptionsValidator collects every failure reason instead of stopping at the first, and ValidateOnStart fails the host at startup, before any caller can use the bad configuration." %}
+
 ## Build, run, observe
 
 `CarrierGatewayOptions`, `CarrierGatewayOptionsValidator`,

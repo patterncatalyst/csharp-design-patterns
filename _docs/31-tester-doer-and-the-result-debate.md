@@ -363,6 +363,8 @@ reason through every step without a branch at each one. The right choice
 depends on what the caller needs from the answer, not on which shape is
 newer or more fashionable.
 
+{% include excalidraw.html name="31-result-composition" caption="Figure 31.3: Result's Map chains a success through each step and short-circuits on the first failure, while the boolean-and-out shape forces a caller to branch immediately after every call." %}
+
 ## Build, run, observe
 
 The example is standalone-testable from its own directory:
