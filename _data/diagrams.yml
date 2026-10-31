@@ -763,6 +763,20 @@
     unchanged manifest produces an unchanged model and the pipeline skips
     Emit entirely.
 
+- name: 27-generated-registry-vs-reflection
+  section: "Ch. 27"
+  title: A compile-time registry needs no runtime scan
+  caption: >-
+    CarrierGatewayGenerator builds GeneratedCarrierRegistry from
+    carriers.manifest at compile time, statically referencing each
+    <Code>CarrierGateway adapter it emits, so CarrierDispatch.ResolveEndpoint
+    calls GeneratedCarrierRegistry.Find(code) against references that already
+    exist in source. The runtime alternative it replaces calls
+    Assembly.GetTypes() to scan loaded assemblies at process startup and
+    builds its lookup table from whatever the scan finds, a path that
+    trimming can remove types out from under and that native AOT does not
+    fully support.
+
 - name: 28-roslyn-analyzers
   section: "Ch. 28"
   title: Flagging decimal money on a wire contract at compile time

@@ -357,6 +357,8 @@ empty `GeneratedCarrierRegistry` class ships with nothing in it.
 
 ## The trimming and AOT argument
 
+{% include excalidraw.html name="27-generated-registry-vs-reflection" caption="Figure 27.3: CarrierGatewayGenerator builds GeneratedCarrierRegistry from carriers.manifest at compile time, statically referencing each generated adapter, so CarrierDispatch.ResolveEndpoint calls GeneratedCarrierRegistry.Find(code) against references that already exist in source. The runtime alternative it replaces calls Assembly.GetTypes() to scan loaded assemblies at startup, a path that trimming can remove types out from under and that native AOT does not fully support." %}
+
 A reflection-based version of this same registry would typically build
 itself once, at process startup, by enumerating loaded assemblies, finding
 every type implementing `ICarrierGateway`, and instantiating one of each
