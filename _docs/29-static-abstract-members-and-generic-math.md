@@ -172,6 +172,8 @@ shared constant baked into the generic method.
 matching type's own `BaseRate`, with no shipment instance constructed
 anywhere in the test.
 
+{% include excalidraw.html name="29-irateable-static-dispatch" caption="Figure 29.3: ParcelShipment, FreightPallet, and DocumentEnvelope each supply their own static BaseRate and RateOf through IRateable<T>. RateBook.Quote<T> dispatches to the right one through the type parameter, and Totals.Sum<T> folds the results from T.AdditiveIdentity into a single Money total." %}
+
 ## Generic math: one algorithm, two numeric types
 
 `Money` carries exactly one field, a `decimal Amount`, under a documented

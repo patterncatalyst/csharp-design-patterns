@@ -164,6 +164,8 @@ confirms exactly that: it adapts one shipment, checks the new instance's
 weight, destination, and declared value, and then re-reads the original
 shipment's weight to confirm it never moved.
 
+{% include excalidraw.html name="25-adapting-an-unowned-type" caption="Figure 25.3: CarrierShipment stays frozen in CarrierParcels.Vendor and is never mutated by any extension member. WithAddedWeight returns a new CarrierShipment rather than changing the original, and the instance members, static members, and operator in CarrierShipmentExtensions all add behaviour from outside the vendor type." %}
+
 ## Static extension members: building the type you don't own
 
 The same `extension(CarrierShipment shipment)` block mixes instance members

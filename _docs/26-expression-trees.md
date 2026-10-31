@@ -258,6 +258,8 @@ target, and only then produces a result, a sequencing `ReferencedProperty
 Collector` mirrors directly: inspect the data describing a computation, and
 let a decision about whether to compile and run it come after.
 
+{% include excalidraw.html name="26-inspecting-a-tree" caption="Figure 26.3: ReferencedPropertyCollector.Collect walks a rule with VisitMember and records which RateRequest properties it touches without ever executing it, the way a LINQ provider reads a query before translating it. Expression<T>.Compile() takes the same tree down the other path and produces a delegate that does run the rule." %}
+
 ## Rewriting a tree without mutating it
 
 `RateInflator` goes one step further than reading: it builds a new tree out

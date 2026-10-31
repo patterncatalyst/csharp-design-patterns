@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="40" y="60" width="260" height="120" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="170.0" y="110.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ParcelShipment : IRateable&lt;ParcelShipment&gt;</text>
+<text x="170.0" y="127.5" font-size="11.5" fill="#555555" text-anchor="middle">static Money BaseRate =&gt; 4.50m</text>
+<text x="170.0" y="142.5" font-size="11.5" fill="#555555" text-anchor="middle">static Money RateOf(shipment)</text>
+<rect x="350" y="60" width="260" height="120" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="480.0" y="110.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">FreightPallet : IRateable&lt;FreightPallet&gt;</text>
+<text x="480.0" y="127.5" font-size="11.5" fill="#555555" text-anchor="middle">static Money BaseRate =&gt; 35.00m</text>
+<text x="480.0" y="142.5" font-size="11.5" fill="#555555" text-anchor="middle">static Money RateOf(shipment)</text>
+<rect x="660" y="60" width="260" height="120" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="790.0" y="110.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DocumentEnvelope : IRateable&lt;DocumentEnvelope&gt;</text>
+<text x="790.0" y="127.5" font-size="11.5" fill="#555555" text-anchor="middle">static Money BaseRate =&gt; 2.00m</text>
+<text x="790.0" y="142.5" font-size="11.5" fill="#555555" text-anchor="middle">static Money RateOf(shipment)</text>
+<rect x="360" y="230" width="240" height="110" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="275.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RateBook.Quote&lt;T&gt;(shipment)</text>
+<text x="480.0" y="292.5" font-size="11.5" fill="#555555" text-anchor="middle">where T : IRateable&lt;T&gt;</text>
+<text x="480.0" y="307.5" font-size="11.5" fill="#555555" text-anchor="middle">return T.RateOf(shipment)</text>
+<rect x="360" y="410" width="240" height="130" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="458.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Totals.Sum&lt;T&gt;(values)</text>
+<text x="480.0" y="475.0" font-size="11.5" fill="#555555" text-anchor="middle">total = T.AdditiveIdentity</text>
+<text x="480.0" y="490.0" font-size="11.5" fill="#555555" text-anchor="middle">total += value</text>
+<text x="480.0" y="505.0" font-size="11.5" fill="#555555" text-anchor="middle">produces one Money total</text>
+<path d="M170,180 L400,230" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M480,180 L480,230" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M790,180 L560,230" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M480,340 L480,410" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="486.0" y="369.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">IEnumerable&lt;Money&gt; quotes</text>
+<text x="486.0" y="369.0" font-size="11" fill="#b8650a" text-anchor="middle">IEnumerable&lt;Money&gt; quotes</text>
+<text x="480" y="20" font-size="13" fill="#888" text-anchor="middle" font-weight="700">Three static contracts feed one Quote&lt;T&gt;, and Totals.Sum&lt;T&gt; folds the quotes into one total</text>
+</svg>
