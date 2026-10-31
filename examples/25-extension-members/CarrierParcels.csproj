@@ -1,0 +1,17 @@
+<!-- Chapter 25 example: C# 14 extension members over an UNOWNED sealed type
+     from a stand-in third-party carrier SDK. We cannot add instance members
+     or operators to CarrierShipment itself, so CarrierShipmentExtensions
+     attaches an instance extension property, static extension members, and
+     an extension operator to it, plus a classic `this`-parameter extension
+     method coexisting on the same static class. TargetFramework, LangVersion,
+     Nullable, etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CarrierParcels.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>
