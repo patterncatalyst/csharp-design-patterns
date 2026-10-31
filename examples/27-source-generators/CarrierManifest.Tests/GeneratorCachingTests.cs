@@ -32,7 +32,7 @@ public sealed class GeneratorCachingTests
 
         // Two separately built but content-equivalent compilations stand in
         // for "the manifest didn't change, but something else in the project
-        // was recompiled" — the ordinary case an incremental generator has to
+        // was recompiled", the ordinary case an incremental generator has to
         // stay cheap for.
         var firstCompilation = GeneratorEmitTests.CreateCompilation(GeneratorEmitTests.CarrierGatewayInterfaceSource);
         driver = driver.RunGenerators(firstCompilation, TestContext.Current.CancellationToken);
