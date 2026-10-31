@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="20" width="440" height="520" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="40" font-size="12" font-weight="700" fill="#888">Try-Parse: bool + out</text>
+<rect x="500" y="20" width="440" height="520" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="512" y="40" font-size="12" font-weight="700" fill="#888">Result&lt;T&gt;: carries its own reason</text>
+<rect x="50" y="70" width="380" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="240.0" y="113.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">EdiTryParser.TryParse(raw, out message)</text>
+<text x="240.0" y="130.0" font-size="11.5" fill="#555555" text-anchor="middle">returns bool</text>
+<rect x="50" y="220" width="380" height="80" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="240.0" y="258.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">true</text>
+<text x="240.0" y="275.0" font-size="11.5" fill="#555555" text-anchor="middle">out message is populated</text>
+<rect x="50" y="340" width="380" height="80" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="240.0" y="378.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">false</text>
+<text x="240.0" y="395.0" font-size="11.5" fill="#555555" text-anchor="middle">out message is null</text>
+<rect x="530" y="70" width="380" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="720.0" y="113.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">EdiResultParser.Parse(raw)</text>
+<text x="720.0" y="130.0" font-size="11.5" fill="#555555" text-anchor="middle">returns Result&lt;EdiMessage&gt;</text>
+<rect x="530" y="220" width="380" height="80" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="720.0" y="258.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IsSuccess == true</text>
+<text x="720.0" y="275.0" font-size="11.5" fill="#555555" text-anchor="middle">Value holds the parsed message</text>
+<rect x="530" y="340" width="380" height="80" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="720.0" y="378.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IsSuccess == false</text>
+<text x="720.0" y="395.0" font-size="11.5" fill="#555555" text-anchor="middle">Error names the reason</text>
+<rect x="530" y="460" width="380" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="720.0" y="493.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Map&lt;TOut&gt; composes on success</text>
+<text x="720.0" y="510.0" font-size="11.5" fill="#555555" text-anchor="middle">a failure passes through unchanged</text>
+<path d="M240,160 L240,220" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="246.0" y="184.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">success</text>
+<text x="246.0" y="184.0" font-size="11" fill="#555" text-anchor="middle">success</text>
+<path d="M240,160 L240,340" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="410.0" y="530.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">malformed</text>
+<text x="410.0" y="530.0" font-size="11" fill="#555" text-anchor="middle">malformed</text>
+<path d="M720,160 L720,220" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="726.0" y="184.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">success</text>
+<text x="726.0" y="184.0" font-size="11" fill="#555" text-anchor="middle">success</text>
+<path d="M720,160 L720,340" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="1370.0" y="530.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">failure</text>
+<text x="1370.0" y="530.0" font-size="11" fill="#555" text-anchor="middle">failure</text>
+<path d="M720,300 L720,460" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+</svg>

@@ -805,3 +805,51 @@
     Type.SpecialType is System_Decimal, calling
     context.ReportDiagnostic(Rule, location, property.Name, type.Name)
     on each one it finds.
+
+- name: 30-the-options-pattern
+  section: "Ch. 30"
+  title: One options type, bound once, consumed three ways
+  caption: >-
+    CarrierGatewayOptions binds once from configuration, then reaches
+    callers three ways: a singleton snapshot, a per-request snapshot, and
+    a monitor that tracks the current value across reloads.
+
+- name: 30-options-change-notification
+  section: "Ch. 30"
+  title: A reload reaches the monitor and startup gates on validation
+  caption: >-
+    When configuration reloads, CarrierGatewayOptions rebinds and
+    RetryBudgetWatcher is notified immediately. A validator wired in at
+    startup fails the host before any of this runs against bad config.
+
+- name: 31-tester-doer-and-the-result-debate
+  section: "Ch. 31"
+  title: One decision, two shapes, Try-Parse beside Result
+  caption: >-
+    The same parse-and-validate decision appears twice: Try-Parse style
+    methods report failure through a boolean, while Result wraps the
+    same outcome as a value a caller cannot ignore.
+
+- name: 31-try-parse-vs-result
+  section: "Ch. 31"
+  title: Branch immediately, or carry the reason and compose
+  caption: >-
+    A boolean and an out parameter force a caller to branch right away.
+    A Result value carries its own failure reason and keeps composing
+    through later steps. Neither shape wins outright.
+
+- name: 32-tap-and-async-conventions
+  section: "Ch. 32"
+  title: ICarrierGateway's async surface follows TAP conventions
+  caption: >-
+    ICarrierGateway follows the Task-based Asynchronous Pattern: every
+    async member ends in Async, returns a Task or ValueTask, and accepts
+    a cancellation token, so a fake implementation can stand in cleanly.
+
+- name: 32-cancellation-and-progress
+  section: "Ch. 32"
+  title: Cancellation and progress inside one dispatch loop
+  caption: >-
+    Dispatching a batch checks for cancellation before each item and
+    reports progress after it, so a caller watching the progress
+    consumer sees steady updates until a cancellation stops the loop.

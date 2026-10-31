@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="370" y="40" width="220" height="80" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="78.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ICarrierGateway</text>
+<text x="480.0" y="95.0" font-size="11.5" fill="#555555" text-anchor="middle">TAP: Async suffix, Task/ValueTask, token</text>
+<rect x="40" y="180" width="270" height="130" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="175.0" y="235.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DispatchAsync(request, token)</text>
+<text x="175.0" y="252.5" font-size="11.5" fill="#555555" text-anchor="middle">Task&lt;DispatchReceipt&gt;</text>
+<text x="175.0" y="267.5" font-size="11.5" fill="#555555" text-anchor="middle">single consignment</text>
+<rect x="350" y="180" width="270" height="130" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="485.0" y="235.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DispatchBatchAsync(requests, progress, token)</text>
+<text x="485.0" y="252.5" font-size="11.5" fill="#555555" text-anchor="middle">Task&lt;IReadOnlyList&lt;DispatchReceipt&gt;&gt;</text>
+<text x="485.0" y="267.5" font-size="11.5" fill="#555555" text-anchor="middle">reports via IProgress&lt;DispatchProgress&gt;</text>
+<rect x="660" y="180" width="270" height="130" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="795.0" y="235.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IsReachableAsync(token)</text>
+<text x="795.0" y="252.5" font-size="11.5" fill="#555555" text-anchor="middle">ValueTask&lt;bool&gt;</text>
+<text x="795.0" y="267.5" font-size="11.5" fill="#555555" text-anchor="middle">no Task allocation when already done</text>
+<rect x="350" y="360" width="270" height="90" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="485.0" y="403.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">FakeCarrierGateway</text>
+<text x="485.0" y="420.0" font-size="11.5" fill="#555555" text-anchor="middle">implements ICarrierGateway for tests</text>
+<path d="M480,120 L175,180" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M480,120 L485,180" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M480,120 L795,180" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M485,310 L485,360" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="491.0" y="329.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implemented by</text>
+<text x="491.0" y="329.0" font-size="11" fill="#b8650a" text-anchor="middle">implemented by</text>
+</svg>
