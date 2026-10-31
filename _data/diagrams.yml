@@ -527,3 +527,82 @@
     whichever one did not send the message, so a reply travels the same
     path in the other direction without either desk ever holding a direct
     reference back to the one that sent it.
+
+- name: 23-iterator-yield-linq-iasyncenumerable
+  section: "Ch. 23"
+  title: Paginate validates, PaginateIterator is what yield return becomes
+  caption: >-
+    ConsignmentHistory.Paginate(pageSize) validates pageSize and throws
+    immediately on an invalid value, then returns without running any
+    pagination logic itself, delegating that work to the private
+    PaginateIterator method. PaginateIterator is where the yield return
+    statements live, and the compiler turns that method body into a state
+    machine that does nothing until a caller's foreach calls MoveNext,
+    producing one TrackingPage at a time rather than building the whole
+    list up front.
+
+- name: 23-async-stream-await-foreach
+  section: "Ch. 23"
+  title: StreamAsync's IAsyncEnumerable, pulled by await foreach, cut short by break
+  caption: >-
+    CarrierEventFeed.StreamAsync returns an async IAsyncEnumerable<TrackingEvent>
+    and marks its CancellationToken parameter with [EnumeratorCancellation], the
+    attribute that lets a consumer's .WithCancellation(ct) on the await foreach
+    reach that same parameter instead of a default token the compiler would
+    otherwise generate. LiveTrackingReader.CollectAsync consumes the stream to
+    completion, while CollectUntilAsync breaks out of its await foreach once
+    trackingEvent.Stage matches the requested stop stage, which disposes the
+    enumerator early and leaves every event after that point never requested
+    from the feed.
+
+- name: 23-deferred-execution
+  section: "Ch. 23"
+  title: One eager check, two deferred sequences, nothing runs before a pull
+  caption: >-
+    ConsignmentHistory.Paginate(pageSize) is the one piece of eager work,
+    checked and thrown before the method ever returns. Everything after it is
+    deferred: the private PaginateIterator body does not run until a foreach
+    calls MoveNext, and StagesReached()'s _events.Select(e => e.Stage).Distinct()
+    is itself a LINQ query that composes lazily over the same source rather
+    than materializing a list. Both sequences sit inert until the first
+    foreach iteration pulls an element through them.
+
+- name: 24-visitor-memento-interpreter
+  section: "Ch. 24"
+  title: One closed TariffRule hierarchy, read by a switch and by a compiler
+  caption: >-
+    TariffRule is a closed abstract record with exactly four cases, FlatFee,
+    PerKilogram, Surcharge, and Sum, each capturing its own data. TariffEvaluator
+    .Evaluate(rule, shipment) walks that hierarchy with a recursive switch
+    expression and returns a decimal directly, the pattern-matching
+    alternative to a classic Visitor's double dispatch. TariffCompiler.Compile
+    (rule) walks the same hierarchy once to build a System.Linq.Expressions
+    tree, then calls Expression.Lambda<Func<Shipment,decimal>>(...).Compile()
+    to produce a reusable delegate, the GoF Interpreter pattern as originally
+    described.
+
+- name: 24-pattern-match-and-compiled-tree
+  section: "Ch. 24"
+  title: Same tree, two readings, one assertion that they agree
+  caption: >-
+    A single TariffRule tree, a Sum of a Surcharge over PerKilogram and a
+    FlatFee, is read two ways against the same Shipment: TariffEvaluator
+    .Evaluate(tree, shipment) walks it with a recursive switch expression,
+    and TariffCompiler.Compile(tree)(shipment) invokes the compiled delegate
+    built from the same tree. The test
+    Compiled_delegate_matches_the_pattern_matching_evaluator asserts
+    TariffEvaluator.Evaluate(tree, Shipment) equals compiled(Shipment), the
+    decimal from one reading matching the decimal from the other exactly.
+
+- name: 24-memento-checkpoint-rollback
+  section: "Ch. 24"
+  title: Save into a memento, push it, pop it, Restore from the copy
+  caption: >-
+    BookingOriginator.Save() captures ServiceLevel, WeightKilograms, and a
+    copy of Lines into a new BookingMemento. AmendmentCaretaker.Checkpoint
+    pushes that memento onto its own Stack<BookingMemento> without ever
+    looking inside it, and Rollback pops the most recent one and hands it to
+    BookingOriginator.Restore(memento). Restore rebuilds _lines with
+    [.. memento.Lines] rather than aliasing the memento's list, so a later
+    mutation on the restored booking can never reach back into the snapshot
+    the caretaker is still holding.
