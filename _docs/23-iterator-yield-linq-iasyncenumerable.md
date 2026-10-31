@@ -22,7 +22,7 @@ By the end of this chapter you can:
   wherever the previous `yield return` left off.
 - Read `StagesReached` as a composed LINQ query, `Select` followed by
   `Distinct`, and explain why neither operator touches a single
-  `TrackingEvent` until a caller actually enumerates the result.
+  `TrackingEvent` until a caller enumerates the result.
 - Build an asynchronous producer with `async` and `yield return` against
   `IAsyncEnumerable<T>`, attach `[EnumeratorCancellation]` to its token
   parameter, and explain what a consumer's `.WithCancellation(token)` call
@@ -109,7 +109,7 @@ not enumerated at construction time at all, only later, when something
 walks the history it produces.
 
 `Paginate` is the method a caller actually reaches for, and it is
-deliberately not the method that contains the `yield return` statements:
+not the method that contains the `yield return` statements:
 
 ```csharp
 public IEnumerable<TrackingPage> Paginate(int pageSize)
@@ -191,7 +191,7 @@ both confirm the buffering logic itself: five events paginated at size two
 produce three pages, two full and one holding the single leftover event,
 while four events paginated at size two produce exactly two full pages with
 no trailing empty one, because the `if (buffer.Count > 0)` guard after the
-loop only emits a final page when something is actually left in the buffer.
+loop only emits a final page when something is left in the buffer.
 
 ## LINQ operators as iterators that compose
 
@@ -230,7 +230,7 @@ entirely to the operators underneath.
 
 `Paginate` and `StagesReached` sit on either side of the same eager and
 deferred split, and seeing them side by side is the clearest way to read
-what "deferred" actually buys a caller.
+what "deferred" buys a caller.
 
 {% include excalidraw.html name="23-deferred-execution" caption="Figure 23.3: ConsignmentHistory.Paginate(pageSize) is the one piece of eager work, checked and thrown before the method ever returns. Everything after it is deferred: the private PaginateIterator body does not run until a foreach calls MoveNext, and StagesReached()'s _events.Select(e => e.Stage).Distinct() is itself a LINQ query that composes lazily over the same source rather than materializing a list. Both sequences sit inert until the first foreach iteration pulls an element through them." %}
 
@@ -247,10 +247,10 @@ until a consumer starts pulling values through it. A caller holding either
 sequence without enumerating it has not paid for any of the work that
 sequence represents. That property is also why a page count or a distinct
 stage list should not be assumed to exist, correct or otherwise, until it is
-actually walked. Calling `Paginate(2)` twice on the same `ConsignmentHistory`
+walked. Calling `Paginate(2)` twice on the same `ConsignmentHistory`
 and enumerating each result separately re-runs `PaginateIterator`'s loop
 from the start both times; nothing is cached between enumerations unless a
-caller deliberately materializes the sequence into a list first, which is
+caller materializes the sequence into a list first, which is
 exactly what `.ToList()` does when a result needs to be read more than once
 or handed somewhere that expects a fixed collection rather than a sequence
 that can only be walked once at a time.
@@ -301,7 +301,7 @@ public async IAsyncEnumerable<TrackingEvent> StreamAsync(
 The `async` modifier and the `await Task.Yield()` call are what make this
 method's `yield return` statements asynchronous rather than synchronous:
 each one can sit behind real asynchronous work, here a stand-in for the
-network round trip a live carrier integration would actually make, without
+network round trip a live carrier integration would make, without
 blocking the thread that is waiting on it. A consumer walks this with
 `await foreach` instead of a plain `foreach`, and each iteration of that
 loop awaits the next event becoming available rather than spinning
@@ -317,7 +317,7 @@ uncancellable token the compiler supplies on its own. `[EnumeratorCancellation]`
 tells the compiler that this particular parameter should instead be
 replaced by whatever token a consumer passes to `.WithCancellation(token)`
 on the returned `IAsyncEnumerable<T>`, which is what lets `cancellationToken
-.ThrowIfCancellationRequested()` inside `StreamAsync` actually observe a
+.ThrowIfCancellationRequested()` inside `StreamAsync` observe a
 cancellation a consumer requested after the stream was already created.
 
 `LiveTrackingReader` is the consumer side of that contract, and both of its
@@ -379,7 +379,7 @@ The `break` inside this `await foreach` does more than exit a loop. Leaving
 an `await foreach` before it completes disposes the underlying
 `IAsyncEnumerator<T>`, which means `StreamAsync`'s own `foreach` over
 `_events` never reaches the iterations past the matching one; the producer
-side genuinely stops, rather than continuing to run in the background while
+side stops, rather than continuing to run in the background while
 the consumer ignores the rest. `AsyncStreamTests.CollectUntilAsync_stops_the_feed_early_on_break`
 runs six events through `CollectUntilAsync` with a stop stage of
 `TrackingStage.InTransit`, which is the third event in that sequence, and
@@ -439,9 +439,9 @@ the stream before it yields a single event.
 
 ## When not to use it
 
-A lazy, pull-based sequence earns its keep when a caller might not need
+A lazy, pull-based sequence is worth reaching for when a caller might not need
 every element, when the full sequence would be expensive or impossible to
-materialize up front, or when production genuinely happens over time, as it
+materialize up front, or when production happens over time, as it
 does for a live carrier feed. None of those conditions hold for a short,
 already-known list that a caller is always going to read in full. A
 `ConsignmentHistory` with three events gains nothing from paginating lazily
@@ -453,7 +453,7 @@ whole result costs nothing worth avoiding.
 Re-enumeration is the sharper trap. An `IEnumerable<T>` backed by a `yield
 return` method re-runs its entire body from the start every time something
 enumerates it again, which is harmless for a pure projection like
-`StagesReached` but genuinely wrong for a sequence with a side effect in its
+`StagesReached` but wrong for a sequence with a side effect in its
 body: an iterator method that increments a counter, writes a log line, or
 calls out to another service once per element will do all of that again,
 in full, on a second `foreach` over the same result. A caller that needs to
@@ -468,7 +468,7 @@ stream adds state-machine overhead and an `await` on every element for no
 benefit, when a plain, synchronous `IEnumerable<T>` or a pre-materialized
 list would answer the same question with less machinery. `CarrierEventFeed`
 earns `IAsyncEnumerable<TrackingEvent>` because a live carrier feed is
-exactly the case where elements arrive from a genuinely asynchronous
+exactly the case where elements arrive from an asynchronous
 source over time; a method standing over data that is already sitting in
 memory should stay synchronous rather than reaching for the asynchronous
 form on the assumption that it looks more thorough.
@@ -479,7 +479,7 @@ form on the assumption that it looks more thorough.
 > and the whole thing could be returned as a `List<T>` with no asynchronous
 > work anywhere inside it, treating the asynchronous stream shape as a
 > default for any method that produces more than one value rather than a
-> shape reserved for sources that genuinely produce elements over time. A
+> shape reserved for sources that produce elements over time. A
 > related suggestion wraps a `yield return` method's validation inside the
 > iterator itself, with an argument check at the top of a method body that
 > also contains `yield return` further down, which defers that check until
@@ -487,13 +487,13 @@ form on the assumption that it looks more thorough.
 > `ConsignmentHistory.Paginate` avoids by keeping its own body free of
 > `yield return` and delegating the lazy part to `PaginateIterator`. A
 > generated answer can also call `.ToList()` immediately after building a
-> LINQ query "to be safe," collapsing a deliberately lazy pipeline like
+> LINQ query "to be safe," collapsing a lazy pipeline like
 > `StagesReached` into an eagerly materialized one for no reason the request
-> asked for. Check a generated answer against what this chapter actually
-> built: reach for `IAsyncEnumerable<T>` when production is genuinely
+> asked for. Check a generated answer against what this chapter
+> built: reach for `IAsyncEnumerable<T>` when production is
 > asynchronous and ongoing, keep eager checks out of any method whose body
 > contains `yield return`, and leave a LINQ query lazy unless something
-> about the caller's use of it actually requires a materialized list.
+> about the caller's use of it requires a materialized list.
 
 ## For deeper coverage
 

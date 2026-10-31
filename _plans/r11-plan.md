@@ -304,4 +304,41 @@ Part 8 COMPLETE (ch21-24).
 
 ## r11 verification log
 
-<!-- Opus-validated <date> (branch release/r11). Overall: <PASS/FAIL>. Fill on validate. -->
+Opus-validated 2026-10-31 (branch `release/r11`). Overall: PASS (one voice-repair round: 13 ban-tier
+words swapped + "actually" filler trimmed from 10 lines to 1, re-scan 0 ban-tier).
+
+**Build / test (all green):**
+- `examples/23-iterator-yield-linq-iasyncenumerable` `dotnet test`: 8/8.
+- `examples/24-visitor-memento-interpreter` `dotnet test`: 14/14.
+- `scripts/verify.sh`: both new examples auto-discovered and green alongside the rest (21 suites, 0 failures).
+- `bundle exec jekyll build`: clean, all six r11 figures render.
+
+**Content:** both chapters full spine in order (figure after "Why this matters"); "Build, run,
+observe" quotes real counts (8/14), path-sanitized (0 `/home/`, 0 username); exactly one AI sidebar
+each in "When not to use it"; body prose 3123 (ch23) / 3066 (ch24), each with density figures; 0
+em-dash; citations learn.microsoft.com + GoF (pearson).
+
+**NO CROSS-LANGUAGE:** grep for Java/JVM/erasure/C++/Spring across both docs, both example trees
+(.cs + README), the six new diagrams.yml captions (#43-48), and the six SVGs = ZERO.
+
+**CROSS-CHAPTER REFS LIGHT:** no numeric cross-refs; no title/topic pointers; all "chapter" hits are
+self-references.
+
+**Diagrams (name-accuracy gate):** six figures (#43-48, chapter order) each paired on disk,
+registered, included in the right chapter; every SVG label + caption token verified present in the
+example source. No drift. (Generated after green code with locked names; two labels corrected during
+Wave B self-check: `ct` -> `cancellationToken`, and a non-literal `MoveNextAsync` label reworded.)
+
+**Code idiom:** `lgtm-idiomatic-review` 0 hits on both. ch23: `[EnumeratorCancellation]` on the async
+iterator token, `ConfigureAwait(false)` on library awaits, eager-validate `Paginate` wrapper over the
+lazy `PaginateIterator`, `.WithCancellation` wiring, `IReadOnlyList` exposure. ch24: closed
+`TariffRule` record hierarchy with required discard arms (CS8509), `System.Linq.Expressions` compile
+with all-`decimal` arithmetic, `Sum.Rules` as `IReadOnlyList`, `Save()`/`Restore` copy the line list
+(`[.. _lines]`). Both test csprojs set IsTestProject + IsPackable false + NoWarn CA1707, pin the four
+packages, omit TestingPlatformDotnetTestSupport; each example own `.slnx`; both examples pure BCL (no
+runtime package, no System.Linq.Async). Em-dash across both examples' .cs + README = 0.
+
+**Voice:** `lgtm-professional-voice` 0 ban-tier on both after the repair round (watch-tier left as-is
+per prior iterations). `grep -c "TODO caption"` = 0.
+
+**Part 8 is COMPLETE** (ch21-24).

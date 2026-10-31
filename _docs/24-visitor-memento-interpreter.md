@@ -55,7 +55,7 @@ method and a matching `Visit(ConcreteElement element)` overload produce is a
 mechanism for solving that problem, not the problem itself. A pattern-matching
 switch expression over a closed record hierarchy, the same dispatch
 `TariffEvaluator.Evaluate` runs, solves it directly: one recursive expression
-reads as plainly as the data it walks, with no second class hierarchy of
+reads as clearly as the data it walks, with no second class hierarchy of
 visitors required to add a reading.
 
 Memento is the most literal of the three. A booking amendment is a risky
@@ -374,7 +374,7 @@ point does `AmendmentCaretaker` read `ServiceLevel`, `WeightKilograms`, or
 `Lines` off a `BookingMemento` directly; a `Stack<BookingMemento>` is the
 entire data structure the caretaker needs, because the only two operations it
 performs on a checkpoint are pushing it and handing it back unopened. The
-`Stack<BookingMemento>` shape also gives rollback its ordering for free: the
+`Stack<BookingMemento>` shape also gives rollback its ordering at no extra cost: the
 most recently pushed checkpoint is the first one popped, so a sequence of
 checkpoints taken during a multi-step amendment rolls back one step at a
 time, most recent first, without the caretaker tracking order itself.
@@ -441,7 +441,7 @@ empty history.
 
 ## When not to use it
 
-An expression tree earns its cost when the same `TariffRule` is compiled
+An expression tree is worth its cost when the same `TariffRule` is compiled
 once and the resulting delegate is invoked many times, a rating engine
 checking the same tariff structure against thousands of shipments in a
 batch. Building `ParameterExpression`, walking every node through `Build`,
@@ -471,7 +471,7 @@ checkpoints without ever rolling any of them back, or snapshots a booking
 with a very large number of lines, accumulates memory proportional to how
 many checkpoints are still on the stack, each one a full copy of the line
 list at that point. A caretaker is the right shape for a bounded amendment
-flow with a short, deliberately managed history; an unbounded one needs an
+flow with a short, managed history; an unbounded one needs an
 eviction policy the plain `Stack<BookingMemento>` in this example does not
 provide.
 
@@ -489,7 +489,7 @@ provide.
 > a tariff rule that will only ever be evaluated once, paying the cost of
 > building and compiling a tree to save nothing over a direct
 > `TariffEvaluator.Evaluate` call. Check a generated answer against what
-> this chapter actually built: compile a rule when it will run many times
+> this chapter built: compile a rule when it will run many times
 > against many shipments, evaluate it directly with pattern matching when it
 > will not, and let a memento's own record immutability do the isolation
 > work before reaching for a hand-written deep clone.
