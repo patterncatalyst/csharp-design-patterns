@@ -1,0 +1,17 @@
+<!-- Chapter 31 example: the same two validation problems, parsing an EDI
+     customs message and checking a CustomsDeclaration before processing,
+     solved twice: once in the Framework Design Guidelines Tester-Doer /
+     Try-pattern idiom, once with a community Result<T>. Pure BCL, no runtime
+     package, so there is nothing here but the two idioms themselves.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);DeclarationParsing.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>
