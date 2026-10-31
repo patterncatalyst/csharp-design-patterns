@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="20" width="920" height="230" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="40" font-size="12" font-weight="700" fill="#888">DispatchBatchAsync, one iteration</text>
+<rect x="20" y="270" width="920" height="270" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="290" font-size="12" font-weight="700" fill="#888">cancellation mid-batch</text>
+<rect x="50" y="80" width="200" height="110" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="150.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">cancellationToken</text>
+<text x="150.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">.ThrowIfCancellationRequested()</text>
+<rect x="280" y="80" width="200" height="110" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="380.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">await Task.Delay(0, token)</text>
+<text x="380.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">.ConfigureAwait(false)</text>
+<rect x="510" y="80" width="200" height="110" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="610.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">progress?.Report(...)</text>
+<text x="610.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">new DispatchProgress(i+1, Total)</text>
+<rect x="740" y="80" width="200" height="110" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="840.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">caller&#x27;s</text>
+<text x="840.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">IProgress&lt;DispatchProgress&gt;</text>
+<rect x="60" y="350" width="260" height="100" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="190.0" y="405.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">next iteration begins</text>
+<rect x="360" y="350" width="260" height="100" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="490.0" y="398.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">the token is cancelled</text>
+<text x="490.0" y="415.0" font-size="11.5" fill="#555555" text-anchor="middle">by the caller</text>
+<rect x="680" y="350" width="260" height="100" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="810.0" y="398.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ThrowIfCancellationRequested()</text>
+<text x="810.0" y="415.0" font-size="11.5" fill="#555555" text-anchor="middle">throws OperationCanceledException</text>
+<path d="M250,135 L280,135" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M480,135 L510,135" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M710,135 L740,135" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="731.0" y="129.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Report</text>
+<text x="731.0" y="129.0" font-size="11" fill="#b8650a" text-anchor="middle">Report</text>
+<path d="M320,400 L360,400" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="346.0" y="394.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">cancels</text>
+<text x="346.0" y="394.0" font-size="11" fill="#555" text-anchor="middle">cancels</text>
+<path d="M620,400 L680,400" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="656.0" y="394.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">checked at top of loop</text>
+<text x="656.0" y="394.0" font-size="11" fill="#555" text-anchor="middle">checked at top of loop</text>
+<text x="480" y="490" font-size="13" fill="#888" text-anchor="middle">already-dispatched receipts are never returned; the exception replaces the result</text>
+</svg>

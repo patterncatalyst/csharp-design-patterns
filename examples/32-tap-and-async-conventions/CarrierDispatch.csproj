@@ -1,0 +1,17 @@
+<!-- Chapter 32 example: the Task-based Asynchronous Pattern (TAP) naming and
+     signature conventions applied to a carrier dispatch gateway: every
+     Task/ValueTask-returning member ends in "Async", accepts a trailing
+     CancellationToken, and the fake implementation completes synchronously
+     where no actual asynchronous work is pending. Pure BCL, no runtime
+     package. TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CarrierDispatch.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

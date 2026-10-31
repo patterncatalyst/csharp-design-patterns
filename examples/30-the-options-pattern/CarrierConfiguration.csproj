@@ -1,0 +1,30 @@
+<!-- Chapter 30 example: the Options pattern applied to a carrier gateway's
+     settings, bound from configuration, validated on startup with
+     IValidateOptions, and re-read live through IOptionsSnapshot and
+     IOptionsMonitor. TargetFramework, LangVersion, Nullable, etc. are
+     inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);CarrierConfiguration.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The Options pattern's four runtime packages: the container
+         (AddOptions/AddSingleton), the Options types themselves
+         (IOptions/IOptionsSnapshot/IOptionsMonitor/IValidateOptions), the
+         configuration-binding extensions (Bind against an IConfiguration
+         section), and the configuration abstractions and in-memory provider
+         used to build an IConfigurationRoot without any file or host.
+         Version surveyed with `dotnet package search` (exact-match mode)
+         against .NET 10 SDK 10.0.113 on 2026-10-31. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>

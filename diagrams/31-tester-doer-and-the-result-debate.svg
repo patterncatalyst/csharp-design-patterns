@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="60" width="440" height="480" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="80" font-size="12" font-weight="700" fill="#888">bool + out, Tester before Doer</text>
+<rect x="500" y="60" width="440" height="480" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="512" y="80" font-size="12" font-weight="700" fill="#888">Result&lt;T&gt;, one return value</text>
+<rect x="50" y="110" width="380" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="240.0" y="153.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">EdiTryParser.TryParse</text>
+<text x="240.0" y="170.0" font-size="11.5" fill="#555555" text-anchor="middle">bool + out EdiMessage</text>
+<rect x="50" y="240" width="380" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="240.0" y="283.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DeclarationProcessor.CanProcess</text>
+<text x="240.0" y="300.0" font-size="11.5" fill="#555555" text-anchor="middle">Tester: returns bool</text>
+<rect x="50" y="370" width="380" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="240.0" y="413.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DeclarationProcessor.Process</text>
+<text x="240.0" y="430.0" font-size="11.5" fill="#555555" text-anchor="middle">Doer: throws if untested</text>
+<rect x="530" y="110" width="380" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="720.0" y="153.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">EdiResultParser.Parse</text>
+<text x="720.0" y="170.0" font-size="11.5" fill="#555555" text-anchor="middle">returns Result&lt;EdiMessage&gt;</text>
+<rect x="530" y="240" width="380" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="720.0" y="283.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">DeclarationValidator.Validate</text>
+<text x="720.0" y="300.0" font-size="11.5" fill="#555555" text-anchor="middle">returns Result&lt;CustomsDeclaration&gt;</text>
+<rect x="530" y="370" width="380" height="110" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="720.0" y="415.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Result&lt;T&gt;</text>
+<text x="720.0" y="432.5" font-size="11.5" fill="#555555" text-anchor="middle">IsSuccess, Value, Error</text>
+<text x="720.0" y="447.5" font-size="11.5" fill="#555555" text-anchor="middle">Map&lt;TOut&gt; composes a chain</text>
+<path d="M240,330 L240,370" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="246.0" y="344.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">caller must call first</text>
+<text x="246.0" y="344.0" font-size="11" fill="#555" text-anchor="middle">caller must call first</text>
+<path d="M720,330 L720,370" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M240,200 L240,240" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M720,200 L720,240" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="480" y="40" font-size="11" fill="#888" text-anchor="middle" font-weight="700">the same parse/validate decision, two answer shapes</text>
+</svg>

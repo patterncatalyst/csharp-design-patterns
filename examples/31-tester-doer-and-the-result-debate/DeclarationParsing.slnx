@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DeclarationParsing.csproj" />
+  <Project Path="DeclarationParsing.Tests/DeclarationParsing.Tests.csproj" />
+</Solution>

@@ -89,6 +89,16 @@ scenario.
   registered in `_data/diagrams.yml`.
 - Emphasis/ink boxes are **light fill with dark text**, never a dark-filled box
   with light text.
+- **Captions are short, human-readable glosses, not identifier inventories.** A
+  figure caption (both the `{% include excalidraw.html ... caption="Figure NN.1:
+  ..." %}` text in a chapter and the `caption:` field in `_data/diagrams.yml`) says
+  what the figure shows and why it matters in **one to two sentences, roughly
+  20-45 words**. It must NOT re-list every type, member, and generic in the
+  picture: the figure's own boxes carry the identifiers. Name at most one or two
+  key types for orientation, prefer the idea over a parts list, and keep
+  angle-bracket generics out of the caption (put them in the figure labels). Keep
+  the `Figure NN.1: ` prefix; stay accurate, zero em-dash, zero ban-tier, and
+  name-drift-clean.
 
 ## Chapter spine
 
