@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RateMath.csproj" />
+  <Project Path="RateMath.Tests/RateMath.Tests.csproj" />
+</Solution>
