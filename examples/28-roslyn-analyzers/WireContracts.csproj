@@ -1,0 +1,22 @@
+<!-- Chapter 28 example: a Roslyn analyzer, MoneyAsDecimalAnalyzer, enforces
+     that any type marked [WireContract] never models money as decimal, only
+     as an integer count of minor units. TargetFramework, LangVersion,
+     Nullable, etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The analyzer and test projects live in subdirectories of this one;
+         exclude both so this library's own compile item group does not also
+         pick up their sources. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);WireContracts.Analysis/**;WireContracts.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Consume the analyzer as a compiler plugin only: it never becomes an
+         assembly reference of WireContracts itself. -->
+    <ProjectReference Include="WireContracts.Analysis/WireContracts.Analysis.csproj"
+                       OutputItemType="Analyzer"
+                       ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

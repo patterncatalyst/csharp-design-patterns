@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="WireContracts.csproj" />
+  <Project Path="WireContracts.Analysis/WireContracts.Analysis.csproj" />
+  <Project Path="WireContracts.Tests/WireContracts.Tests.csproj" />
+</Solution>

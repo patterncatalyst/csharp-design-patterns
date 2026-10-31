@@ -1,0 +1,43 @@
+<!-- The analyzer itself must target netstandard2.0: that is the floor every
+     version of the Roslyn compiler host (including the netstandard2.0-hosted
+     `csc` inside Visual Studio) can load as an analyzer assembly. It overrides
+     the net10.0 TargetFramework inherited from examples/Directory.Build.props.
+
+     Microsoft.CodeAnalysis.CSharp is pinned to 5.0.0 to match the Roslyn
+     version hosted by the .NET 10 SDK 10.0.113 compiler (verified
+     2026-10-31). NuGet-latest at the time of writing is 5.9.0, newer than the
+     host, and trips CS9057 ("the located compiler version does not match the
+     expected version") under warnings-as-errors; this project stays pinned to
+     the host version instead of floating to latest. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Not a NuGet package; this project only ever ships as an
+         OutputItemType="Analyzer" ProjectReference from WireContracts.csproj. -->
+    <IsPackable>false</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <!-- Opts into the extended analyzer-authoring rules (RS1026 concurrent
+         execution, RS1032 generated-code analysis config among them) and, as
+         a consequence, RS2008 release tracking for new diagnostic ids; see
+         the AnalyzerReleases files below for how SHIP0001 satisfies it. -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- RS2008 release-tracking files: SHIP0001 is declared Unshipped here
+         rather than suppressed, the idiomatic way to satisfy the rule. -->
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+</Project>

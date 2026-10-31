@@ -1,0 +1,45 @@
+<!-- xUnit v3 test project for the Roslyn analyzer example. These tests drive
+     the compiler API directly (CSharpCompilation + WithAnalyzers) rather than
+     a `*.Analyzer.Testing.Xunit` package, so the only extra dependency beyond
+     the house xUnit + NSubstitute stack is Microsoft.CodeAnalysis.CSharp
+     itself, pinned to the same 5.0.0 host version as the analyzer project.
+     TargetFramework, LangVersion, and Nullable are inherited from
+     examples/Directory.Build.props.
+
+     Versions verified against .NET 10 SDK 10.0.113 on 2026-10-31
+     (xunit.v3, xunit.runner.visualstudio, Microsoft.NET.Test.Sdk, and
+     NSubstitute re-surveyed with `dotnet package search`, matching the
+     pins already used across this book's other example test projects). -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- CA1707 (no underscores in identifiers) fights the house xUnit naming
+         convention (Method_does_thing); suppress it here only, not in the
+         library under test. -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="4.0.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+
+    <!-- Mocking: NSubstitute (no telemetry, no Setup/.Object). Not needed to
+         drive the analyzer directly against in-memory compilations, but kept
+         available for parity with the rest of the book's test projects. -->
+    <PackageReference Include="NSubstitute" Version="6.2.0" />
+
+    <!-- The compiler API used by AnalyzerTestHarness to build an in-memory
+         CSharpCompilation and run the analyzer against it. Pinned to the same
+         5.0.0 host version as WireContracts.Analysis; not a testing-support
+         package, the raw compiler. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../WireContracts.Analysis/WireContracts.Analysis.csproj" />
+  </ItemGroup>
+
+</Project>
