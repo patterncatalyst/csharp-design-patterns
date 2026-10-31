@@ -183,7 +183,7 @@ into compiled types.
 
 ## The caching contract: why EquatableArray&lt;T&gt;
 
-An incremental generator earns its name by skipping work a plain generator
+An incremental generator skips work a plain generator
 would redo on every keystroke. Every provider stage in the pipeline above
 caches its output by comparing it to what the same stage produced on the
 previous run; if the new value is equal to the old one, the compiler reuses

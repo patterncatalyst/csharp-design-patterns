@@ -99,7 +99,9 @@ public sealed class MoneyAsDecimalAnalyzerTests
         Assert.Equal(MoneyAsDecimalAnalyzer.DiagnosticId, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
         Assert.True(diagnostic.Location.IsInSource);
-        Assert.Contains("Amount", diagnostic.Location.SourceTree!.ToString(), StringComparison.Ordinal);
+        var spanText = diagnostic.Location.SourceTree!.ToString()
+            .Substring(diagnostic.Location.SourceSpan.Start, diagnostic.Location.SourceSpan.Length);
+        Assert.Equal("Amount", spanText);
     }
 
     [Fact]

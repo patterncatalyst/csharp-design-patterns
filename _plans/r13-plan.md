@@ -480,4 +480,48 @@ package anywhere; each example own `.slnx`; no cross-language token anywhere; ch
 
 ## r13 verification log
 
-(To be written by Wave D.)
+Opus-validated 2026-10-31 (branch `release/r13`). Verdict: PASS (PASS-WITH-NITS at validation; both
+nits fixed in a repair pass: ch27 "earns its name" reworded; ch28
+`Reports_correct_id_severity_and_location` tightened to assert the diagnostic span lands exactly on the
+`Amount` property identifier). Part 9 (ch25-29) is COMPLETE with ch27 (source generators) + ch28
+(Roslyn analyzers).
+
+- Tests (live): `examples/27-source-generators` 5 passed / 0 failed; `examples/28-roslyn-analyzers`
+  6 passed / 0 failed; zero warnings under warnings-as-errors. `scripts/verify.sh` green (both
+  auto-discovered via `*.Tests/*.csproj`, whole suite green). `scripts/build.sh` `0 Warning(s)
+  0 Error(s)` (consuming libs build; netstandard2.0 generator/analyzer built only transitively; ch28
+  consuming lib is 0-SHIP0001).
+- Resolved Roslyn pins (NEW toolchain this iteration): `Microsoft.CodeAnalysis.CSharp` = 5.0.0
+  (host-matched to SDK 10.0.113's Roslyn 5.0.0) and `Microsoft.CodeAnalysis.Analyzers` = 4.14.0
+  (older-than-host, no CS9057; Analyzers has no 5.0.0, so 4.14.0 is the safe floor), both
+  `PrivateAssets="all"`, with `EnforceExtendedAnalyzerRules=true`. No CS9057 in any build.
+  Generator/analyzer projects are `netstandard2.0` (override of the net10.0 Directory.Build.props),
+  `IsPackable=false`, `IncludeBuildOutput=false`; ch27 ships an `IsExternalInit` shim for records on
+  netstandard2.0.
+- Testing approach: xUnit v3 only (xunit.v3 4.0.2, xunit.runner.visualstudio 4.0.1,
+  Microsoft.NET.Test.Sdk 18.11.0, NSubstitute 6.2.0) + direct `Microsoft.CodeAnalysis.CSharp` 5.0.0. NO
+  `.Testing.Xunit` / `.Analyzer.Testing.Xunit` verifier package anywhere (the only textual hits are
+  explanatory comments). Tests drive the raw `CSharpGeneratorDriver`
+  (`GetRunResult`/`RunGeneratorsAndUpdateCompilation`, `trackIncrementalGeneratorSteps:true`) and
+  `compilation.WithAnalyzers(...).GetAnalyzerDiagnosticsAsync()`. Test projects omit
+  `TestingPlatformDotnetTestSupport`, set `IsTestProject`+`IsPackable=false` and `NoWarn;CA1707`. Each
+  example has its own `.slnx`.
+- ch28 RS2008 satisfied via `AnalyzerReleases.Shipped.md` / `AnalyzerReleases.Unshipped.md` (SHIP0001
+  declared Unshipped), not a NoWarn.
+- Content: full chapter spine both (primary figure after "Why this matters"); `## Build, run, observe`
+  quotes real path-sanitized `dotnet test` output (0 `/home/`, 0 username, counts 5/6); exactly one
+  `> **AI sidebar.**` per chapter in "When not to use it" (ch28 lands the AI throughline: the analyzer
+  catches the `decimal Amount` wire-DTO mistake an LLM routinely emits); "For deeper coverage" cites
+  Microsoft Learn + the Roslyn SDK as primary. Body prose ~2917 (ch27) / ~2634 (ch28) words.
+- Figures: ch27 references 3 (`27-source-generators`, `27-incremental-generator-pipeline`,
+  `27-generated-registry-vs-reflection`), ch28 references 2 (`28-roslyn-analyzers`,
+  `28-analyzer-diagnostic-pipeline`); all paired `.svg`+`.excalidraw` on disk and registered in
+  `_data/diagrams.yml` (now 62 entries, the 5 new ones appended in chapter order). `bundle exec jekyll
+  build` clean; all figures render and copy to `_site/diagrams/`.
+- Gates: no cross-language token in docs/.cs/README/new diagrams.yml captions/new SVGs (incl.
+  annotation-processor); cross-chapter refs light (0 numeric/topic pointers; no lean on ch25/26/29);
+  diagram name-drift 0 (density-figure BCL/AOT terms excepted); `grep -c "TODO caption"` = 0; "capstone"
+  = 0; em-dash = 0 across docs + .cs + READMEs (one slipped into a ch27 test comment, removed);
+  `lgtm-professional-voice` 0 ban-tier both; `lgtm-idiomatic-review` 0 hits both example trees.
+
+**Part 9 is COMPLETE (ch25-29).**
