@@ -1,0 +1,4 @@
+DHLX,DHL Express,https://api.dhlx.example
+FDXG,FedEx Ground,https://api.fdxg.example
+UPSX,UPS Worldwide,https://api.upsx.example
+USPS,USPS Priority,https://api.usps.example
