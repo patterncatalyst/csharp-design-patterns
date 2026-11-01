@@ -1,0 +1,22 @@
+<!-- Chapter 41 example: a legacy RateEngine with no seam for its clock or its
+     tariff table sits next to a refactored RateEngine that takes both as
+     constructor-injected collaborators, the Feathers "seam" idea applied to
+     C#'s non-virtual-by-default methods. TargetFramework, LangVersion,
+     Nullable, etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RateEngineSeams.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- PeakWindow is internal, so the test project can assert the peak-hour
+         boundary through reflection and direct calls without widening it to
+         public just for a test. -->
+    <InternalsVisibleTo Include="RateEngineSeams.Tests" />
+  </ItemGroup>
+
+</Project>
