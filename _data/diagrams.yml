@@ -743,3 +743,55 @@
     A test substitutes four injected collaborators, including IAuditLog,
     then verifies audit.Received(1).Record(...), the interaction the legacy
     version hid inside a private list.
+
+- name: 43-fowler-vs-feathers
+  section: "Ch. 43"
+  title: Legacy, seam, and refactor on one engine
+  caption: >-
+    A sealed legacy rate engine gains a Feathers seam, then a Fowler
+    refactor reshapes its structure. The two catalogues combine: opening a
+    seam and improving the design are different problems, solved behind
+    the same passing tests.
+
+- name: 43-feathers-then-fowler
+  section: "Ch. 43"
+  title: Two catalogues joined by one bridge
+  caption: >-
+    Feathers techniques open seams so the untested engine can be exercised
+    under test, then Fowler techniques, including Extract Method and
+    Replace Conditional with Polymorphism, reshape its structure while
+    every test keeps passing.
+
+- name: 43-behaviour-preserved
+  section: "Ch. 43"
+  title: The refactor keeps behavior intact
+  caption: >-
+    A shared request and fixed clock feed both SeamedRateEngine and
+    RateEngine; a theory test asserts the two engines produce the
+    identical amount, proving the refactor changed the engine's shape,
+    not its behavior.
+
+- name: 44-refactor-or-rewrite
+  section: "Ch. 44"
+  title: One contract behind two replacements
+  caption: >-
+    The legacy engine has no stable seam to build on, but IRateEngine
+    gives both a refactored and a rewritten replacement a shared
+    contract, so QuoteService can swap one implementation for the other
+    with no change of its own.
+
+- name: 44-decision-criteria
+  section: "Ch. 44"
+  title: Weighing refactor against rewrite
+  caption: >-
+    Test coverage, change frequency, blast radius, and domain stability
+    each weigh toward refactoring in place or rewriting clean. The matrix
+    is a judgement aid, not a formula that hands back a verdict.
+
+- name: 44-same-contract-two-paths
+  section: "Ch. 44"
+  title: Two implementations, one proven contract
+  caption: >-
+    Two engines sit behind one IRateEngine contract and, fed the same
+    request and clock, return record-equal quotes. QuoteService swaps
+    between them with a one-line change at the construction site.
