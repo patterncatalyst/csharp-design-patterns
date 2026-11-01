@@ -1,0 +1,24 @@
+<!-- Chapter 46 example: a Roslyn analyzer, SingleImplementationStrategyAnalyzer,
+     flags a Strategy interface with exactly one implementation in the
+     compilation, the "strategy tower with one strategy" an LLM commonly
+     emits when it reaches for a design pattern the problem does not need
+     yet. TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The analyzer and test projects live in subdirectories of this one;
+         exclude both so this library's own compile item group does not also
+         pick up their sources. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RatingReview.Analysis/**;RatingReview.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Consume the analyzer as a compiler plugin only: it never becomes an
+         assembly reference of RatingReview itself. -->
+    <ProjectReference Include="RatingReview.Analysis/RatingReview.Analysis.csproj"
+                       OutputItemType="Analyzer"
+                       ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

@@ -795,3 +795,51 @@
     Two engines sit behind one IRateEngine contract and, fed the same
     request and clock, return record-equal quotes. QuoteService swaps
     between them with a one-line change at the construction site.
+
+- name: 45-final-project
+  section: "Ch. 45"
+  title: An ordered pipeline from booking to invoice
+  caption: >-
+    ShipmentPipeline.Run carries a BookingRequest through rating, stowage,
+    clearance, and invoicing in order. A rejected ClearanceResult halts the
+    run before InvoiceStage, so no Invoice is produced.
+
+- name: 45-patterns-woven
+  section: "Ch. 45"
+  title: Each stage uses only the pattern it needs
+  caption: >-
+    RatingStage picks an IRatingStrategy through RatingStrategies.For,
+    ClearanceStage returns a ClearanceResult, and InvoiceStage builds with
+    InvoiceBuilder. StowageStage needs none of it.
+
+- name: 45-clearance-halts-the-slice
+  section: "Ch. 45"
+  title: One pipeline, two outcomes
+  caption: >-
+    A cleared booking runs through InvoiceStage to a finished Invoice. A
+    rejected one, with ClearanceResult.Cleared false, stops at
+    ClearanceStage and never reaches invoicing.
+
+- name: 46-working-with-ai-and-llm-tools
+  section: "Ch. 46"
+  title: A human decision gates every change
+  caption: >-
+    An assistant proposes pattern-shaped code, the SHIP0002 analyzer flags a
+    single-implementation Strategy, and a human decides whether to collapse
+    the abstraction or justify it before the change merges.
+
+- name: 46-single-implementation-strategy
+  section: "Ch. 46"
+  title: One implementation flags, two stay quiet
+  caption: >-
+    An IRatingStrategy with only StandardRatingStrategy behind it trips
+    SHIP0002. Adding ExpressRatingStrategy gives the interface a genuine
+    second shape, and the analyzer falls silent.
+
+- name: 46-analyzer-as-the-gate
+  section: "Ch. 46"
+  title: A raw Roslyn test drives the analyzer
+  caption: >-
+    AnalyzerTestHarness compiles a snippet and runs the analyzer between
+    compilation and its diagnostics. A single-implementation Strategy makes
+    SHIP0002 fire; a two-implementation one leaves it quiet.
