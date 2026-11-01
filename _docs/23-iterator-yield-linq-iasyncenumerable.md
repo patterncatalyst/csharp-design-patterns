@@ -78,7 +78,7 @@ with a compiler feature that turns a plain-looking method into that
 traversal mechanism, synchronously or asynchronously, without a hand-written
 iterator class anywhere in sight.
 
-{% include excalidraw.html name="23-iterator-yield-linq-iasyncenumerable" caption="Figure 23.1: ConsignmentHistory.Paginate(pageSize) validates pageSize and throws immediately on an invalid value, then returns without running any pagination logic itself, delegating that work to the private PaginateIterator method. PaginateIterator is where the yield return statements live, and the compiler turns that method body into a state machine that does nothing until a caller's foreach calls MoveNext, producing one TrackingPage at a time rather than building the whole list up front." %}
+{% include excalidraw.html name="23-iterator-yield-linq-iasyncenumerable" caption="Figure 23.1: Paginate validates eagerly and throws immediately on bad input, then delegates to PaginateIterator, whose yield return body the compiler turns into a state machine that produces one page at a time only once a caller enumerates it." %}
 
 ## yield return and the state machine it becomes
 
@@ -232,7 +232,7 @@ entirely to the operators underneath.
 deferred split, and seeing them side by side is the clearest way to read
 what "deferred" buys a caller.
 
-{% include excalidraw.html name="23-deferred-execution" caption="Figure 23.3: ConsignmentHistory.Paginate(pageSize) is the one piece of eager work, checked and thrown before the method ever returns. Everything after it is deferred: the private PaginateIterator body does not run until a foreach calls MoveNext, and StagesReached()'s _events.Select(e => e.Stage).Distinct() is itself a LINQ query that composes lazily over the same source rather than materializing a list. Both sequences sit inert until the first foreach iteration pulls an element through them." %}
+{% include excalidraw.html name="23-deferred-execution" caption="Figure 23.3: Paginate's validation is the one eager step; everything after it is deferred. PaginateIterator and the StagesReached LINQ query both sit inert until a foreach pulls the first element through them." %}
 
 `Paginate(pageSize)` is the one eager checkpoint in this example: the
 `pageSize <= 0` check runs the moment the method is called, before the
@@ -387,7 +387,7 @@ asserts the collected list has exactly three entries ending on
 `InTransit`, proving the three events after the stop stage were never
 produced at all, not merely produced and discarded.
 
-{% include excalidraw.html name="23-async-stream-await-foreach" caption="Figure 23.2: CarrierEventFeed.StreamAsync returns an async IAsyncEnumerable<TrackingEvent> and marks its CancellationToken parameter with [EnumeratorCancellation], the attribute that lets a consumer's .WithCancellation(ct) on the await foreach reach that same parameter instead of a default token the compiler would otherwise generate. LiveTrackingReader.CollectAsync consumes the stream to completion, while CollectUntilAsync breaks out of its await foreach once trackingEvent.Stage matches the requested stop stage, which disposes the enumerator early and leaves every event after that point never requested from the feed." %}
+{% include excalidraw.html name="23-async-stream-await-foreach" caption="Figure 23.2: CarrierEventFeed.StreamAsync marks its cancellation token with [EnumeratorCancellation] so a consumer's WithCancellation call reaches it. CollectUntilAsync breaks early on a matching stage, disposing the enumerator before later events are ever requested." %}
 
 `AsyncStreamTests.StreamAsync_yields_every_event_in_order` is the baseline
 case: four events for one consignment, collected through `CollectAsync`,
@@ -473,27 +473,29 @@ source over time; a method standing over data that is already sitting in
 memory should stay synchronous rather than reaching for the asynchronous
 form on the assumption that it looks more thorough.
 
-> **AI sidebar.** Asked to "stream" or "page" a result, an AI pairing
-> partner will sometimes reach for `IAsyncEnumerable<T>` and `await foreach`
-> even when every element the method produces is already sitting in memory
-> and the whole thing could be returned as a `List<T>` with no asynchronous
-> work anywhere inside it, treating the asynchronous stream shape as a
-> default for any method that produces more than one value rather than a
-> shape reserved for sources that produce elements over time. A
-> related suggestion wraps a `yield return` method's validation inside the
-> iterator itself, with an argument check at the top of a method body that
-> also contains `yield return` further down, which defers that check until
-> first enumeration instead of throwing it at the call site, the exact trap
-> `ConsignmentHistory.Paginate` avoids by keeping its own body free of
-> `yield return` and delegating the lazy part to `PaginateIterator`. A
-> generated answer can also call `.ToList()` immediately after building a
-> LINQ query "to be safe," collapsing a lazy pipeline like
-> `StagesReached` into an eagerly materialized one for no reason the request
-> asked for. Check a generated answer against what this chapter
-> built: reach for `IAsyncEnumerable<T>` when production is
-> asynchronous and ongoing, keep eager checks out of any method whose body
-> contains `yield return`, and leave a LINQ query lazy unless something
-> about the caller's use of it requires a materialized list.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to "stream" or "page" a result, an AI pairing
+partner will sometimes reach for `IAsyncEnumerable<T>` and `await foreach`
+even when every element the method produces is already sitting in memory
+and the whole thing could be returned as a `List<T>` with no asynchronous
+work anywhere inside it, treating the asynchronous stream shape as a
+default for any method that produces more than one value rather than a
+shape reserved for sources that produce elements over time. A
+related suggestion wraps a `yield return` method's validation inside the
+iterator itself, with an argument check at the top of a method body that
+also contains `yield return` further down, which defers that check until
+first enumeration instead of throwing it at the call site, the exact trap
+`ConsignmentHistory.Paginate` avoids by keeping its own body free of
+`yield return` and delegating the lazy part to `PaginateIterator`. A
+generated answer can also call `.ToList()` immediately after building a
+LINQ query "to be safe," collapsing a lazy pipeline like
+`StagesReached` into an eagerly materialized one for no reason the request
+asked for. Check a generated answer against what this chapter
+built: reach for `IAsyncEnumerable<T>` when production is
+asynchronous and ongoing, keep eager checks out of any method whose body
+contains `yield return`, and leave a LINQ query lazy unless something
+about the caller's use of it requires a materialized list.
+</blockquote>
 
 ## For deeper coverage
 

@@ -70,7 +70,7 @@ class, no runtime scan, and no reflection ever runs to discover what the
 registry contains, because the registry's contents were already decided
 before the program started.
 
-{% include excalidraw.html name="27-source-generators" caption="Figure 27.1: carriers.manifest lists the DHLX, FDXG, UPSX, and USPS carrier rows as an AdditionalFiles input. CarrierGatewayGenerator, an IIncrementalGenerator, reads that manifest at build time and emits one adapter per row, such as DHLXCarrierGateway, plus a GeneratedCarrierRegistry exposing All and Find(code). CarrierDispatch calls through the registry alone, never naming a generated type directly." %}
+{% include excalidraw.html name="27-source-generators" caption="Figure 27.1: CarrierGatewayGenerator reads carriers.manifest at build time and emits one adapter class per row plus a registry exposing lookup by code. CarrierDispatch calls through that generated registry alone, never naming a generated type directly." %}
 
 ## A manifest as the generator's input
 
@@ -179,7 +179,7 @@ the same `AdditionalTextsProvider` → parse → combine → `RegisterSourceOutp
 skeleton applies to any build-time input a generator reads once and converts
 into compiled types.
 
-{% include excalidraw.html name="27-incremental-generator-pipeline" caption="Figure 27.2: AdditionalTextsProvider surfaces carriers.manifest, Parse turns it into a CarrierManifestModel wrapping an EquatableArray<CarrierEntry>, and Collect().Select(Combine) merges every parsed manifest into one model before RegisterSourceOutput(model, Emit) runs. Because CarrierManifestModel compares by value, an unchanged manifest produces an unchanged model and the pipeline skips Emit entirely." %}
+{% include excalidraw.html name="27-incremental-generator-pipeline" caption="Figure 27.2: The generator pipeline parses the manifest, combines every parsed file into one model, and emits source from it. Because that model compares by value, an unchanged manifest produces an unchanged model and the pipeline skips emitting entirely." %}
 
 ## The caching contract: why EquatableArray&lt;T&gt;
 
@@ -357,7 +357,7 @@ empty `GeneratedCarrierRegistry` class ships with nothing in it.
 
 ## The trimming and AOT argument
 
-{% include excalidraw.html name="27-generated-registry-vs-reflection" caption="Figure 27.3: CarrierGatewayGenerator builds GeneratedCarrierRegistry from carriers.manifest at compile time, statically referencing each generated adapter, so CarrierDispatch.ResolveEndpoint calls GeneratedCarrierRegistry.Find(code) against references that already exist in source. The runtime alternative it replaces calls Assembly.GetTypes() to scan loaded assemblies at startup, a path that trimming can remove types out from under and that native AOT does not fully support." %}
+{% include excalidraw.html name="27-generated-registry-vs-reflection" caption="Figure 27.3: A generated registry references each adapter statically at compile time, so trimming and native AOT see ordinary code. The reflection-based alternative it replaces scans loaded assemblies at startup, a path trimming can remove types out from under." %}
 
 A reflection-based version of this same registry would typically build
 itself once, at process startup, by enumerating loaded assemblies, finding
@@ -467,24 +467,26 @@ that shows up as slower builds rather than as a wrong answer. Writing the
 caching test alongside the emit tests, the way `GeneratorCachingTests` does
 here, is what catches a regression a correctness test alone would miss.
 
-> **AI sidebar.** Asked to add a source generator for a registry like this
-> one, an AI pairing partner will sometimes reach for `ISourceGenerator`, the
-> interface source generators were originally shipped with, instead of
-> `IIncrementalGenerator`. `ISourceGenerator` reruns its entire `Execute`
-> method on every compilation, with no caching stage to skip unchanged
-> input, so a generator written against it pays the full cost of reparsing
-> `carriers.manifest` and re-emitting every adapter on every keystroke in an
-> editor, not just on every build. A related suggestion builds the pipeline
-> correctly with `IIncrementalGenerator` but wraps `CarrierEntry` values in a
-> plain `ImmutableArray<T>` rather than `EquatableArray<T>`, which compiles
-> and passes functional tests while losing the caching the interface exists
-> to provide, with nothing in the output to flag the loss. Check a generated
-> answer against what this chapter
-> built: confirm the generator implements `IIncrementalGenerator`, confirm
-> any collection crossing a pipeline stage boundary compares by value rather
-> than by reference, and add a caching test with
-> `trackIncrementalGeneratorSteps: true` rather than trusting that caching
-> works because the generated output looks right.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add a source generator for a registry like this
+one, an AI pairing partner will sometimes reach for `ISourceGenerator`, the
+interface source generators were originally shipped with, instead of
+`IIncrementalGenerator`. `ISourceGenerator` reruns its entire `Execute`
+method on every compilation, with no caching stage to skip unchanged
+input, so a generator written against it pays the full cost of reparsing
+`carriers.manifest` and re-emitting every adapter on every keystroke in an
+editor, not just on every build. A related suggestion builds the pipeline
+correctly with `IIncrementalGenerator` but wraps `CarrierEntry` values in a
+plain `ImmutableArray<T>` rather than `EquatableArray<T>`, which compiles
+and passes functional tests while losing the caching the interface exists
+to provide, with nothing in the output to flag the loss. Check a generated
+answer against what this chapter
+built: confirm the generator implements `IIncrementalGenerator`, confirm
+any collection crossing a pipeline stage boundary compares by value rather
+than by reference, and add a caching test with
+`trackIncrementalGeneratorSteps: true` rather than trusting that caching
+works because the generated output looks right.
+</blockquote>
 
 ## For deeper coverage
 

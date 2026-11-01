@@ -427,23 +427,25 @@ rather than merely hit an expected edge case, trades a clear stack trace at
 the point something went wrong for a `Value` that silently reads as `null`
 or `default` wherever a caller forgot to check `IsSuccess` first.
 
-> **AI sidebar.** Asked to add error handling to a parsing or validation
-> method, an AI pairing partner will sometimes wrap every return path in a
-> freshly invented `Result<T>` or `Either<TLeft, TRight>` type, including the
-> paths that report a caller's own contract violation, a `null` argument, an
-> out-of-range index, the cases `ArgumentNullException.ThrowIfNull` and its
-> siblings exist to cover by throwing. A related suggestion reaches for
-> `Result<T>` on a method that is only ever called once per request with its
-> failure logged and discarded, paying for a type and an unwrap step that a
-> `TryParse`-shaped boolean would report just as completely. Check a
-> generated answer against the three shapes this chapter built: a boolean
-> and an `out` parameter when a call site reads the answer once and moves on,
-> a Tester-Doer pair when a caller needs to ask "would this work"
-> before committing, a `Result<T>` when the specific failure reason has to
-> travel somewhere, or several steps need to compose without a branch
-> between them, and a thrown exception, not any of the three, when the
-> failure means a caller broke the method's contract rather than hit an
-> outcome the method is built to expect.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add error handling to a parsing or validation
+method, an AI pairing partner will sometimes wrap every return path in a
+freshly invented `Result<T>` or `Either<TLeft, TRight>` type, including the
+paths that report a caller's own contract violation, a `null` argument, an
+out-of-range index, the cases `ArgumentNullException.ThrowIfNull` and its
+siblings exist to cover by throwing. A related suggestion reaches for
+`Result<T>` on a method that is only ever called once per request with its
+failure logged and discarded, paying for a type and an unwrap step that a
+`TryParse`-shaped boolean would report just as completely. Check a
+generated answer against the three shapes this chapter built: a boolean
+and an `out` parameter when a call site reads the answer once and moves on,
+a Tester-Doer pair when a caller needs to ask "would this work"
+before committing, a `Result<T>` when the specific failure reason has to
+travel somewhere, or several steps need to compose without a branch
+between them, and a thrown exception, not any of the three, when the
+failure means a caller broke the method's contract rather than hit an
+outcome the method is built to expect.
+</blockquote>
 
 ## For deeper coverage
 

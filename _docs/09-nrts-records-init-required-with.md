@@ -79,7 +79,7 @@ Put together, `required`, `init`, `with`, and nullable reference types let
 `Consignment` state its own contract once, at the declaration, and have the
 compiler hold every caller to it.
 
-{% include excalidraw.html name="09-nrts-records-init-required-with" caption="Figure 9.1: A Consignment record amended with a with expression. The expression copies the original into a new instance and overrides only the named members, so the first object is never written to, and equality compares member values rather than references." %}
+{% include excalidraw.html name="09-nrts-records-init-required-with" caption="Figure 9.1: Amending a consignment record copies it into a new instance with only the named members overridden, leaving the original untouched; equality compares values, not references." %}
 
 ## Records and recursive value equality
 
@@ -224,7 +224,7 @@ would mean anything; a blank or placeholder identifier would be actively
 wrong, which is exactly the case `required` exists to force a caller to
 settle at construction.
 
-{% include excalidraw.html name="09-required-init-construction-gap" caption="Figure 9.2: The required and init contract, compiles versus CS9035." %}
+{% include excalidraw.html name="09-required-init-construction-gap" caption="Figure 9.2: An object initializer that sets every required member compiles; one that omits a required member fails at compile time instead of risking a runtime null." %}
 
 ## Non-destructive amendment with with
 
@@ -450,28 +450,30 @@ better trade; immutability is a design default here, not an unconditional
 rule that every value-shaped type must follow regardless of how often it
 changes.
 
-> **AI sidebar.** Ask an AI pairing partner to "fix the nullable warning" on
-> a non-nullable property a constructor doesn't assign, and a common
-> response reaches for the easy fix rather than the correct one: adding a
-> `?` to the property's type, or initializing it to `null!`, both of which
-> silence the warning without actually guaranteeing the property ever holds
-> a meaningful value. Neither is what `required` is for, and a generated
-> suggestion that proposes either one is solving the compiler's complaint
-> rather than the underlying problem, which is that the type never actually
-> forces a caller to supply the value. A second, related habit shows up
-> around optional data: asked to model something that's "sometimes missing,"
-> a generated answer will sometimes reach for a sentinel object, an `Empty`
-> or `None` static instance standing in for absence, out of old habit from
-> languages or codebases where nullable annotations didn't exist to do that
-> job directly. On a record with nullable reference types already turned on,
-> that sentinel is solving a problem the type system already solves: `string?`
-> plus a `null` check at the point of use says exactly the same thing with
-> less code and no extra object to construct, compare, or special-case.
-> Check a generated fix against what this chapter actually distinguishes: is
-> the member truly optional, in which case make it nullable and check
-> it, or does it need to be guaranteed present, in which case `required` is
-> the fix, never a suppressed warning or a `null!` that only moves the
-> failure from compile time to a runtime surprise.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to "fix the nullable warning" on a non-nullable property a
+constructor doesn't assign, a common response reaches for the easy fix
+rather than the correct one: adding a `?` to the property's type, or
+initializing it to `null!`, both of which silence the warning without
+actually guaranteeing the property ever holds a meaningful value. Neither
+is what `required` is for, and a generated suggestion that proposes
+either one is solving the compiler's complaint rather than the underlying
+problem, which is that the type never actually forces a caller to supply
+the value. A second, related habit shows up around optional data: asked
+to model something that's "sometimes missing," a generated answer will
+sometimes reach for a sentinel object, an `Empty` or `None` static
+instance standing in for absence, out of old habit from languages or
+codebases where nullable annotations didn't exist to do that job
+directly. On a record with nullable reference types already turned on,
+that sentinel is solving a problem the type system already solves:
+`string?` plus a `null` check at the point of use says exactly the same
+thing with less code and no extra object to construct, compare, or
+special-case. Check a generated fix against what this chapter actually
+distinguishes: is the member truly optional, in which case make it
+nullable and check it, or does it need to be guaranteed present, in which
+case `required` is the fix, never a suppressed warning or a `null!` that
+only moves the failure from compile time to a runtime surprise.
+</blockquote>
 
 ## For deeper coverage
 

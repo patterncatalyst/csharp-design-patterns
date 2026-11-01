@@ -80,7 +80,7 @@ it through. Both patterns let a caller hold one interface reference and
 never know, or need to know, how many layers or what kind of indirection
 sits behind it.
 
-{% include excalidraw.html name="19-decorator-and-proxy" caption="Figure 19.1: BaseRateCalculator is wrapped by DiscountRateDecorator, SurchargeRateDecorator, and TaxRateDecorator in that order, each implementing the same IRateCalculator the layer underneath it does; CachingRateGatewayProxy implements the identical ICarrierRateGateway as the SlowCarrierRateGateway it wraps and answers a repeated request from a dictionary instead of calling it again; and a LoggingRateProxy built by DispatchProxy.Create intercepts every call made through its IRateCalculator reference, records the invoked member, and forwards it to the real target." %}
+{% include excalidraw.html name="19-decorator-and-proxy" caption="Figure 19.1: Decorators layer discount, surcharge, and tax adjustments around a base rate calculator, each implementing the same interface. A caching proxy wraps a slow carrier gateway, and a dynamic proxy logs and forwards every call." %}
 
 ## Decorator: layering rate adjustments without touching the others
 
@@ -471,7 +471,7 @@ is the code that actually runs between a caller and a target, and it runs
 because `DispatchProxy.Create` built an object that routes through it, not
 because any method in the example carries a custom attribute at all.
 
-{% include excalidraw.html name="19-di-decoration-and-dispatchproxy" caption="Figure 19.2: ServiceCollectionExtensions.AddRatePipeline registers IRateCalculator as a factory that resolves BaseRateCalculator from the container and wraps it in all three decorators; LoggingRateProxy, a DispatchProxy subclass, intercepts every call in Invoke, records the invoked member in InvokedMembers, and forwards it to its own Target, with RateProxyFactory.Wrap building the proxy and assigning that Target." %}
+{% include excalidraw.html name="19-di-decoration-and-dispatchproxy" caption="Figure 19.2: A DI registration resolves the fully decorated rate calculator from one factory, with no decorator named at any call site. A DispatchProxy subclass intercepts every call, records it, and forwards it to the real target." %}
 
 ## Build, run, observe
 
@@ -546,29 +546,31 @@ whose entire `Quote` method is one multiplication, would get nothing from
 being wrapped the same way, because there is no repeated expense a cache
 could avoid.
 
-> **AI sidebar.** Asked to make a single pricing adjustment "flexible" or
-> "pluggable," an AI pairing partner will sometimes produce a
-> `DiscountRateDecorator` wrapping a `BaseRateCalculator` for an amount
-> that one method could compute directly, treating Decorator as the
-> default answer to "this value changes the quote" even when no second
-> layer, no removable layer, and no second implementation are in the
-> picture anywhere in the prompt. A related suggestion reaches for a
-> hand-rolled `DispatchProxy` subclass, or a reflection-based interceptor
-> built from scratch, to log or time a single method on a single class
-> with one call site, where a plain wrapper class implementing the same
-> interface directly, with no `MethodInfo` or reflection anywhere, reads
-> the same intent in fewer lines and without the indirection a reader has
-> to trace through `Invoke` to understand. Check a generated answer
-> against the same two questions this chapter asks directly: is there a
-> second layer, a removable layer, or a second implementation that
-> actually exists or is clearly coming, which is what Decorator is for,
-> and is there a real crosscutting concern, a cache, a log, a metric,
-> that needs to sit between a caller and a target without either one
-> changing, which is what a Proxy, hand-written or built through
-> `DispatchProxy`, is for. A single fixed adjustment or a single
-> interception point with one implementation and one call site answers no
-> to both, and a plain method or a plain wrapper class says everything the
-> generated Decorator or dynamic proxy would have said.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make a single pricing adjustment "flexible" or
+"pluggable," an AI pairing partner will sometimes produce a
+`DiscountRateDecorator` wrapping a `BaseRateCalculator` for an amount
+that one method could compute directly, treating Decorator as the
+default answer to "this value changes the quote" even when no second
+layer, no removable layer, and no second implementation are in the
+picture anywhere in the prompt. A related suggestion reaches for a
+hand-rolled `DispatchProxy` subclass, or a reflection-based interceptor
+built from scratch, to log or time a single method on a single class
+with one call site, where a plain wrapper class implementing the same
+interface directly, with no `MethodInfo` or reflection anywhere, reads
+the same intent in fewer lines and without the indirection a reader has
+to trace through `Invoke` to understand. Check a generated answer
+against the same two questions this chapter asks directly: is there a
+second layer, a removable layer, or a second implementation that
+actually exists or is clearly coming, which is what Decorator is for,
+and is there a real crosscutting concern, a cache, a log, a metric,
+that needs to sit between a caller and a target without either one
+changing, which is what a Proxy, hand-written or built through
+`DispatchProxy`, is for. A single fixed adjustment or a single
+interception point with one implementation and one call site answers no
+to both, and a plain method or a plain wrapper class says everything the
+generated Decorator or dynamic proxy would have said.
+</blockquote>
 
 ## For deeper coverage
 

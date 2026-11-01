@@ -112,7 +112,13 @@ Every chapter (`_docs/NN-*.md`) follows the same shape:
 5. **"Build, run, observe"** on every hands-on chapter, pointing at the matching
    `examples/` demo.
 6. **"When not to use it"** on every pattern chapter, with exactly one **AI
-   sidebar** box (no more than one per chapter).
+   sidebar** callout (no more than one per chapter). The sidebar is a
+   `<blockquote class="ai-sidebar" markdown="1">` ... `</blockquote>` wrapper (the
+   CSS renders a "🤖 AI sidebar" header strip, so the body does NOT repeat an
+   inline `**AI sidebar.**` lead-in). Do not use the kramdown IAL form
+   `{: .ai-sidebar}` — under this site's kramdown-GFM it breaks blockquote
+   parsing. The identity check is `grep -c '<blockquote class="ai-sidebar"` == 1,
+   not a text grep for "AI sidebar".
 7. **"For deeper coverage"** at the end, citing the hub's `books.yml` and this
    book's own `/bibliography/`.
 

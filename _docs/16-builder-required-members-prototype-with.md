@@ -83,7 +83,7 @@ one, the GoF Prototype pattern, which modern C# answers with a built-in
 language feature, the `with` expression, rather than a hand-written
 `Clone` method.
 
-{% include excalidraw.html name="16-builder-required-members-prototype-with" caption="Figure 16.1: Three ways to produce a BookingRequest. An object initializer with required Origin, Destination, and DeclaredValue fails to compile under CS9035 if any of the three is missing. BookingRequestBuilder accumulates state through fluent WithOrigin/WithDestination/WithDeclaredValue/AddLineItem calls and validates it at runtime inside Build(), raising BookingValidationException on a missing or invalid field. BookingTemplates.StandardDomestic is cloned and amended with a with expression, a shallow copy that leaves the template's own LineItems list untouched unless the amendment replaces it with a fresh collection-expression spread." %}
+{% include excalidraw.html name="16-builder-required-members-prototype-with" caption="Figure 16.1: Three ways to produce a BookingRequest: a required-member object initializer, a validating BookingRequestBuilder that defers checks to Build(), and a with expression that clones and amends a reusable template." %}
 
 ## Required members and collection expressions replace most builders
 
@@ -383,7 +383,7 @@ category that needs the explicit-replacement treatment this section
 walks through, and `LineItems` is this example's case of exactly that
 category.
 
-{% include excalidraw.html name="16-with-prototype-shallow-copy" caption="Figure 16.2: A with expression copies every member of BookingTemplates.StandardDomestic and overrides only the ones named, leaving the template untouched. LineItems is reference-typed, so a with expression that never mentions it shares the template's own list; the spread, LineItems = [.. template.LineItems, extra], replaces it with a fresh list instead, growing the clone's count by one while the template's own count stays unchanged." %}
+{% include excalidraw.html name="16-with-prototype-shallow-copy" caption="Figure 16.2: A with expression clones BookingTemplates.StandardDomestic and overrides only the named fields, leaving the template untouched. A collection-expression spread replaces the shared LineItems reference with a fresh, independent list." %}
 
 ## Build, run, observe
 
@@ -452,26 +452,28 @@ not, for a type that might be better served by a constructor or a
 builder that states every member explicitly on each construction instead
 of relying on a partial copy to get most of them right by default.
 
-> **AI sidebar.** Asked to make a type like `BookingRequest`
-> "configurable with a fluent API," an AI pairing partner will often
-> produce a complete `BookingRequestBuilder`, fluent methods and all, for
-> a record that `required` members and a plain object initializer already
-> construct safely in one expression, reaching for the GoF-era answer out
-> of habit from training material written before `required` existed in
-> the language. The opposite failure shows up around Prototype just as
-> often: a generated `with` clone that amends one or two fields and
-> leaves a mutable collection member untouched, on the assumption that
-> `with` performs a full deep copy, which then surprises the caller the
-> first time code appends to what it believes is the clone's own private
-> list and watches the change appear on the original template as well.
-> Check a generated answer against two questions before accepting it:
-> does `Build()` perform a check a `required` member cannot express, or
-> would an object initializer do everything the builder does, and does
-> the `with` expression replace every reference-typed member the caller
-> intends to change independently, or does it leave at least one shared
-> with the source. A `with` expression that only overrides value-typed
-> fields and silently shares a list, a dictionary, or any other mutable
-> reference with its source is not a complete clone; it is half of one.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make a type like `BookingRequest`
+"configurable with a fluent API," an AI pairing partner will often
+produce a complete `BookingRequestBuilder`, fluent methods and all, for
+a record that `required` members and a plain object initializer already
+construct safely in one expression, reaching for the GoF-era answer out
+of habit from training material written before `required` existed in
+the language. The opposite failure shows up around Prototype just as
+often: a generated `with` clone that amends one or two fields and
+leaves a mutable collection member untouched, on the assumption that
+`with` performs a full deep copy, which then surprises the caller the
+first time code appends to what it believes is the clone's own private
+list and watches the change appear on the original template as well.
+Check a generated answer against two questions before accepting it:
+does `Build()` perform a check a `required` member cannot express, or
+would an object initializer do everything the builder does, and does
+the `with` expression replace every reference-typed member the caller
+intends to change independently, or does it leave at least one shared
+with the source. A `with` expression that only overrides value-typed
+fields and silently shares a list, a dictionary, or any other mutable
+reference with its source is not a complete clone; it is half of one.
+</blockquote>
 
 ## For deeper coverage
 

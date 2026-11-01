@@ -62,7 +62,7 @@ diagnostic the compiler reports on every build and every keystroke in an
 editor, at the exact property that violates it, rather than a fact a
 reviewer has to recall.
 
-{% include excalidraw.html name="28-roslyn-analyzers" caption="Figure 28.1: MoneyAsDecimalAnalyzer inspects every type carrying [WireContract] during compilation. RateQuoteContract and BookingChargeContract pass because both model money as long minor units; InternalRateCalculation carries no [WireContract] attribute, so its decimal Amount is never examined. A [WireContract] type with a decimal money property is where the analyzer reports SHIP0001, at the offending property's own location." %}
+{% include excalidraw.html name="28-roslyn-analyzers" caption="Figure 28.1: MoneyAsDecimalAnalyzer checks every [WireContract] type and reports SHIP0001 wherever it finds a decimal money property. Contracts using integer minor units pass; types without the attribute are skipped entirely." %}
 
 ## A diagnostic as a described rule
 
@@ -161,7 +161,7 @@ compiler- and tool-generated code entirely, so a type a source generator
 emits never trips `SHIP0001` on a property the generator itself produced,
 even if that property happens to be a `decimal`.
 
-{% include excalidraw.html name="28-analyzer-diagnostic-pipeline" caption="Figure 28.2: Initialize registers a RegisterCompilationStartAction that resolves the marker symbol for WireContracts.WireContractAttribute once through GetTypeByMetadataName and returns early if the symbol is missing. Once resolved, RegisterSymbolAction runs AnalyzeType for every named type in the compilation, closing over the already-resolved marker symbol rather than looking it up again." %}
+{% include excalidraw.html name="28-analyzer-diagnostic-pipeline" caption="Figure 28.2: Initialize resolves the WireContractAttribute marker once per compilation, then registers a symbol action that walks every named type, reusing that resolved marker instead of looking it up again." %}
 
 `RegisterCompilationStartAction` is where the real work begins, and it runs
 once per compilation rather than once per analyzer instance, which matters
@@ -395,21 +395,23 @@ explicit, renamable-safe signal a type's author adds by intent, and
 `GetTypeByMetadataName` resolving it by its fully qualified name is immune
 to a naming convention changing underneath it.
 
-> **AI sidebar.** Asked to add a field to a wire contract, or to sketch one
-> from a description, an AI pairing partner will often reach for `decimal`
-> on a money-shaped property, because `decimal` is the type every other
-> money value in a typical C# codebase already uses and nothing about the
-> request signals that this particular type crosses a process boundary.
-> That is exactly the pattern `SHIP0001` exists to catch: a generated
-> `RateQuoteContract`-shaped record with a `decimal Amount` fails the build
-> the moment it is marked `[WireContract]`, under this book's own
-> `TreatWarningsAsErrors` setting, regardless of whether a person or an
-> assistant wrote the property. Check a generated wire-contract type
-> against the two that pass in this chapter's example: money travels as a
-> `long` count of minor units, `AmountMinorUnits` or `PriceMinorUnits`,
-> never as a `decimal`, and the analyzer is the thing that notices if a
-> suggestion drifted back to the familiar type before anyone has to catch
-> it by hand.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add a field to a wire contract, or to sketch one
+from a description, an AI pairing partner will often reach for `decimal`
+on a money-shaped property, because `decimal` is the type every other
+money value in a typical C# codebase already uses and nothing about the
+request signals that this particular type crosses a process boundary.
+That is exactly the pattern `SHIP0001` exists to catch: a generated
+`RateQuoteContract`-shaped record with a `decimal Amount` fails the build
+the moment it is marked `[WireContract]`, under this book's own
+`TreatWarningsAsErrors` setting, regardless of whether a person or an
+assistant wrote the property. Check a generated wire-contract type
+against the two that pass in this chapter's example: money travels as a
+`long` count of minor units, `AmountMinorUnits` or `PriceMinorUnits`,
+never as a `decimal`, and the analyzer is the thing that notices if a
+suggestion drifted back to the familiar type before anyone has to catch
+it by hand.
+</blockquote>
 
 ## For deeper coverage
 

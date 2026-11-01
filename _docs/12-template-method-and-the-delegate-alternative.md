@@ -74,7 +74,7 @@ a `DeclarationSteps` record of `Func<>` values instead of dispatching through
 an override. Both forms produce the same `CustomsDeclaration` for the same
 shipment and the same country, and the chapter's test suite proves it.
 
-{% include excalidraw.html name="12-template-method-and-the-delegate-alternative" caption="Figure 12.1: The same three-step customs skeleton, collect required fields, calculate duty, validate, built two ways. CustomsDeclarationBuilder fixes the order in a non-virtual Build method that United States, Germany, and Japan subclasses override only at the three steps; DeclarationEngine.Build runs the identical order over a DeclarationSteps record of delegates that CountrySteps supplies per country. Both paths produce the same CustomsDeclaration for a given shipment." %}
+{% include excalidraw.html name="12-template-method-and-the-delegate-alternative" caption="Figure 12.1: The same three-step customs skeleton, collect fields, calculate duty, validate, built two ways: a sealed inheritance hierarchy and a record of delegates, producing identical results per country." %}
 
 ## The inheritance form: a sealed skeleton
 
@@ -144,7 +144,7 @@ any one of the three subclasses tells a reviewer everything that
 country does differently; none of the three can tell a reviewer anything
 about step order, because step order was never theirs to control.
 
-{% include excalidraw.html name="12-template-method-step-order" caption="Figure 12.2: The fixed three-slot order, CollectRequiredFields, CalculateDuty, Validate, running left to right for every country, with the United States, Germany, and Japan each plugging their own required fields, duty formula, and validation threshold into the same three slots. The slot order never moves; only what fills each slot changes." %}
+{% include excalidraw.html name="12-template-method-step-order" caption="Figure 12.2: Three countries plug different required fields, duty formulas, and validation thresholds into the same fixed three-step slot order; the order never moves, only the content." %}
 
 ## The delegate form: steps as values
 
@@ -429,23 +429,25 @@ template with an optional fourth hook bolted on; it's recognizing that the
 country in question isn't a variation of the same algorithm and doesn't
 belong behind the same skeleton.
 
-> **AI sidebar.** Asked to add a new country to this example, an AI pairing
-> partner will sometimes reach straight for a new sealed subclass of
-> `CustomsDeclarationBuilder` even when the actual task is "add one country
-> whose rules never need to call shared base behavior and that nothing else
-> in the codebase pattern-matches on," the exact shape the delegate form
-> handles with a single new property on `CountrySteps` instead of a new
-> file. The instinct comes from training data where Template Method
-> examples are overwhelmingly shown as class hierarchies, so a model
-> defaults to inheritance by habit rather than by evaluating whether this
-> particular variation needs anything a class gives that a value doesn't.
-> Check a generated subclass against the four reasons inheritance earns its
-> place in this chapter: does it share a protected helper with its
-> siblings, does it carry state across its own steps, does something
-> outside the hierarchy pattern-match on its type, and does one step call
-> another. A generated country handler that answers no to all four is a
-> `DeclarationSteps` value wearing a class's clothes, and collapsing it back
-> to a value removes a file without removing any behavior.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add a new country to this example, a generated answer will
+sometimes reach straight for a new sealed subclass of
+`CustomsDeclarationBuilder` even when the actual task is "add one country
+whose rules never need to call shared base behavior and that nothing else
+in the codebase pattern-matches on," the exact shape the delegate form
+handles with a single new property on `CountrySteps` instead of a new
+file. The instinct comes from training data where Template Method examples
+are overwhelmingly shown as class hierarchies, so a model defaults to
+inheritance by habit rather than by evaluating whether this particular
+variation needs anything a class gives that a value doesn't. Check a
+generated subclass against the four reasons inheritance is the better fit
+in this chapter: does it share a protected helper with its siblings, does
+it carry state across its own steps, does something outside the hierarchy
+pattern-match on its type, and does one step call another. A generated
+country handler that answers no to all four is a `DeclarationSteps` value
+wearing a class's clothes, and collapsing it back to a value removes a
+file without removing any behavior.
+</blockquote>
 
 ## For deeper coverage
 

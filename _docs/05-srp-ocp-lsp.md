@@ -56,7 +56,7 @@ tax or audit, a surcharge pipeline that grows by addition, and two pricing
 strategies that substitute for each other because a test proves it rather
 than assumes it.
 
-{% include excalidraw.html name="05-srp-ocp-lsp" caption="Figure 5.1: One overloaded rate calculator resolves into single-responsibility collaborators, IRateQuote, ITaxPolicy, and IAuditSink; a SurchargedRateQuote decorator composes the open ISurcharge extension point for OCP; both pricing calculators substitute for each other through one IRateQuote contract for LSP." %}
+{% include excalidraw.html name="05-srp-ocp-lsp" caption="Figure 5.1: A single overloaded rate calculator splits into focused collaborators for pricing, tax, and audit; a surcharge decorator adds charges without editing existing code; two pricing strategies substitute for each other safely." %}
 
 ## One overloaded calculator, three reasons to break
 
@@ -289,24 +289,25 @@ boundaries, OCP describes how each boundary grows, and LSP is what makes it
 safe for `RateCalculator` to depend on the boundary rather than on a specific
 implementation behind it.
 
-> **AI sidebar.** Ask an AI pairing partner to "apply SOLID" to a working
-> rate calculator and a common result is an interface for every class
-> regardless of whether a second implementation exists, because that shape
-> appears constantly in material that treats SOLID as a checklist rather
-> than a response to a specific force. Check the result against what each
-> principle asks: SRP asks whether a proposed split follows a real
-> difference in who changes the code and why, not just whether the result
-> has more files than before. OCP asks whether a second pricing strategy or
-> surcharge is already in hand or clearly coming; an `ISurcharge` with
-> exactly one implementation and nothing else planned is OCP's cost with
-> none of its benefit. LSP asks whether a generated implementation honors
-> the contract a shared interface promises, not merely its method
-> signature; a model asked to add a new pricing strategy will cheerfully
-> write one that returns a negative adjustment for a promotional rate,
-> something no other `IRateQuote` implementation does, unless a test like
-> `LspInvariantTests` catches it. None of the three principles is verified
-> by reading generated code and nodding; each one is verified by the kind
-> of test this chapter's example already carries.
+<blockquote class="ai-sidebar" markdown="1">
+Ask an AI pairing partner to "apply SOLID" to a working rate calculator and
+a common result is an interface for every class regardless of whether a
+second implementation exists, because that shape appears constantly in
+material that treats SOLID as a checklist rather than a response to a
+specific force. Check the result against what each principle asks: SRP asks
+whether a proposed split follows a real difference in who changes the code
+and why, not just whether the result has more files than before. OCP asks
+whether a second pricing strategy or surcharge is already in hand or
+clearly coming; an `ISurcharge` with exactly one implementation and nothing
+else planned is OCP's cost with none of its benefit. LSP asks whether a
+generated implementation honors the contract a shared interface promises,
+not merely its method signature; a model asked to add a new pricing
+strategy will cheerfully write one that returns a negative adjustment for a
+promotional rate, something no other `IRateQuote` implementation does,
+unless a test like `LspInvariantTests` catches it. None of the three
+principles is verified by reading generated code and nodding; each one is
+verified by the kind of test this chapter's example already carries.
+</blockquote>
 
 ## Build, run, observe
 

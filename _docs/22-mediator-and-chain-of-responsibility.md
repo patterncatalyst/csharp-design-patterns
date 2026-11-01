@@ -69,7 +69,7 @@ express it: a chain of links reads cleanly as an ordered sequence of
 independent checks, and a mediator reads cleanly as the one place that knows
 who talks to whom, before either reaches the mechanics that make it work.
 
-{% include excalidraw.html name="22-mediator-and-chain-of-responsibility" caption="Figure 22.1: CustomsClearancePipeline.Standard wires DocumentCheckStage, DutyCalculationStage, InspectionStage, and ReleaseStage into one chain through SetNext, with ClearanceStage.Handle recording each visited stage into the shared ClearanceContext and returning early on a halt; CustomsMediator routes a message from DeclarationDesk to DutyDesk and back, with neither desk holding a direct reference to the other." %}
+{% include excalidraw.html name="22-mediator-and-chain-of-responsibility" caption="Figure 22.1: CustomsClearancePipeline chains four stages that each pass a declaration forward or halt it, while CustomsMediator routes messages between two desks that never reference each other directly." %}
 
 ## Chain of Responsibility: an ordered sequence of independent checks
 
@@ -430,7 +430,7 @@ directions on the same pair of colleagues, and that a reply reaching
 `declarationDesk` never required `DutyDesk` to hold a reference back to
 `DeclarationDesk` to send it.
 
-{% include excalidraw.html name="22-mediator-colleagues" caption="Figure 22.2: CustomsMediator implements IClearanceMediator and routes a message from DeclarationDesk to DutyDesk and a reply back the other way; each colleague calls Send only on the mediator, never on the other colleague directly, and Send never echoes a message back into the sender's own Inbox." %}
+{% include excalidraw.html name="22-mediator-colleagues" caption="Figure 22.2: CustomsMediator routes a message between DeclarationDesk and DutyDesk and a reply back the other way; each desk calls Send only on the mediator, never on each other, and a sender never sees its own message echoed back." %}
 
 ## Build, run, observe
 
@@ -498,28 +498,30 @@ centralizes every rule in the system behind one `Send` method, exactly the
 concentration of responsibility this pattern is supposed to prevent by
 keeping each colleague's own logic inside that colleague.
 
-> **AI sidebar.** Asked to make two conditions "more flexible" or "ready for
-> growth," an AI pairing partner will sometimes produce a full
-> `ClearanceStage` subclass, complete with its own `Process` override and a
-> `SetNext` wiring call, for a pair of checks that will only ever be exactly
-> that pair, treating Chain of Responsibility as the default shape for any
-> sequence of conditions even when no second configuration, no insertion
-> point, and no reuse across pipelines appear anywhere in the request. A
-> related suggestion reaches for a Mediator the moment a second class needs
-> to talk to a first one, routing a single direct method call through an
-> `IClearanceMediator` interface and a `Send` dispatch for a relationship
-> that will only ever involve those two participants. A generated mediator
-> can also drift the other way, growing a `Send` method that branches on
-> message content to make decisions the colleagues themselves should own,
-> pulling every rule in the system into one class instead of leaving each
-> colleague responsible for its own logic. Check a generated answer against
-> what this chapter actually built: a chain is for a sequence of checks that
-> can plausibly change shape or get reused, not any sequence of checks at
-> all, and a mediator is for enough participants, or a volatile enough set
-> of relationships, that direct references between them would be harder to
-> read than one place that routes; a fixed pair of conditions or a fixed
-> pair of collaborators usually says the same thing with a plain `if` or a
-> plain method call.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make two conditions "more flexible" or "ready for
+growth," an AI pairing partner will sometimes produce a full
+`ClearanceStage` subclass, complete with its own `Process` override and a
+`SetNext` wiring call, for a pair of checks that will only ever be exactly
+that pair, treating Chain of Responsibility as the default shape for any
+sequence of conditions even when no second configuration, no insertion
+point, and no reuse across pipelines appear anywhere in the request. A
+related suggestion reaches for a Mediator the moment a second class needs
+to talk to a first one, routing a single direct method call through an
+`IClearanceMediator` interface and a `Send` dispatch for a relationship
+that will only ever involve those two participants. A generated mediator
+can also drift the other way, growing a `Send` method that branches on
+message content to make decisions the colleagues themselves should own,
+pulling every rule in the system into one class instead of leaving each
+colleague responsible for its own logic. Check a generated answer against
+what this chapter actually built: a chain is for a sequence of checks that
+can plausibly change shape or get reused, not any sequence of checks at
+all, and a mediator is for enough participants, or a volatile enough set
+of relationships, that direct references between them would be harder to
+read than one place that routes; a fixed pair of conditions or a fixed
+pair of collaborators usually says the same thing with a plain `if` or a
+plain method call.
+</blockquote>
 
 ## For deeper coverage
 

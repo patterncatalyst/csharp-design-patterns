@@ -67,7 +67,7 @@ halves of the same idea against the shipping domain: `Money`, `Weight`, and
 `EdiRecordParser`, a span-based parser proven by a measured test to
 allocate nothing at all in its steady state.
 
-{% include excalidraw.html name="08-value-types-struct-span" caption="Figure 8.1: Two readonly record struct Money values compared by content, set against a reference-type class for contrast; a ReadOnlySpan<char> over one fixed-width EDI segment sliced in place into ConsignmentId, SlotId, Weight, and Money, with no intermediate string allocation." %}
+{% include excalidraw.html name="08-value-types-struct-span" caption="Figure 8.1: Value types compare by content instead of reference, and a fixed-width EDI segment is sliced in place into typed fields with no intermediate string allocation." %}
 
 ## Copy semantics versus reference semantics
 
@@ -344,7 +344,7 @@ string *literal*, already interned by the runtime rather than built fresh,
 so even the single `string`-typed field in the result costs nothing beyond
 a handful of character comparisons.
 
-{% include excalidraw.html name="08-fixed-width-edi-layout" caption="Figure 8.2: The 28-character EDI segment as a ruler of six field spans at their exact zero-based offsets, each one sliced directly into its typed destination, int, SlotId, Weight, and Money, and composed into one ConsignmentRecord with no intermediate string allocated." %}
+{% include excalidraw.html name="08-fixed-width-edi-layout" caption="Figure 8.2: A 28-character EDI segment is sliced at fixed offsets directly into typed fields, assembling one consignment record without allocating an intermediate string." %}
 
 `int.TryParse` and `decimal.TryParse` over `ReadOnlySpan<char>` are not a
 workaround bolted on for this one parser; they are the current idiomatic
@@ -468,27 +468,29 @@ the discipline of not letting a span escape its stack frame has to hold
 even where the compiler cannot enforce it, such as a span returned from a
 method that then gets held past the lifetime of its backing memory.
 
-> **AI sidebar.** Ask an AI pairing partner to "make this a struct for
-> performance" on an existing class and a common result changes the type
-> keyword without checking any of the three disqualifiers above: a model
-> will readily convert a class with a dozen fields and a few methods into a
-> struct, because the before-and-after diff looks like a clean, confident
-> optimization, without weighing the copying cost against whatever
-> allocation it saves. It will just as readily leave mutable `{ get; set; }`
-> auto-properties on a converted struct rather than reaching for `readonly
-> record struct`, missing both the immutability and the generated equality
-> that would come from the idiomatic form with no extra code. And when
-> asked to add a `Span<T>` field to speed up a parser, a generated answer
-> will sometimes store that span on a class or return it from a method in a
-> way that outlives the call, a mistake the compiler would reject outright
-> on a declared `ref struct` but that a hand-rolled struct hiding a span
-> indirectly, boxed inside an object, say, might not catch until a reader
-> traces where the backing memory actually lives. Check a generated
-> struct conversion against the same three questions this chapter asks: is
-> the type small, does it need no identity beyond its data, and does
-> nothing about it require inheritance; check a generated span-bearing type
-> against whether it is really confined to one synchronous, non-capturing
-> call, the only shape a `ref struct` is built for.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to "make this a struct for performance" on an existing class, a
+common result changes the type keyword without checking any of the three
+disqualifiers above: a model will readily convert a class with a dozen
+fields and a few methods into a struct, because the before-and-after diff
+looks like a clean, confident optimization, without weighing the copying
+cost against whatever allocation it saves. It will just as readily leave
+mutable `{ get; set; }` auto-properties on a converted struct rather than
+reaching for `readonly record struct`, missing both the immutability and
+the generated equality that would come from the idiomatic form with no
+extra code. And when asked to add a `Span<T>` field to speed up a parser,
+a generated answer will sometimes store that span on a class or return it
+from a method in a way that outlives the call, a mistake the compiler
+would reject outright on a declared `ref struct` but that a hand-rolled
+struct hiding a span indirectly, boxed inside an object, say, might not
+catch until a reader traces where the backing memory actually lives.
+Check a generated struct conversion against the same three questions
+this chapter asks: is the type small, does it need no identity beyond
+its data, and does nothing about it require inheritance; check a
+generated span-bearing type against whether it is really confined to one
+synchronous, non-capturing call, the only shape a `ref struct` is built
+for.
+</blockquote>
 
 ## For deeper coverage
 

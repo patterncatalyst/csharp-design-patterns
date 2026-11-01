@@ -49,7 +49,7 @@ claim, not assertion, so every language-feature claim below cites Microsoft
 Learn or a compilable example, the same discipline this book asks of every
 original-research chapter it writes.
 
-{% include excalidraw.html name="02-what-1994-assumed-and-csharp-invalidated" caption="Figure 2.1: Three 1994 assumptions (no first-class functions, no compiler-checked nullability, hand-rolled subscriber lists) mapped to the C# features that now cover them: delegates, nullable reference types, and the event keyword." %}
+{% include excalidraw.html name="02-what-1994-assumed-and-csharp-invalidated" caption="Figure 2.1: Three gaps the 1994 object model left open, no first-class functions, no compiler-checked nullability, and hand-rolled subscriber lists, each now closed by a C# language feature." %}
 
 ## The object model the catalogue assumed
 

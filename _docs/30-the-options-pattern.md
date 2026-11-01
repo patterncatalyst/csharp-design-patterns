@@ -391,23 +391,25 @@ for options types a startup path touches directly; an options type nothing
 touches during startup validates on first use instead, later than the
 failure this pattern is meant to catch.
 
-> **AI sidebar.** Asked to add a new configuration setting, an AI pairing
-> partner will sometimes read it straight out of `IConfiguration` at the call
-> site with a string key, `configuration["CarrierGateway:RetryBudget"]`,
-> parsed inline with `int.Parse` or `Convert.ToInt32`, for a value that
-> `CarrierGatewayOptions` already models with a typed, bound property. That
-> shortcut skips validation entirely: a malformed value parses with an
-> exception at the moment some request first reaches that call site, rather
-> than failing the host at startup the way `ValidateOnStart()` does here. A
-> related suggestion reaches for `IOptionsMonitor<T>` and an `OnChange`
-> subscription on every injected options type by default, even one resolved
-> once by a transient service that is constructed fresh per call and never
-> outlives a single request, paying for change tracking a value that never
-> needs to change mid-request will never use. Check a generated answer
-> against what this chapter built: bind a typed options class instead of
-> reading configuration keys inline, reach for `IOptionsMonitor<T>` only when
-> something needs to react to a reload, and wire `ValidateOnStart()`
-> in wherever a bad value should stop a deployment rather than a request.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add a new configuration setting, an AI pairing
+partner will sometimes read it straight out of `IConfiguration` at the call
+site with a string key, `configuration["CarrierGateway:RetryBudget"]`,
+parsed inline with `int.Parse` or `Convert.ToInt32`, for a value that
+`CarrierGatewayOptions` already models with a typed, bound property. That
+shortcut skips validation entirely: a malformed value parses with an
+exception at the moment some request first reaches that call site, rather
+than failing the host at startup the way `ValidateOnStart()` does here. A
+related suggestion reaches for `IOptionsMonitor<T>` and an `OnChange`
+subscription on every injected options type by default, even one resolved
+once by a transient service that is constructed fresh per call and never
+outlives a single request, paying for change tracking a value that never
+needs to change mid-request will never use. Check a generated answer
+against what this chapter built: bind a typed options class instead of
+reading configuration keys inline, reach for `IOptionsMonitor<T>` only when
+something needs to react to a reload, and wire `ValidateOnStart()`
+in wherever a bad value should stop a deployment rather than a request.
+</blockquote>
 
 ## For deeper coverage
 

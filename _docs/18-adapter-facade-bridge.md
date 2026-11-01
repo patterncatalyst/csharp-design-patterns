@@ -85,7 +85,7 @@ user-defined conversion operators are for. This chapter closes with the two
 conversions the three adapters above already rely on: `Money` to and from
 decimal dollars, and `Kilograms` to and from `Pounds`.
 
-{% include excalidraw.html name="18-adapter-facade-bridge" caption="Figure 18.1: Three incompatible carrier clients, FastlineSoapClient, SeabrightRestClient, and AircoLegacyClient, each adapted to the shared ICarrierGateway interface by its own Adapter; ShipmentBookingFacade sequencing an IAddressValidator, that adapted ICarrierGateway, and an ICustomsFiler behind one Book call; and ShipmentLabel as the Bridge abstraction rendering through an independently chosen ILabelRenderer, PdfLabelRenderer or ZplLabelRenderer." %}
+{% include excalidraw.html name="18-adapter-facade-bridge" caption="Figure 18.1: Three incompatible carrier clients each get their own Adapter onto a shared gateway interface; a Facade sequences validation, quoting, and filing behind one call; and a Bridge lets a label kind and its renderer vary independently." %}
 
 ## Adapter: three carriers, one gateway
 
@@ -415,7 +415,7 @@ caller working through reflection or a serializer that cannot invoke an
 operator syntactically still has a method to call. An analyzer that flags a
 conversion operator with no named alternate is catching exactly this gap.
 
-{% include excalidraw.html name="18-conversion-operators" caption="Figure 18.2: Money converts out to decimal implicitly, matched by the named ToDecimal, and converts in from decimal explicitly, matched by FromDecimal; Kilograms and Pounds convert explicitly in both directions, matched by ToPounds and ToKilograms, because a unit change rather than a rounding is what each cast signals." %}
+{% include excalidraw.html name="18-conversion-operators" caption="Figure 18.2: Money converts to decimal implicitly, since the conversion never loses precision, and from decimal explicitly, since it can round. Kilograms and Pounds convert explicitly both ways, since a unit change can never be exact." %}
 
 ## Build, run, observe
 
@@ -507,26 +507,28 @@ different representation" belongs in a method whose name carries that
 explanation, not in an operator a reader has to open the source to
 understand.
 
-> **AI sidebar.** Asked to add a conversion between two of this chapter's
-> weight or money types, an AI pairing partner will sometimes mark a lossy
-> conversion implicit so it fires without a cast at every call site, because
-> implicit reads as more convenient in a generated diff. `Money` and
-> `Kilograms` show why that default is wrong: `FromDecimal` and the
-> `Kilograms`-`Pounds` conversions are explicit specifically because each
-> one can discard information a reader has not asked to discard, and an
-> implicit version of either would let that loss happen on an ordinary
-> assignment with no cast in the code to flag it. A second common
-> suggestion, asked to let a single carrier's client plug into some future
-> carrier abstraction, is a Bridge built around one renderer and one label
-> kind with nothing else in sight, two hierarchies standing in for one
-> concrete class because the pattern sounds forward-looking. Check a
-> generated answer against the same two questions this chapter relies on
-> directly: is the conversion lossless, which means implicit, or can it
-> discard a fraction of a cent or a pound, which means explicit with a named
-> alternate; and does a second label kind or a second renderer already
-> exist or have a concrete plan behind it, because a Bridge built for an
-> axis that will only ever hold one value is two classes standing in for a
-> hierarchy that was never going to grow.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add a conversion between two of this chapter's
+weight or money types, an AI pairing partner will sometimes mark a lossy
+conversion implicit so it fires without a cast at every call site, because
+implicit reads as more convenient in a generated diff. `Money` and
+`Kilograms` show why that default is wrong: `FromDecimal` and the
+`Kilograms`-`Pounds` conversions are explicit specifically because each
+one can discard information a reader has not asked to discard, and an
+implicit version of either would let that loss happen on an ordinary
+assignment with no cast in the code to flag it. A second common
+suggestion, asked to let a single carrier's client plug into some future
+carrier abstraction, is a Bridge built around one renderer and one label
+kind with nothing else in sight, two hierarchies standing in for one
+concrete class because the pattern sounds forward-looking. Check a
+generated answer against the same two questions this chapter relies on
+directly: is the conversion lossless, which means implicit, or can it
+discard a fraction of a cent or a pound, which means explicit with a named
+alternate; and does a second label kind or a second renderer already
+exist or have a concrete plan behind it, because a Bridge built for an
+axis that will only ever hold one value is two classes standing in for a
+hierarchy that was never going to grow.
+</blockquote>
 
 ## For deeper coverage
 

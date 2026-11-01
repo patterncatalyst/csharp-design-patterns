@@ -57,7 +57,7 @@ in-process cases a reader will meet, Observer and `event` are the same
 idea wearing one name instead of the four or five types the original
 pattern catalog describes.
 
-{% include excalidraw.html name="21-observer-the-event-keyword" caption="Figure 21.1: ConsignmentTracker raises its event EventHandler<HandlingReportedEventArgs>? HandlingReported through a null-conditional Invoke, reaching CustomerNotifier and AuditLog, each subscribed with += and detachable with -=; HandlingEventStream wraps a System.Reactive Subject<HandlingEvent> behind IObservable<HandlingEvent>, and a RecordingObserver implementing IObserver<HandlingEvent> subscribes to it directly." %}
+{% include excalidraw.html name="21-observer-the-event-keyword" caption="Figure 21.1: ConsignmentTracker raises an event that reaches two independent observers, each attached with += and detachable with -=. A separate reactive stream wraps the same kind of event behind an observable interface instead." %}
 
 ## The event keyword: Observer built directly into the language
 
@@ -358,7 +358,7 @@ needs to see history, the subscriber has to ask something other than the
 the observable side of this pairing was never built to remember what it
 already sent.
 
-{% include excalidraw.html name="21-event-and-iobservable" caption="Figure 21.2: HandlingEventStream wraps a System.Reactive Subject<HandlingEvent> and exposes only IObservable<HandlingEvent> through Events; Publish forwards to OnNext and Complete forwards to OnCompleted, reaching a RecordingObserver subscribed to it, and a late subscriber misses whatever the hot Subject already pushed, unlike ConsignmentTracker's retained History." %}
+{% include excalidraw.html name="21-event-and-iobservable" caption="Figure 21.2: A reactive stream wraps a Subject behind an observable interface; publishing forwards to the subject and completing signals every subscriber. A late subscriber misses events published before it attached, unlike the tracker's retained history." %}
 
 `HandlingEventStream` carries one naming detail in a single sentence: a
 Roslyn analyzer flags a type named `*Stream` as implying an implementation
@@ -439,20 +439,22 @@ Multiple independent subscribers that come and go wants `event`. Streams
 that need to be filtered, combined, or definitively ended want
 `IObservable<T>`.
 
-> **AI sidebar.** Asked to make a status change "reactive" or "observable,"
-> an AI pairing partner will sometimes reach straight for a `Subject<T>`
-> and an `IObservable<T>` property, package reference and all, for a
-> publisher that has exactly one kind of subscriber and never needs an
-> `OnError` channel or an operator chain, where a one-line
-> `event EventHandler<T>?` would have said the same thing with nothing to
-> install and nothing to dispose. Check a generated answer against the
-> question this chapter keeps coming back to: does a subscriber need to
-> compose this stream with another one, react uniformly to an error across
-> every listener, or detect a definitive end to the sequence. A publisher
-> that just needs to tell zero or more listeners something happened, in
-> order, as it happens, gets everything from a plain `event` that the
-> generated `Subject<T>` would have given it, at a fraction of the
-> ceremony.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make a status change "reactive" or "observable,"
+an AI pairing partner will sometimes reach straight for a `Subject<T>`
+and an `IObservable<T>` property, package reference and all, for a
+publisher that has exactly one kind of subscriber and never needs an
+`OnError` channel or an operator chain, where a one-line
+`event EventHandler<T>?` would have said the same thing with nothing to
+install and nothing to dispose. Check a generated answer against the
+question this chapter keeps coming back to: does a subscriber need to
+compose this stream with another one, react uniformly to an error across
+every listener, or detect a definitive end to the sequence. A publisher
+that just needs to tell zero or more listeners something happened, in
+order, as it happens, gets everything from a plain `event` that the
+generated `Subject<T>` would have given it, at a fraction of the
+ceremony.
+</blockquote>
 
 ## For deeper coverage
 

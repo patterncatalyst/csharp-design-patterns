@@ -73,7 +73,7 @@ the last possible step, because that is the entire value an expression tree
 offers over a plain delegate: the chance to look at a computation, and
 change it, before it ever runs.
 
-{% include excalidraw.html name="26-expression-trees" caption="Figure 26.1: TariffExpressionLibrary.WeightRate is an Expression<Func<RateRequest, decimal>>, the lambda r => r.WeightKilograms * 2.50m captured as a tree of Expression nodes rather than compiled code. RateDescriber, an ExpressionVisitor, reads that tree and renders it as a string without ever running it. Expression<T>.Compile() takes the same tree down a different path, producing a Func<RateRequest, decimal> delegate that does execute the rule." %}
+{% include excalidraw.html name="26-expression-trees" caption="Figure 26.1: A tariff rate rule compiles to a tree of Expression nodes rather than executable code. RateDescriber reads that tree and renders it as a string without running it, while Compile takes the same tree down a different path into a runnable delegate." %}
 
 ## Authoring a rule as data
 
@@ -258,7 +258,7 @@ target, and only then produces a result, a sequencing `ReferencedProperty
 Collector` mirrors directly: inspect the data describing a computation, and
 let a decision about whether to compile and run it come after.
 
-{% include excalidraw.html name="26-inspecting-a-tree" caption="Figure 26.3: ReferencedPropertyCollector.Collect walks a rule with VisitMember and records which RateRequest properties it touches without ever executing it, the way a LINQ provider reads a query before translating it. Expression<T>.Compile() takes the same tree down the other path and produces a delegate that does run the rule." %}
+{% include excalidraw.html name="26-inspecting-a-tree" caption="Figure 26.3: ReferencedPropertyCollector walks a rule's tree and records which properties it touches without ever executing it, the way a LINQ provider reads a query before translating it. Compile takes the same tree down the other path into a runnable delegate." %}
 
 ## Rewriting a tree without mutating it
 
@@ -314,7 +314,7 @@ constant indiscriminately would corrupt that comparison; checking the
 runtime type of `node.Value` before deciding what to do is what keeps the
 rewrite scoped to the rates the rule charges.
 
-{% include excalidraw.html name="26-expressionvisitor-rewrite" caption="Figure 26.2: ReferencedPropertyCollector overrides VisitMember to record which RateRequest properties a rule touches, never evaluating the tree. RateInflator overrides VisitConstant to scale every decimal constant by a factor, returning a brand-new Expression tree because expression trees are immutable. PredicateComposer.And rebinds one predicate's parameter onto another's with ParameterReplacer, then joins both bodies with Expression.AndAlso into a single lambda over one shared parameter." %}
+{% include excalidraw.html name="26-expressionvisitor-rewrite" caption="Figure 26.2: RateInflator rewrites a tree by scaling its decimal constants, returning a brand-new tree because expression trees are immutable. PredicateComposer rebinds one predicate's parameter onto another's and joins both bodies into a single lambda over one shared parameter." %}
 
 ## Building trees with the factory API
 
@@ -473,23 +473,25 @@ rewrote it first; a rule assembled from several composed trees is easier to
 check by calling `RateDescriber.Describe` on the result and reading the
 rendered string than by stepping through the compiled delegate itself.
 
-> **AI sidebar.** Asked to add a user-configurable pricing rule, an AI
-> pairing partner will sometimes reach for a string-based formula parser,
-> tokenizing an expression and hand-writing a recursive-descent evaluator,
-> for a problem `Expression`'s factory methods and `Expression.Lambda<
-> TDelegate>(...).Compile()` already cover without a parser of any kind:
-> build the tree from known parts, as `PredicateComposer.And` does, and
-> compile it once. A related suggestion reaches for an
-> `Expression<Func<RateRequest, decimal>>` and a fresh `Compile()` call
-> inside a per-request rating loop, for a rule that is read once and run
-> once, paying the cost this chapter's "When not to use it" section
-> describes without ever using the tree for anything a `Func<RateRequest,
-> decimal>` could not do directly. Check a generated answer against what
-> this chapter built: reach for a tree when something, a describer, a
-> property collector, a rewrite, or a composition, needs to read or change
-> the computation before it runs, compile once and cache the delegate when
-> a rule is evaluated repeatedly, and keep a one-off calculation as a plain
-> delegate with no tree behind it at all.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add a user-configurable pricing rule, an AI
+pairing partner will sometimes reach for a string-based formula parser,
+tokenizing an expression and hand-writing a recursive-descent evaluator,
+for a problem `Expression`'s factory methods and `Expression.Lambda<
+TDelegate>(...).Compile()` already cover without a parser of any kind:
+build the tree from known parts, as `PredicateComposer.And` does, and
+compile it once. A related suggestion reaches for an
+`Expression<Func<RateRequest, decimal>>` and a fresh `Compile()` call
+inside a per-request rating loop, for a rule that is read once and run
+once, paying the cost this chapter's "When not to use it" section
+describes without ever using the tree for anything a `Func<RateRequest,
+decimal>` could not do directly. Check a generated answer against what
+this chapter built: reach for a tree when something, a describer, a
+property collector, a rewrite, or a composition, needs to read or change
+the computation before it runs, compile once and cache the delegate when
+a rule is evaluated repeatedly, and keep a one-off calculation as a plain
+delegate with no tree behind it at all.
+</blockquote>
 
 ## For deeper coverage
 

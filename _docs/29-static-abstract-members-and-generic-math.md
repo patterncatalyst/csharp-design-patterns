@@ -63,7 +63,7 @@ self-referencing interface, and a monetary type that participates in generic
 math so the same summation algorithm totals a sequence of quotes without
 caring whether the amounts are `Money` or plain decimals.
 
-{% include excalidraw.html name="29-static-abstract-members-and-generic-math" caption="Figure 29.1: IRateable<TSelf> declares static abstract Money BaseRate and static abstract Money RateOf(TSelf shipment), a contract three concrete shipment types each implement: ParcelShipment, FreightPallet, and DocumentEnvelope. RateBook.Quote<T>(shipment), constrained to where T : IRateable<T>, calls T.RateOf(shipment) and reaches whichever concrete type's static member the caller supplied, entirely through the type parameter, with RateBook.BaseRateOf<T>() reading T.BaseRate the same way without constructing an instance at all." %}
+{% include excalidraw.html name="29-static-abstract-members-and-generic-math" caption="Figure 29.1: Three shipment types each supply their own static BaseRate and RateOf through a shared interface. A generic rate book dispatches to the right one purely through its type parameter, with no instance required." %}
 
 ## A static contract reached through the type parameter
 
@@ -172,7 +172,7 @@ shared constant baked into the generic method.
 matching type's own `BaseRate`, with no shipment instance constructed
 anywhere in the test.
 
-{% include excalidraw.html name="29-irateable-static-dispatch" caption="Figure 29.3: ParcelShipment, FreightPallet, and DocumentEnvelope each supply their own static BaseRate and RateOf through IRateable<T>. RateBook.Quote<T> dispatches to the right one through the type parameter, and Totals.Sum<T> folds the results from T.AdditiveIdentity into a single Money total." %}
+{% include excalidraw.html name="29-irateable-static-dispatch" caption="Figure 29.3: Three shipment types supply their own rate schedule through a shared static contract. The rate book dispatches to the correct one by type parameter alone, then sums the resulting quotes into a single total." %}
 
 ## Generic math: one algorithm, two numeric types
 
@@ -231,7 +231,7 @@ it through reflection or through a delegate without operator syntax at all,
 while the operators themselves stay the normal spelling for ordinary
 arithmetic in a formula.
 
-{% include excalidraw.html name="29-generic-math-over-money" caption="Figure 29.2: Money implements IAdditionOperators<Money, Money, Money>, IAdditiveIdentity<Money, Money>, IMultiplyOperators<Money, decimal, Money>, IComparisonOperators<Money, Money, bool>, and IComparable<Money> from System.Numerics. Totals.Sum<T>(values), constrained to IAdditionOperators<T, T, T> and IAdditiveIdentity<T, T>, seeds its total from T.AdditiveIdentity and folds with total += value, the same method body producing a Money total from an IEnumerable<Money> and a decimal total from an IEnumerable<decimal>, since decimal already implements INumber<decimal>." %}
+{% include excalidraw.html name="29-generic-math-over-money" caption="Figure 29.2: Money implements the System.Numerics arithmetic interfaces alongside the built-in decimal type. One generic summation method folds either sequence into a total, seeded from each type's own additive identity." %}
 
 `Totals.Sum<T>` is the generic algorithm those interfaces exist to make
 possible:
@@ -379,26 +379,28 @@ multiple currencies needs that policy decided and encoded before `Money`
 grows a second field, not left for the compiler to infer from an interface
 list.
 
-> **AI sidebar.** Asked to make a type "support math," an AI pairing partner
-> will sometimes implement every `System.Numerics` interface a type could
-> conceivably satisfy, including ones like `IDivisionOperators` or
-> `IUnaryNegationOperators` that nothing in the surrounding code calls,
-> because the interface exists and the type is numeric-shaped. Check a
-> generated answer against what `Money` needs: this chapter's
-> `Money` implements exactly the five interfaces `RateBook` and `Totals`
-> exercise, `IAdditionOperators`, `IAdditiveIdentity`,
-> `IMultiplyOperators`, `IComparisonOperators`, and `IComparable<Money>`,
-> and nothing else, because a quote is added, scaled by a rate, and
-> compared, but never divided or negated anywhere in the example. A related
-> suggestion skips the `Add` and `Multiply` named alternates entirely and
-> leaves CA2225 unaddressed, treating the analyzer warning as cosmetic
-> rather than as a signal that an operator-only API has no plain-method
-> entry point for a caller that cannot or does not want to use operator
-> syntax. A third pattern to watch for is a generic method reaching for the
-> full `INumber<T>` constraint when only addition and an identity value are
-> ever used, pulling in comparison, parsing, and formatting requirements a
-> type implementing a narrower, purpose-built constraint like
-> `Totals.Sum<T>`'s would otherwise have no reason to satisfy.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make a type "support math," an AI pairing partner
+will sometimes implement every `System.Numerics` interface a type could
+conceivably satisfy, including ones like `IDivisionOperators` or
+`IUnaryNegationOperators` that nothing in the surrounding code calls,
+because the interface exists and the type is numeric-shaped. Check a
+generated answer against what `Money` needs: this chapter's
+`Money` implements exactly the five interfaces `RateBook` and `Totals`
+exercise, `IAdditionOperators`, `IAdditiveIdentity`,
+`IMultiplyOperators`, `IComparisonOperators`, and `IComparable<Money>`,
+and nothing else, because a quote is added, scaled by a rate, and
+compared, but never divided or negated anywhere in the example. A related
+suggestion skips the `Add` and `Multiply` named alternates entirely and
+leaves CA2225 unaddressed, treating the analyzer warning as cosmetic
+rather than as a signal that an operator-only API has no plain-method
+entry point for a caller that cannot or does not want to use operator
+syntax. A third pattern to watch for is a generic method reaching for the
+full `INumber<T>` constraint when only addition and an identity value are
+ever used, pulling in comparison, parsing, and formatting requirements a
+type implementing a narrower, purpose-built constraint like
+`Totals.Sum<T>`'s would otherwise have no reason to satisfy.
+</blockquote>
 
 ## For deeper coverage
 

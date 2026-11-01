@@ -62,7 +62,7 @@ means a test built on exactly this foundation: xUnit for the four-phase shape
 and the parametrization, NSubstitute for a trustworthy, instant stand-in for
 whatever the pattern under test talks to.
 
-{% include excalidraw.html name="10-testing-with-xunit-and-nsubstitute" caption="Figure 10.1: The four-phase test around ShipmentRatingEngine. Arrange creates NSubstitute doubles for its three collaborators and stubs their return values, Act calls QuoteAsync once, and Assert checks both the returned quote and the Received interactions on each double." %}
+{% include excalidraw.html name="10-testing-with-xunit-and-nsubstitute" caption="Figure 10.1: A four-phase test arranges substitute doubles for three collaborators, acts by calling the method once, then asserts both the result and which doubles were called." %}
 
 ## The four-phase test: Arrange, Act, Assert
 
@@ -572,25 +572,27 @@ risk and buys a team nothing a passing test suite wasn't already providing.
 It is a reason a new project, with no existing investment either way, can
 reach for NSubstitute by default.
 
-> **AI sidebar.** Ask an AI pairing partner for "a mocking example in C#"
-> without naming a library and a generated answer defaults to Moq more often
-> than not, because Moq's `.Setup(...)`/`.Object` shape appears far more often
-> in the training data an LLM draws from than NSubstitute's shorter syntax
-> does. That default is harmless by itself, Moq still works, but it quietly
-> reintroduces the `.Setup(...)`/`.Object` indirection this book's examples
-> avoid by design, and a generated suite built that way will not match the
-> idiom this book's other tests use if it gets pasted into this
-> project's test folder. A generated test is also prone to a subtler mistake
-> this chapter named directly: stubbing an async member with
-> `.Returns(Task.FromResult(value))` where a plain `.Returns(value)` would do,
-> carried over from an older NSubstitute version or from Moq's own async
-> conventions, which still compiles and still passes but adds a manual
-> `Task.FromResult` wrapper the current library already performs for a
-> `Task<T>`-returning member. Check a generated test against the project's
-> own examples before trusting it: does it use `Substitute.For<T>()` rather
-> than a `Mock<T>` and `.Object`, does it thread a real cancellation token
-> instead of `CancellationToken.None`, and does it await its own
-> `Received(...)` checks the way `AsyncSubstituteTests` does here.
+<blockquote class="ai-sidebar" markdown="1">
+Asked for "a mocking example in C#" without naming a library, a generated
+answer defaults to Moq more often than not, because Moq's
+`.Setup(...)`/`.Object` shape appears far more often in the training data
+an LLM draws from than NSubstitute's shorter syntax does. That default is
+harmless by itself, Moq still works, but it quietly reintroduces the
+`.Setup(...)`/`.Object` indirection this book's examples avoid by design,
+and a generated suite built that way will not match the idiom this book's
+other tests use if it gets pasted into this project's test folder. A
+generated test is also prone to a subtler mistake this chapter named
+directly: stubbing an async member with `.Returns(Task.FromResult(value))`
+where a plain `.Returns(value)` would do, carried over from an older
+NSubstitute version or from Moq's own async conventions, which still
+compiles and still passes but adds a manual `Task.FromResult` wrapper the
+current library already performs for a `Task<T>`-returning member. Check a
+generated test against the project's own examples before trusting it: does
+it use `Substitute.For<T>()` rather than a `Mock<T>` and `.Object`, does it
+thread a real cancellation token instead of `CancellationToken.None`, and
+does it await its own `Received(...)` checks the way `AsyncSubstituteTests`
+does here.
+</blockquote>
 
 ## Build, run, observe
 
