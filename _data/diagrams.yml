@@ -735,3 +735,11 @@
     Six classic dependency-breaking techniques from Michael Feathers reshape
     the same rate engine, replacing inline construction and ambient calls
     with injected interfaces and a narrow internal seam.
+
+- name: 42-fake-drives-the-engine
+  section: "Ch. 42"
+  title: A fake drives the engine under test
+  caption: >-
+    A test substitutes four injected collaborators, including IAuditLog,
+    then verifies audit.Received(1).Record(...), the interaction the legacy
+    version hid inside a private list.

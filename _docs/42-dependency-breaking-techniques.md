@@ -134,6 +134,8 @@ place. Feathers' catalogue of dependency-breaking techniques exists for
 exactly this situation, a type with real production behavior worth keeping
 and zero seams worth using as it stands.
 
+{% include excalidraw.html name="42-feathers-catalogue-in-c-sharp" caption="Figure 42.2: Six classic dependency-breaking techniques from Michael Feathers reshape the same rate engine, replacing inline construction and ambient calls with injected interfaces and a narrow internal seam." %}
+
 ## Extract Interface: naming the tariff lookup and the audit log
 
 The first two seams come from naming an interface for exactly the members
@@ -354,6 +356,8 @@ asserting `UnknownLaneException` from a request naming a lane
 `LaneValidation` does not recognize. Between the two tests, the rule is
 exercised both directly, through the seam `InternalsVisibleTo` opens, and
 indirectly, through the one public behavior that rule governs.
+
+{% include excalidraw.html name="42-fake-drives-the-engine" caption="Figure 42.3: A test hands four NSubstitute fakes into RateEngine's constructor, then verifies audit.Received(1).Record(...), the call the legacy engine's private list kept unreachable." %}
 
 ## Driving the dependency-broken engine with NSubstitute fakes
 
