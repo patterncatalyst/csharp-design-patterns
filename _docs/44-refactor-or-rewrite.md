@@ -45,7 +45,7 @@ which camp you started in.
 
 Four of those facts do most of the work. How much of the current behavior is
 already pinned down by tests, so a rewrite has something to check itself
-against. How often this code actually changes, since a seam paid for once
+against. How often this code changes, since a seam paid for once
 only earns its cost back over repeated use. How much of the system would
 feel a mistake here, which decides how much safety net the change needs
 before it ships. And how settled the domain rules are, because a domain
@@ -59,7 +59,7 @@ services.
 What makes either answer safe to act on is a detail easy to skip past: the
 decision only stays reversible if both outcomes, refactor and rewrite, land
 behind the same stable contract. Without that contract, choosing a rewrite
-commits you to it before you know whether the new engine actually agrees
+commits you to it before you know whether the new engine agrees
 with the old one on every case that matters. With it, a team can build the
 rewrite alongside the refactor, in the same codebase, resolved against the
 identical interface, and prove the two produce identical results before
@@ -260,7 +260,7 @@ so a test outside either one can ask whether they agree.
 ## Proving equivalence instead of assuming it
 
 A rewrite is only a safe choice once something checks that the new
-implementation actually agrees with the old one, or in this case, with the
+implementation agrees with the old one, or in this case, with the
 refactored one, on every input that matters. `EquivalenceTests` does that
 checking directly, by constructing both engines from the identical
 collaborators and asserting their results are equal rather than merely
@@ -300,7 +300,7 @@ point at.
 
 ## QuoteService: the consumer that never has to choose
 
-The equivalence proof only matters to a caller if that caller is actually
+The equivalence proof only matters to a caller if that caller is
 bound to the shared contract rather than to one engine's concrete type.
 `QuoteService` is that caller:
 
@@ -419,7 +419,7 @@ across a backlog of candidate files is tedious work an assistant does
 without getting tired of it, and a drafted rewrite against a known contract
 gives a team something concrete to react to instead of a blank page. What
 an assistant's draft cannot settle is whether the rewrite it produced
-actually computes what the original did. A model that writes confidently
+computes what the original did. A model that writes confidently
 does not write infallibly, and a rewrite that reads cleanly can still drop
 a rounding rule, an edge case, or a boundary condition the original handled
 correctly. That gap is exactly what an equivalence theory closes: running

@@ -194,4 +194,53 @@ component form; captions short; net10.0 + xUnit v3.
 
 ## r18 verification log
 
-<!-- Opus fills this in at Wave D. -->
+Validated 2026-11-01 (Opus, adversarial pass; every check re-run, no prior self-report trusted).
+
+### Verdict: PASS-WITH-NITS
+
+All acceptance criteria MET. The only findings are watch-tier voice counts, which are advisory, not blockers.
+
+### Build / test
+- ch43 `dotnet test --solution RateEngineCatalogues.slnx`: **MET** — total 24, failed 0, succeeded 24.
+- ch44 `dotnet test --solution RateEngineReplacement.slnx`: **MET** — total 21, failed 0, succeeded 21.
+- `scripts/build.sh`: **MET** — Build succeeded, 0 Warning(s), 0 Error(s) across all examples (both legacy forms compile green under warnings-as-errors); 43 + 44 present in output.
+- `scripts/verify.sh`: **MET** — all suites green; 43-fowler-vs-feathers (24/0) and 44-refactor-or-rewrite (21/0) both included.
+- `bundle exec jekyll build`: **MET** — exit 0, "done", no Liquid errors (commonmarker/prism gem-extension notices are pre-existing environment warnings).
+
+### Equivalence tests (bodies read, not trusted by name)
+- ch43 `Both_catalogues_produce_the_same_quote`: **MET** — 8-case `[Theory][MemberData]`; builds `SeamedRateEngine` and `RateEngine` from the same `StandardTariffSource` + `FakeClock(at)`, asserts `seamed.Quote(declaredValue, weightKilograms, serviceLevel) == refactored.Quote(request).Amount`.
+- ch44 `Both_implementations_satisfy_the_same_contract`: **MET** — 6-case `[Theory]`; same `StandardTariffSource` + `FakeClock(at)`, asserts `Assert.Equal(refactored, rewritten)` on the full `RateQuote` records (value equality).
+
+### Part-13 legacy rule
+- Legacy forms labelled: **MET** — both `LegacyRateEngine` and `LegacyTariffTable` (×2) carry XML-doc "Intentionally untestable legacy shape shown for contrast".
+- CA1822 suppression: **MET** — exactly two `[SuppressMessage]`, both member-scoped on the legacy `Quote`, each with a Part-13 justification. No GlobalSuppressions.cs, no example-level .editorconfig.
+- `SeamedRateEngine`: **MET** — both constructor params (`tariffs`, `clock`) used; no IDE0060; builds clean; deliberately unimproved structure confirmed (not flagged).
+
+### Idiomatic review (refactored forms)
+- **MET** — `lgtm-idiomatic-review/scripts/scan.sh` returns 0 matching lines (0 ban-tier) on both example trees, including legacy forms.
+
+### Voice + prose gates
+- Voice ban-tier: **MET** — 0 ban-tier each. Watch-tier: ch43 14 lines (actually ×4, quietly/silently ×4, simply/easy ×3, hedging ×2, deliberate ×1); ch44 13 lines (actually ×5, defect framing ×2, simply/easy ×2, hedging ×1, intensifiers ×1, quietly ×1, security-finding framing ×1). Advisory only.
+- em-dash: **MET** — 0 across both docs, all new .cs, both READMEs, all 6 SVGs.
+- capstone: **MET** — 0 both docs.
+- No-cross-language: **MET** — 0 genuine hits for java / c++ / jvm / spring / rust / golang / virtual-by-default across docs, new .cs, READMEs, 6 SVGs, 6 diagrams.yml captions. The single bare "go" hit is "go wrong" (English). The `41-seams-non-virtual-by-default` pre-existing name was excluded per rule.
+- Cross-chapter: **MET** — 0 chapter-number or title/topic dependence; no "as we saw"/"covered in" leaning.
+
+### Structure gates
+- Spine order: **MET** both — Learning objectives → Why this matters → primary figure (after Why) → body → Build, run, observe → When not to use it → For deeper coverage.
+- `## When not to use it`: **MET** — exists each, immediately before `## For deeper coverage`, exactly one `<blockquote class="ai-sidebar"` each, no inline `**AI sidebar.**` lead-in, no `{: .ai-sidebar}` IAL.
+- TODO caption: **MET** — 0 both. 3 `excalidraw.html` figures each.
+- Captions: **MET** — all 6 keep `Figure NN.N:` prefix, 26-39 words each, human-readable glosses, no angle-bracket generics, 0 em-dash.
+- Name-drift: **MET** — all 6 `name="..."` resolve to `.svg` + `.excalidraw` on disk and a diagrams.yml entry; ch43 embeds #84/#85/#86, ch44 embeds #87/#88/#89; diagrams.yml = 88 entries, 6 new in chapter order (43s then 44s), sections "Ch. 43"/"Ch. 44". SVG drawn text: 0 em-dash (prior band-label em-dashes gone). Types named in captions (SeamedRateEngine, RateEngine, IRateEngine, QuoteService) all exist.
+
+### Toolchain gates
+- Library csprojs: **MET** — zero runtime PackageReference (pure BCL); each has `<InternalsVisibleTo Include="<Project>.Tests" />`.
+- Test csprojs: **MET** — pin xunit.v3 4.0.2, xunit.runner.visualstudio 4.0.1, Microsoft.NET.Test.Sdk 18.11.0, NSubstitute 6.2.0; IsTestProject true + IsPackable false + NoWarn CA1707; omit TestingPlatformDotnetTestSupport.
+- `.slnx`: **MET** — each example has its own.
+- Path-sanitized: **MET** — 0 `/home/` and 0 username in both docs and both READMEs.
+
+### Word counts
+- ch43 body prose: **2656** (floor 2000). ch44 body prose: **3073** (floor 2000). Both MET, carried by 3 figures each.
+
+### Mechanical nits fixed by validator
+- None needed; no mechanical defects found.

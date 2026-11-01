@@ -198,7 +198,7 @@ seaming the method in the first place.
 ## The Fowler stage: refactoring behind the tests the seam made possible
 
 With `SeamedRateEngine` under test, the second question becomes available
-for the first time: what does this method actually do, and what is its
+for the first time: what does this method do, and what is its
 clearest shape? `RateEngine` is the answer, and every change from the
 seamed form to this one is a named Fowler refactoring, not a redesign from
 scratch.
@@ -376,7 +376,7 @@ what the test was observing. The equivalence theory is the proof that the
 second step never silently invalidated the thing the first step was for:
 the refactor changed the engine's shape, the names of its methods, the
 polymorphism behind its surcharge, the type behind its request, and it
-changed none of its behavior, the one property a test can actually check.
+changed none of its behavior, the one property a test can check.
 
 {% include excalidraw.html name="43-behaviour-preserved" caption="Figure 43.3: One request and one fixed clock feed both the seamed and the refactored engine, and a theory test asserts their amounts match across every service level and clock instant." %}
 
@@ -426,7 +426,7 @@ a new service level appended to the inline `switch`, before it is retired
 in a release or two anyway, injecting `ITariffSource` and `IClock` purely to
 get that one change under test, then running all four Fowler refactorings
 on top of the new seam, spends more effort than the change in front of you
-justifies. The Feathers move that actually fits that situation might be
+justifies. The Feathers move that fits that situation might be
 narrower: seam only the collaborator the change touches, leave the rest of
 the method exactly as it stands, and skip the polymorphic surcharge
 extraction entirely until a second or third service level variant makes the
@@ -451,7 +451,7 @@ where the problems are structural and easy to name once pointed out. What
 an assistant's suggestion cannot settle on its own is the order of
 operations: whether the method already has a seam worth trusting before any
 refactoring runs, and whether the refactoring it is proposing is the one
-the current change actually needs or simply the most thorough one available.
+the current change needs or simply the most thorough one available.
 Getting the code under test before reshaping it, and judging which
 refactoring earns its cost against today's change rather than against an
 idealized design, stays a human call; drafting the seam or the refactoring
