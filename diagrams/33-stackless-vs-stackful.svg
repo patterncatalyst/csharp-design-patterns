@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="90" width="420" height="400" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="110" font-size="12" font-weight="700" fill="#888">stackful green threads: prototyped, then rejected</text>
+<rect x="500" y="90" width="440" height="400" rx="12" fill="#fff8ef" stroke="#ddd"/>
+<text x="512" y="110" font-size="12" font-weight="700" fill="#888">stackless state machines: the shipped design</text>
+<rect x="60" y="140" width="140" height="70" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="130.0" y="173.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">booking thread 1</text>
+<text x="130.0" y="190.0" font-size="11.5" fill="#555555" text-anchor="middle">full stack reserved</text>
+<rect x="220" y="230" width="170" height="90" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="305.0" y="273.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">booking thread 2</text>
+<text x="305.0" y="290.0" font-size="11.5" fill="#555555" text-anchor="middle">larger stack reserved</text>
+<rect x="60" y="350" width="330" height="110" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="225.0" y="395.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">booking thread N</text>
+<text x="225.0" y="412.5" font-size="11.5" fill="#555555" text-anchor="middle">stack memory grows with</text>
+<text x="225.0" y="427.5" font-size="11.5" fill="#555555" text-anchor="middle">every additional booking</text>
+<rect x="560" y="150" width="330" height="100" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="725.0" y="198.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">await state machine</text>
+<text x="725.0" y="215.0" font-size="11.5" fill="#555555" text-anchor="middle">one small heap allocation per booking</text>
+<rect x="560" y="330" width="330" height="100" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="725.0" y="378.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">pooled thread</text>
+<text x="725.0" y="395.0" font-size="11.5" fill="#555555" text-anchor="middle">returns to the pool while suspended</text>
+<path d="M725,250 L725,330" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="731.0" y="284.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">await suspends, thread returns</text>
+<text x="731.0" y="284.0" font-size="11" fill="#b8650a" text-anchor="middle">await suspends, thread returns</text>
+<text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">Two concurrency models, one design decision</text>
+<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">The .NET team prototyped stackful green threads, then shipped compiler-generated stackless state machines instead.</text>
+</svg>
