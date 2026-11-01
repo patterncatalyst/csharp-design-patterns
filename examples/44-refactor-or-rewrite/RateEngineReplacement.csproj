@@ -1,0 +1,21 @@
+<!-- Chapter 44 example: a legacy RateEngine with no stable seam sits next to two
+     replacements over the same contract, a refactor-in-place form and a clean
+     rewrite, the "refactor or rewrite" decision applied to C#. TargetFramework,
+     LangVersion, Nullable, etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RateEngineReplacement.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- PeakWindow and RateRules are internal, so the test project can assert
+         the peak-hour boundary and shared rate constants through reflection
+         and direct calls without widening either to public just for a test. -->
+    <InternalsVisibleTo Include="RateEngineReplacement.Tests" />
+  </ItemGroup>
+
+</Project>

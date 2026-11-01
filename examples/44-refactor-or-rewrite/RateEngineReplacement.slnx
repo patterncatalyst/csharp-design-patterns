@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RateEngineReplacement.csproj" />
+  <Project Path="RateEngineReplacement.Tests/RateEngineReplacement.Tests.csproj" />
+</Solution>
