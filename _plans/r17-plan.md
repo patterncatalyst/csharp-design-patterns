@@ -303,4 +303,81 @@ form; captions short; standard net10.0 + xUnit v3 toolchain.
 
 ## r17 verification log
 
-<!-- Opus fills this in at Wave D. -->
+Adversarial validation 2026-11-01 (Opus, branch `release/r17`). Verdict: **PASS**.
+Every criterion read/run against actual files and commands; no prior self-report trusted.
+
+### Build / test
+- **ch41 `dotnet test --solution RateEngineSeams.slnx`** — MET. total 13, failed 0,
+  succeeded 13 (both legacy + refactored forms compiled under TreatWarningsAsErrors).
+- **ch42 `dotnet test --solution RateEngineDependencies.slnx`** — MET. total 14, failed 0,
+  succeeded 14.
+- **`scripts/build.sh`** — MET. Build succeeded, 0 Warning(s), 0 Error(s) across all examples
+  (both legacy forms compile green under warnings-as-errors + analyzers).
+- **`scripts/verify.sh`** — MET. All suites green; both new examples auto-discovered via the
+  `examples/*/*.Tests/*.csproj` glob (ch41 13/0, ch42 14/0 present in the run).
+- **`bundle exec jekyll build`** — MET. Clean build, exit 0, done in 0.431s, no Liquid errors.
+  (commonmarker/prism "Ignoring … missing extensions" are unrelated gem notices, not build
+  errors.)
+
+### Idiomatic review (refactored forms)
+- **lgtm-idiomatic-review scan** — MET. 0 hits on both example trees (refactored and legacy
+  alike; target was 0 on refactored forms). Refactored forms use primary constructors, records,
+  interface seams, nullable-on, no reinvented BCL.
+
+### Voice + prose
+- **professional-voice scan** — MET. 0 ban-tier both. Watch-tier: ch41 8 lines (hedging ×4,
+  actually ×2, simply/obviously ×1, section-covers ×1); ch42 17 lines (actually ×4, defect
+  framing ×4, hedging ×3, deliberate-adj ×2, soft hype ×2, quietly/silently ×1, security-finding
+  framing ×1). Watch-tier only, acceptable.
+- **em-dash** — MET. 0 across both docs, all new .cs, both READMEs.
+- **capstone** — MET. 0 both docs.
+- **No cross-language** — MET. 0 genuine hits for java / c++ / jvm / spring / rust / golang /
+  bare `go` across docs, new .cs, READMEs, 5 SVGs, 5 yml captions. `virtual.by.default` matches
+  are only the chapter slug/path and the allowed positive title "Seams in C#: non-virtual by
+  default" (regex `.` matched the `-`); prose frames C# positively, no language contrast.
+- **Cross-chapter** — MET. 0 numeric or title/topic cross-references in either doc.
+
+### Structure
+- **Spine order** — MET both. Learning objectives → Why this matters → primary figure (ch41 L28,
+  ch42 L67, after Why) → body → Build, run, observe → When not to use it → For deeper coverage.
+- **When not to use it** — MET both. Present, immediately before For deeper coverage; exactly one
+  `<blockquote class="ai-sidebar" markdown="1">` each; 0 inline `**AI sidebar.**` lead-in; 0
+  kramdown IAL.
+- **TODO caption** — MET. 0 both.
+- **Captions** — MET. All 5 keep `Figure NN.N:` prefix, 1-2 sentences ~22-33 words, no
+  angle-bracket generics, zero em-dash, human-readable glosses (not identifier inventories).
+- **Figure/diagram resolution** — MET. ch41 embeds 41-seams-non-virtual-by-default +
+  41-c-sharp-seam-kinds; ch42 embeds 42-dependency-breaking-techniques +
+  42-feathers-catalogue-in-c-sharp + 42-fake-drives-the-engine. All resolve to .svg + .excalidraw
+  on disk and a diagrams.yml entry. diagrams.yml = 82 entries; 5 new in chapter order (41s before
+  42s), sections "Ch. 41" / "Ch. 42".
+- **Caption types exist** — MET. RateEngine, IAuditLog, audit.Received(1).Record all present.
+
+### Toolchain
+- **Library csprojs** — MET both. Zero runtime PackageReference (pure BCL); each has
+  `<InternalsVisibleTo Include="<Project>.Tests" />`.
+- **Test csprojs** — MET both. Pin exactly xunit.v3 4.0.2, xunit.runner.visualstudio 4.0.1,
+  Microsoft.NET.Test.Sdk 18.11.0, NSubstitute 6.2.0; IsTestProject + IsPackable false + NoWarn
+  CA1707; no TestingPlatformDotnetTestSupport.
+- **Each example has its own .slnx** — MET (RateEngineSeams.slnx, RateEngineDependencies.slnx).
+- **Path sanitization** — MET. 0 `/home/` and 0 real username in both docs' Build/run/observe.
+
+### Part-13 legacy labelling
+- **Legacy forms labelled** — MET. All legacy types in `.Legacy` namespaces with `Legacy*` names
+  (LegacyTariffTable, LegacyAuditLog, LegacyTariffBook; engines are `Legacy.RateEngine`), each
+  carrying an XML-doc "Intentionally untestable legacy shape shown for contrast" line.
+- **CA1822 suppression member-scoped** — MET. Exactly two `[SuppressMessage(... CA1822 ...)]`, both
+  on the legacy `RateEngine.Quote` members with a Part-13 before/after justification. No
+  assembly-level suppression, no GlobalSuppressions.cs, no example-level .editorconfig.
+- **idiomatic-review legacy hits** — none fired (scan 0); the expected legacy findings
+  (hard-coded `new`, `DateTime.Now`/`UtcNow`, static dependency, `Environment.UserName`) are the
+  documented chapter subject, not defects.
+
+### Word counts
+- ch41 body prose ≥ 2000 — MET (~3050 words). ch42 — MET (~3457 words; plan estimate ~3286, the
+  delta is counting methodology — headings/list markers included — not a shortfall).
+
+### Nits (non-blocking)
+- None requiring repair. Watch-tier voice counts (esp. ch42's "actually" ×4 and "defect framing"
+  ×4) are within tolerance; no action required.
+
