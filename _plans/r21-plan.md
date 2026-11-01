@@ -106,4 +106,47 @@ Iteration: POSA2 via /bibliography/ (no new row); jekyll clean; diagrams.yml 106
 
 ## r21 verification log
 
-<!-- Opus fills this in at Wave D. -->
+Validated 2026-11-01 (Opus, Wave D, adversarial — files read + checks re-run, no prior self-report trusted).
+
+### Determinism (#1 gate)
+- MET — ch35 `StowageCoordination.slnx` x3: total 8, failed 0 every run (858/779/756 ms).
+- MET — ch36 `HandlingEventIngest.slnx` x3: total 5, failed 0 every run (856/743/734 ms).
+- MET — flaky-primitive grep over both .cs trees (excl. obj/): no executable use of Thread.Sleep / Task.Delay / DateTime.Now / DateTime.UtcNow / Stopwatch / Task.WhenAny / ThreadPool.SetMinThreads / ModuleInitializer. Only hits are doc-comment text in PipelineTests.cs (lines 11-12) stating those primitives are NOT used (NIT, not a real primitive). Task.Yield only in InMemoryStowageLedger.AppendAsync and HandlingEventPipeline onEvent default (both allowed).
+- MET — both backpressure test bodies read: ch35 `A_full_bounded_channel_applies_backpressure_until_the_scheduler_drains` and ch36 `A_full_bounded_channel_applies_backpressure_to_the_producer` each gate on a TCS Entered signal (WaitAsync with token only, NO timeout), fill a capacity-1 channel, assert `!pendingC.IsCompleted`, then Release and drain. GatedStowageLedger uses Entered+release TCS, no wall clock.
+- MET — ch35 tests 6/7/8 (backpressure, cancelled-queued-token via `cts.Cancel()` then ThrowsAny<OCE>, ThrowOnce ledger with loop-survives second success) and ch36 tests 1-5 all read and match the locked design.
+
+### ch35 CS1996 + Stage-2-ships-no-code
+- MET — `grep -ci cs9217` over _docs/35 == 0. CS1996 taught (4 mentions) with a clearly-labelled non-compiling snippet (`// does not compile: CS1996 ... // CS1996 here`).
+- MET — no shipped .cs in examples/35 has await inside a lock statement (awk brace-scan clean). Only lock bodies are synchronous: SynchronizedStowagePlan.Reserve and InMemoryStowageLedger's lock around _entries.Add AFTER `await Task.Yield()`. build.sh clean (would fail CS1996 otherwise).
+- MET — body maps POSA2's six Active Object participants (Proxy/Method Request/Activation List/Scheduler/Servant/Future) and states the Scheduler+Future dissolve thesis; names Orleans, Akka.NET, Dapr actors as heavier .NET options (all .NET, not cross-language).
+
+### Build / test / site
+- MET — `scripts/build.sh`: Build succeeded, 0 Warning(s), 0 Error(s) across all examples. No pragma/SuppressMessage in either new example; only NoWarn is CA1707 in the two test csprojs.
+- MET — `scripts/verify.sh`: exit 0 under `set -eu`; glob `*/*.Tests/*.csproj` includes both new examples; all suites green.
+- MET — `bundle exec jekyll build`: clean, done in 0.475s, no Liquid errors (gem-extension warnings only, non-fatal).
+
+### Structure
+- MET — spine order both docs: Learning objectives → Why this matters → primary FIGURE (after Why) → body → `## Build, run, observe` → `## When not to use it` → `## For deeper coverage`.
+- MET — `<blockquote class="ai-sidebar"` count == 1 each; no inline `**AI sidebar.**`; no `{: .ai-sidebar}` IAL. `## When not to use it` present, filled, immediately before `## For deeper coverage`; exactly one `## For deeper coverage` each.
+- MET — `TODO caption` == 0 both; `excalidraw.html` == 3 each. Captions keep `Figure NN.N:` prefix, 28-43 words, no angle-bracket generics, 0 em-dash.
+- MET — figure name resolution: all six name= values resolve to diagrams/<name>.svg + .excalidraw + a diagrams.yml entry. ch35 embeds 102/103/104 (35-monitor-object-and-active-object, 35-active-object-participants, 35-channel-backpressure); ch36 embeds 105/106/107 (36-producer-consumer-and-pipelines, 36-exactly-once-drain, 36-pipeline-stages). diagrams.yml == 106 entries, 6 new in chapter order, sections "Ch. 35"/"Ch. 36". Six new SVGs: 0 em-dash, 0 angle-bracket generics in drawn text.
+
+### Idiomatic
+- MET — lgtm-idiomatic-review scan.sh: 0 matching lines each. No `#pragma warning disable`, no `[SuppressMessage]` in either example.
+
+### Voice + prose
+- MET — lgtm-professional-voice scan: 0 ban-tier each. Watch-tier (non-blocking): ch35 3 lines (hedging x2, intensifiers x1); ch36 6 lines (quietly/silently x3, deliberate x1, hedging x1, simply/obviously x1).
+- MET — `grep -ci '\bactually\b'` == 0 both.
+- MET — em-dash == 0 across both _docs, all new .cs, both READMEs, the six new SVGs, and the six new diagrams.yml captions.
+- MET — `grep -ci capstone` == 0 everywhere (docs, examples, SVGs).
+- MET — no cross-language: java / c++ / jvm / spring / rust / goroutine / golang / bare-go / virtual-by-default all 0 across docs, .cs, READMEs, SVGs, yml captions (41-seams pre-existing name excluded per instructions).
+- MET — cross-chapter: neither doc references another by number or by title/topic.
+
+### Word counts
+- MET — ch35 ≈ 2880 words (floor 2000), ch36 ≈ 3214 words (floor 2000). Both carried by 3 figures.
+
+### NITS (non-blocking)
+1. PipelineTests.cs lines 11-12 name Thread.Sleep / Task.Delay / Task.WhenAny inside a `///` doc-comment that documents the determinism guarantee. Not executable; grep intent (no real flaky primitive) is satisfied. Left as-is (editing explanatory test docs is a content call, not a mechanical fix).
+2. ch35 front-matter title/description and ch36 front-matter description contain `Channel<T>`/`Task<T>` angle generics. The caption/SVG generics ban does not cover front matter; rendered as page title/meta, not a figure caption. No action.
+
+### Verdict: PASS-WITH-NITS (two cosmetic nits above; zero blockers).
