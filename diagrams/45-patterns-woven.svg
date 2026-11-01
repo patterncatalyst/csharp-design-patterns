@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="70" width="920" height="110" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="90" font-size="12" font-weight="700" fill="#888">a chain of IShipmentStage stages</text>
+<rect x="40" y="90" width="200" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="140.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RatingStage</text>
+<rect x="260" y="90" width="200" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="360.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">StowageStage</text>
+<rect x="480" y="90" width="200" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="580.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ClearanceStage</text>
+<rect x="700" y="90" width="200" height="70" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="800.0" y="130.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">InvoiceStage</text>
+<rect x="40" y="210" width="200" height="55" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="140.0" y="235.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IRatingStrategy</text>
+<text x="140.0" y="252.5" font-size="11.5" fill="#555555" text-anchor="middle">chosen by RatingStrategies.For</text>
+<rect x="40" y="295" width="200" height="60" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="140.0" y="323.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">StandardRatingStrategy</text>
+<text x="140.0" y="340.0" font-size="11.5" fill="#555555" text-anchor="middle">ExpressRatingStrategy</text>
+<rect x="480" y="210" width="200" height="55" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="580.0" y="235.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ClearanceResult</text>
+<text x="580.0" y="252.5" font-size="11.5" fill="#555555" text-anchor="middle">Cleared / Reason</text>
+<rect x="700" y="210" width="200" height="55" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="800.0" y="235.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">InvoiceBuilder</text>
+<text x="800.0" y="252.5" font-size="11.5" fill="#555555" text-anchor="middle">builds Invoice from LineItem</text>
+<path d="M240,125 L260,125" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M460,125 L480,125" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M680,125 L700,125" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M140,160 L140,210" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M140,295 L140,265" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="146.0" y="274.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">implements</text>
+<text x="146.0" y="274.0" font-size="11" fill="#555" text-anchor="middle">implements</text>
+<path d="M580,160 L580,210" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M800,160 L800,210" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="360" y="245" font-size="11.5" fill="#555555" text-anchor="middle">no extra pattern here</text>
+<text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">Patterns earn their place, stage by stage</text>
+<text x="480" y="450" font-size="12.5" fill="#555555" text-anchor="middle">Each stage pulls in only the pattern it needs: a factory-selected Strategy at rating, a plain stage in between, a result type at clearance, and a Builder at invoice.</text>
+</svg>
