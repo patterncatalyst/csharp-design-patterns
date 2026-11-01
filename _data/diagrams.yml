@@ -703,3 +703,35 @@
     Strategy and Factory tower. A review asks what the second rating scheme
     is, finds none, and collapses it to RateCalculator.Quote's three-line
     static method.
+
+- name: 41-seams-non-virtual-by-default
+  section: "Ch. 41"
+  title: Opening a seam in a sealed engine
+  caption: >-
+    A sealed RateEngine with its dependencies built inside offers no way in.
+    Adding a constructor and a protected override opens a seam where tests
+    and other behavior can substitute collaborators.
+
+- name: 41-c-sharp-seam-kinds
+  section: "Ch. 41"
+  title: Four seam kinds around one engine
+  caption: >-
+    Constructor injection, wrapping an ambient clock, a protected override
+    hook, and an internal-only entry point open four different seams in the
+    same RateEngine, each suited to a different kind of dependency.
+
+- name: 42-dependency-breaking-techniques
+  section: "Ch. 42"
+  title: Breaking four dependencies out of an engine
+  caption: >-
+    A rate engine with an audit log, a tariff table, an identifier
+    generator, and a clock all created inside itself is rebuilt so each
+    becomes an injected collaborator the engine can substitute.
+
+- name: 42-feathers-catalogue-in-c-sharp
+  section: "Ch. 42"
+  title: The Feathers catalogue applied to one engine
+  caption: >-
+    Six classic dependency-breaking techniques from Michael Feathers reshape
+    the same rate engine, replacing inline construction and ambient calls
+    with injected interfaces and a narrow internal seam.

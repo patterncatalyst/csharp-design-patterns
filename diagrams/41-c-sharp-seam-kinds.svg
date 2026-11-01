@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="390" y="235" width="180" height="90" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="278.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RateEngine</text>
+<text x="480.0" y="295.0" font-size="11.5" fill="#555555" text-anchor="middle">refactored</text>
+<rect x="60" y="90" width="320" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="220.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Extract interface + constructor injection</text>
+<text x="220.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">ITariffSource tariffs</text>
+<rect x="580" y="90" width="320" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="740.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Wrap the ambient clock</text>
+<text x="740.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">IClock replaces DateTime.Now</text>
+<rect x="60" y="380" width="320" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="220.0" y="423.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Extract and override</text>
+<text x="220.0" y="440.0" font-size="11.5" fill="#555555" text-anchor="middle">protected virtual PeakSurcharge(...)</text>
+<rect x="580" y="380" width="320" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="740.0" y="423.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Internal seam via InternalsVisibleTo</text>
+<text x="740.0" y="440.0" font-size="11.5" fill="#555555" text-anchor="middle">reaches PeakWindow.IsPeak</text>
+<path d="M300,180 L410,250" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<path d="M660,180 L550,250" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M300,380 L410,310" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M660,380 L550,310" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">Four seam kinds opened around one engine</text>
+<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">Each technique opens a different seam in the same engine, suited to a different kind of dependency.</text>
+</svg>
