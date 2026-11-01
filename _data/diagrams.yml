@@ -671,6 +671,14 @@
     or through an interface with a class per kind and a factory. The table
     wins when the variation is pure data.
 
+- name: 39-frozen-table-built-once
+  section: "Ch. 39"
+  title: A frozen table built once, shared by every dispatcher
+  caption: >-
+    A seed dictionary of document kinds to renderer methods is frozen once
+    into the shared Handlers table, and every DocumentDispatcher instance
+    reads that one table instead of rebuilding its own copy.
+
 - name: 40-anti-patterns-and-pattern-misuse
   section: "Ch. 40"
   title: Two paths, one identical freight quote

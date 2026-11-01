@@ -174,6 +174,8 @@ replaces is the part that decides which method runs for which kind.
 
 ## Building the table once with FrozenDictionary
 
+{% include excalidraw.html name="39-frozen-table-built-once" caption="Figure 39.3: A seed dictionary of document kinds to renderer methods is frozen once into the shared Handlers table, and every DocumentDispatcher instance reads that one table instead of rebuilding its own copy." %}
+
 `DocumentDispatcher` holds the map from kind to method, built a single time
 as a `static readonly` field:
 
