@@ -7,8 +7,8 @@
 #
 # Pinned/floor versions, from the r01 build plan's verified toolchain table:
 #   .NET SDK   10 (verified against 10.0.113, the .NET 10 LTS line)
-#   xUnit / NSubstitute — pinned per test project / in Directory.Packages.props,
-#   not checked here.
+#   xUnit / NSubstitute — pinned per test project (no central package
+#   management), not checked here.
 #
 # If the .NET 10 SDK isn't installed, see _docs/00-prerequisites.md for the
 # Fedora install steps.

@@ -46,4 +46,37 @@ Per appendix: TODO body replaced; 4 sections only (LO/Why/body/For-deeper-covera
 
 ## r23 verification log
 
-<!-- Opus fills this in at Wave D. -->
+Validated 2026-11-01 (Opus, Wave D), adversarial read of the real files on branch
+`release/r23`. Verdict: **PASS**.
+
+### Structure gates (all four files) — MET
+- Front matter preserved on all four (title, order, part: appendices, appendix:, description).
+- Exactly one each of `## Learning objectives`, `## Why this matters`, `## For deeper coverage`; real body sections (no `## TODO: body`).
+- `## Build, run, observe` 0, `## When not to use it` 0, `<blockquote class="ai-sidebar"` 0, `TODO` 0, `excalidraw.html` 0 — every file.
+
+### Accuracy — Appendix A — MET (verified against repo)
+- `Directory.Build.props` lives at `examples/`, NOT repo root (`find` confirms one file only). All seven properties match the real file: net10.0, LangVersion 14.0, Nullable, ImplicitUsings, TreatWarningsAsErrors, EnforceCodeStyleInBuild, AnalysisLevel latest-recommended, Deterministic.
+- `global.json` = `{"test":{"runner":"Microsoft.Testing.Platform"}}` only; appendix correctly states it does NOT pin the SDK.
+- No `Directory.Packages.props` exists (`find` = none); four pins (xunit.v3 4.0.2, xunit.runner.visualstudio 4.0.1, Microsoft.NET.Test.Sdk 18.11.0, NSubstitute 6.2.0) live per test csproj — confirmed in `examples/10-.../RatingEngine.Tests/RatingEngine.Tests.csproj`.
+- Script behavior matches: build.sh = `dotnet build -c Release` over `examples/*/*.csproj`; verify.sh = `dotnet test --project`; check-prereqs.sh = dotnet present + major>=10. The `check_dotnet()` snippet in the appendix is a verbatim match.
+- `TestingPlatformDotnetTestSupport` is NOT set anywhere in examples/ and the appendix does not claim it is.
+
+### Accuracy — Appendix B — MET
+- v3-only: 0 v2-era signals (Xunit.Abstractions / ITestOutputHelper / IClassFixture / [Collection] / ICollectionFixture); xunit.v3 named 4x. Covers Fact/Theory/InlineData/MemberData/TheoryData, Assert.*, TestContext.Current.CancellationToken, xUnit1051, MTP `dotnet test --project`, CA1707 note. Pins table matches the csproj; the CA1707 NoWarn block quoted matches the real csproj exactly.
+
+### Accuracy — Appendix C — MET
+- NSubstitute 6.2.0 idioms correct (Substitute.For, Returns/ReturnsForAnyArgs, Received/Received(n)/DidNotReceive/DidNotReceiveWithAnyArgs/Received.InOrder, Arg.Any/Arg.Is, throwing + async). Moq note non-migratory: "never tells a team to migrate a working Moq suite."
+
+### Accuracy — Appendix D — MET
+- Four-phase test + five-double taxonomy (dummy/stub/spy/mock/fake) correct per Meszaros; NSubstitute→taxonomy mapping sound. Cited source files all exist and quoted snippets match byte-for-byte: FakeClock.cs, InMemoryHandlingLedger.cs (Entries/AppendAsync/Interlocked), FakeCarrierGateway.cs doc comment, ReceivedTests.cs BuildEngine, DependencyBreakingTests.cs (`BuildEngine(out var tariffs, out _, ...)` and the audit.Received(1).Record predicate). Meszaros row + informit link present in bibliography.html (line 61-62).
+
+### Voice + site gates — MET
+- lgtm-professional-voice scan: 0 ban-tier each (C and D = 0 matches total; A = 4 watch-tier, B = 3 watch-tier, all benign reference-doc patterns: filename-as-heading on the `Directory.Build.props:` / `global.json:` section titles, "quietly", hedging/"spec-violation framing").
+- em-dash 0, capstone 0, `\bactually\b` 0, cross-language (java/c++/jvm/spring/rust/golang) 0, bare `chapter N`/`chN` numeric pointers 0 — every file.
+- `bundle exec jekyll build` clean, no Liquid errors. diagrams.yml = 112 (unchanged). All four appendices render under `_site/docs/`. Path-sanitized: `/home/` 0, username 0 each.
+
+### Word counts (prose, excl. code + headings)
+- A 1723 (target 1200-1800) ✓ · B 1482 (1200-1800) ✓ · C 1329 (1000-1500) ✓ · D 1537 (1200-1800) ✓
+
+### Observation (out of scope, NOT an appendix defect)
+- `scripts/check-prereqs.sh` header comment (line 10-11) still references `Directory.Packages.props`, which does not exist in the repo. Appendix A does NOT repeat this error (it correctly states pins are per-csproj). Pre-existing stale script comment; flag for a future cleanup, not an r23 blocker.
