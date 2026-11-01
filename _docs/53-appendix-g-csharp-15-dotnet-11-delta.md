@@ -36,7 +36,7 @@ release candidate 2 (RC 2)," and general availability "is expected in
 November 2026." Microsoft's own .NET Conf 2026 announcement ties that
 release to the event's November 10 to 12 dates, and .NET 11 ships as a
 Standard Term Support release with two years of support, the length
-Microsoft set for STS releases starting with .NET 9. None of that is final
+Microsoft's support policy sets for every STS release. None of that is final
 until it ships.
 
 Every chapter in this book targets .NET 10 and C# 14, the current long-term-
@@ -207,11 +207,14 @@ page is explicit that this is "a memory safety preview feature that begins
 a multirelease effort," available only when a project sets
 `<LangVersion>preview</LangVersion>` and, for the updated caller-obligation
 rules specifically, enables the `updated-memory-safety-rules` compiler
-feature. Under the preview, `unsafe` moves from marking a block or member
-to marking the specific operations that touch unmanaged memory directly,
-address-of, `fixed`, a `stackalloc`-to-pointer conversion, and `sizeof`, so
-that dereferencing a pointer is the operation that still requires an
-`unsafe` context, not merely declaring one. This book has no unsafe-code
+feature. Under the preview, `unsafe` moves from marking a whole block or
+member to marking only the operations that actually read or write through a
+pointer. Operations that compute with pointers without touching the memory
+they point at, taking an address, `fixed`, a `stackalloc`-to-pointer
+conversion, and `sizeof`, no longer require an `unsafe` context; the
+operations that reach the pointed-to memory, dereferencing a pointer,
+pointer member and element access, and invoking a function pointer, still
+do. This book has no unsafe-code
 chapter and makes no use of pointers, so the preview has no example to
 touch; it is listed here because it is the one feature in the set still
 unsettled enough that a reader should not expect it at C# 15's general

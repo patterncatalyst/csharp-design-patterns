@@ -143,11 +143,11 @@ keeps it swappable and keeps the varying pieces independent of each other.
 
 A caller that only talks to its immediate collaborators, and never reaches
 through one collaborator to another, is honoring what is usually called the
-Law of Demeter. The Facade chapter embodies it directly: a label-printing
-request that would otherwise chain through a carrier gateway, a document
-renderer, and a manifest writer in sequence becomes one call into a
-`ShippingFacade`, which holds the three subsystems and knows their order so
-the caller does not have to. The Mediator chapter does the same work for
+Law of Demeter. The Facade chapter embodies it directly: a booking that
+would otherwise chain through address validation, carrier quoting, and
+customs filing in sequence becomes one `Book` call into a
+`ShipmentBookingFacade`, which holds the three subsystems and knows their
+order so the caller does not have to. The Mediator chapter does the same work for
 peer-to-peer coupling: two desks that would otherwise hold direct
 references to each other to coordinate a handoff instead each talk only to
 a shared mediator, which is the "tell, don't ask" half of the same idea,

@@ -49,4 +49,94 @@ Per appendix: TODO body + comments replaced; 4 sections only; no sidebar/when-no
 
 ## r24 verification log
 
-<!-- Opus fills this in at Wave D. -->
+### Wave D adversarial validation — Opus, 2026-11-01
+
+Verdict: **PASS-WITH-NITS**. Two substantive content fixes routed to Sonnet (one in
+F, one in G); everything else MET. All book prose (47 chapters + Appendices A-G) is
+complete; only the four companion decks remain.
+
+**Structure gates (all three): MET.** Front matter preserved (title/order/part:
+appendices/appendix:/description). Each file has exactly one `## Learning objectives`,
+`## Why this matters`, a real body, and one `## For deeper coverage`. grep -c == 0
+each for: `<blockquote class="ai-sidebar"`, `excalidraw.html`, `When not to use`,
+`Build, run, observe`, `TODO`. `grep -rl '## TODO: body' _docs/` is empty.
+
+**E (accuracy to 47 chapters): MET.** 11 rendered sub-tables, 71 rows, columns
+exactly `Pattern / principle / idiom | Where it appears | Forces it answers |
+Modern C# note`. Cross-checked all ~47 "Where it appears" cells against actual
+chapter titles (ch00-46) — every one maps to a real chapter/area; no invented
+patterns, no misplacement. All five SOLID principles present as rows
+(SRP/OCP/LSP in the SRP/OCP/LSP row group, ISP/DIP in ISP/DIP/DI). No bare
+"chapter NN"/`chN` pointers (grep == 0). net10.0/C#14 scope, no C#15 content.
+Renders (table present in _site).
+
+**F (principle-to-embodiment + live citations): MET except one Facade paragraph.**
+Verified embodiments in real example dirs: DRY→Template Method (ex12) + source-gen/
+analyzers; YAGNI→`DocumentDispatcher`+`FrozenDictionary` (ex39) and anti-patterns
+`IRateComponent`/`IRateComponentFactory` (ex40); KISS→Strategy delegate vs interface
+(ex11); composition→Strategy/Decorator/Bridge; fail-fast→`ArgumentNullException.ThrowIfNull`
+(confirmed in ex12/13/23/29) + Dispose; Robustness→adapters + `CarrierGatewayOptionsValidator`/
+`ValidateOnStart` (ex30) + Tester-Doer parsing; Boy-Scout→`SeamedRateEngine`/`IRateEngine`
+(ex43/44); SoC→SRP/layering; Brooks→refactor-or-rewrite. F correctly does NOT claim the
+chapters name the principles (notes only "single responsibility" in ch05). All six
+citations map to LIVE bibliography rows (Pragmatic Programmer, Clean Code, Code Complete,
+Mythical Man-Month, GoF, Martin PPP) — no invented rows. Body prose ~2255 words
+(~2000 excluding For-deeper-coverage), slightly above the ~1500-2000 estimate but within
+the book's no-ceiling policy, not padding.
+  - **NOT MET (substantive, route to Sonnet):** the Law-of-Demeter/Facade paragraph
+    mis-describes the real example. It names a `ShippingFacade` handling a "label-printing
+    request" that chains "a carrier gateway, a document renderer, and a manifest writer."
+    The actual class is `ShipmentBookingFacade` (ex18), whose `Book` call composes three
+    DIFFERENT subsystems: `IAddressValidator` (address validation), `ICarrierGateway`
+    (carrier quoting), and `ICustomsFiler` (customs filing). `ManifestWriter` belongs to
+    ch07 (Dispose); `DocumentRenderers` to ch39 (shortcut patterns). Fix: rewrite the
+    sentence to the real `ShipmentBookingFacade` — one `Book` call over address validation,
+    carrier quoting, and customs filing. (Not a trivial name swap; the operation and all
+    three collaborators are wrong, so left for a domain-accurate repair.)
+
+**G (fabrication control — CRITICAL): MET except one inverted memory-safety sentence.**
+Verified every feature claim against the live Microsoft Learn pages fetched 2026-11-01:
+  - Release status honest/dated: "last updated for release candidate 2 (RC 2)" and GA
+    "expected in November 2026" are exact quotes from the .NET 11 overview. GA Nov 10 2026
+    and the STS **two-year** support length are confirmed on the dotnet support-policy page.
+    The Nov 10-12 date is attributed to the .NET Conf 2026 announcement (not asserted as a
+    Learn fact), consistent with GA Nov 10 — acceptable per gate. (Minor watch: the phrase
+    "the length Microsoft set for STS releases starting with .NET 9" — the 2-yr STS length
+    is confirmed, the "starting with .NET 9" attribution is not independently verified here;
+    not a blocker.)
+  - Memory safety explicitly labeled a C# 15 PREVIEW (LangVersion preview +
+    `updated-memory-safety-rules` flag) — MET.
+  - Runtime async framed as an implementation change, not a change to the stackless model —
+    MET. "cleaner stack traces and lower overhead", the net11.0 no-`EnablePreviewFeatures`
+    note, `runtime-async=on`, and the three JIT follow-ons all match the overview verbatim.
+  - Every feature verified on Learn: union types, closed hierarchies, extension indexers,
+    non-virtual static interface members on older runtimes, Decimal32/64/128, generic
+    `Complex<T>`, `Random.NextInteger<T>`/`NextBinaryFloat<T>`, async options
+    (`IAsyncStartupValidator`/`AsyncValidationAttribute`/`IAsyncValidatableObject`), LINQ
+    `FullJoin` + tuple `Join`/`GroupJoin` across Enumerable/Queryable/AsyncEnumerable,
+    collection expression arguments `with(...)`, labeled break/continue. Every section
+    carries a Learn URL. No proposed-but-unaccepted feature stated as settled. Additive;
+    chapters stay on C#14; G is the only C#15 file. Body ~1722 words (within ~1200-1834).
+  - **NOT MET (substantive, route to Sonnet):** the memory-safety section inverts the
+    `unsafe` operation list. G states `unsafe` now marks "the specific operations that touch
+    unmanaged memory directly, address-of, `fixed`, a `stackalloc`-to-pointer conversion,
+    and `sizeof`." Per the Learn C# 15 page those four are exactly the operations that NO
+    LONGER require an `unsafe` context under the preview; the operations that STILL require
+    `unsafe` (the ones that access pointed-to memory) are pointer dereference, pointer
+    member access (`p->member`), pointer element access (`p[i]`), and function-pointer
+    invocation. Fix: swap the grouping so the relaxed set (address-of/`fixed`/`stackalloc`
+    -to-pointer/`sizeof`) is named as no-longer-requiring-unsafe and dereference/access is
+    named as still-requiring it.
+
+**Voice + site gates (all three): MET.** `scan.sh` 0 ban-tier each (watch-tier only:
+E=2, F=4, G=0). `grep -c '—'`==0, `grep -ci capstone`==0, `grep -ci '\bactually\b'`==0,
+cross-language grep==0 each. `bundle exec jekyll build` clean, no Liquid errors.
+`_data/diagrams.yml` == 112. All three render in `_site`; rendered pages path-sanitized
+(`/home/` and username == 0 each).
+
+**Word counts.** E: ~550 framing words + table (~2496 table words). F: ~2255 body.
+G: ~1722 body.
+
+**Completion.** No `## TODO: body` remains in any `_docs` file. All 47 chapters (00-46)
+plus Appendices A-G are authored. Book prose is COMPLETE; only the four companion decks
+(101/201/301/401) remain.
