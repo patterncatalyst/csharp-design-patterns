@@ -1,0 +1,22 @@
+<!-- Chapter 39 example: a document dispatcher looks up the one rendering
+     method registered for a DocumentKind in a FrozenDictionary built once, a
+     Shortcut-pattern alternative to a Visitor hierarchy or a switch
+     expression over the enum. TargetFramework, LangVersion, Nullable, etc.
+     are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);DocumentDispatch.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- DocumentDispatcher.Handlers and .Table are internal, so the test
+         project can assert the dispatch table is a single shared
+         FrozenDictionary instance without widening them to public. -->
+    <InternalsVisibleTo Include="DocumentDispatch.Tests" />
+  </ItemGroup>
+
+</Project>
