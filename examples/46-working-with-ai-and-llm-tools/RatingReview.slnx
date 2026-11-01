@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="RatingReview.csproj" />
+  <Project Path="RatingReview.Analysis/RatingReview.Analysis.csproj" />
+  <Project Path="RatingReview.Tests/RatingReview.Tests.csproj" />
+</Solution>

@@ -1,0 +1,24 @@
+<!-- Chapter 45 example: the final project, an end-to-end shipment workflow
+     weaving Strategy (rating), Factory (strategy and pipeline selection),
+     Chain of Responsibility (the staged pipeline), and Builder (invoice
+     assembly) over one shipping-domain scenario: book a consignment, rate it,
+     stow it, clear it through customs, and invoice it.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);ShipmentWorkflow.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- RatingMath is internal, shared by both rating strategies; exposed to
+         the test project in case a future test needs to assert against it
+         directly instead of through the public strategies. -->
+    <InternalsVisibleTo Include="ShipmentWorkflow.Tests" />
+  </ItemGroup>
+
+</Project>

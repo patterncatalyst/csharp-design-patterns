@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ShipmentWorkflow.csproj" />
+  <Project Path="ShipmentWorkflow.Tests/ShipmentWorkflow.Tests.csproj" />
+</Solution>
