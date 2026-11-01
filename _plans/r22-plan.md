@@ -102,4 +102,53 @@ Per chapter: body >=2000; full spine w/ primary figure after Why; filled When-no
 
 ## r22 verification log
 
-<!-- Opus fills this in at Wave D. -->
+Validated 2026-11-01 (Opus, adversarial, files + commands read directly; no prior self-report trusted).
+
+### Determinism (#1 gate)
+- ch37 `dotnet test --solution GatewayPooling.slnx` x3: total 9 / failed 0 EVERY run. **MET**
+- ch38 `dotnet test --solution ConcurrentHandling.slnx` x3: total 10 / failed 0 EVERY run. **MET**
+- Flaky-primitive grep (Thread.Sleep/Task.Delay/DateTime.Now/UtcNow/Stopwatch/Task.WhenAny/ThreadPool.SetMinThreads/ModuleInitializer) over both authored .cs trees (excl obj/bin): 0. **MET**
+- Task.Yield only in library I/O: ch37 GatewayConnection.ExchangeAsync; ch38 ManifestValidator + InMemoryHandlingLedger. No Yield in tests. **MET**
+- Key test bodies read: ch37 #3 blocks via `!pendingC.IsCompleted` on exhausted channel; #4 `Assert.Same(a, await pendingC)`; #5 cancels a parked rent then `ThrowsAnyAsync<OCE>`; #9 RecordingArrayPool over `ArrayPool.Create()` (NOT Shared) asserts `Assert.Same` + Parse round-trip. ch38 #2 Barrier(32)+exact multiset; #3 unsubscribe mid-raise leaves in-flight snapshot intact (both notified that raise, only A the next); #4/#6 drain via `Complete()`; #5 pre-cancelled CTS. **MET**
+
+### Zero-suppressions gate
+- `#pragma warning` / `[SuppressMessage]` across both authored .cs trees: 0. **MET**
+- Only NoWarn = CA1707 in the two TEST csprojs; libraries carry none; no xUnit1051 suppression (token calls pass `TestContext.Current.CancellationToken`). **MET**
+- Observer uses interface `IHandlingObserver` + `ImmutableArray` snapshot via `ImmutableInterlocked.Update` (HandlingEventHub), not the `event` keyword; `event ` only in doc-comments/crefs. **MET**
+- `scripts/build.sh`: 0 Warning / 0 Error across all examples. **MET**
+
+### Build / test / site
+- build.sh 0W/0E. **MET**
+- verify.sh: all suites green (exit 0); both new examples present (37=9, 38=10). **MET**
+- `bundle exec jekyll build`: done in ~0.5s, exit 0, no Liquid errors (commonmarker/prism gem-extension notices are unrelated). **MET**
+
+### Bibliography POSA3
+- Row present directly after POSA2: title "Pattern-Oriented Software Architecture, Volume 3: Patterns for Resource Management"; authors Michael Kircher, Prashant Jain; Wiley; 2004; category Resource management; publisher link wiley.com (ISBN 9780470845257). TODO comment removed. Tags balanced (tr 12/12, td 55/55). **MET**
+
+### Structure
+- Spine order correct both docs: Learning objectives -> Why this matters -> primary figure (after Why) -> body -> Build, run, observe -> When not to use it -> single For deeper coverage. **MET**
+- Exactly one `<blockquote class="ai-sidebar"` each; no inline `**AI sidebar.**`; no `{: .ai-sidebar}`. **MET**
+- When-not-to-use filled (substantive) immediately before the single For-deeper-coverage. **MET**
+- `TODO caption` 0 each; 3 `excalidraw.html` embeds each; captions keep `Figure NN.N:` prefix, ~20-45 words, no angle-bracket generics, 0 em-dash. **MET**
+- Name-drift: ch37 embeds #108/#109/#110, ch38 #111/#112/#113; all 6 names resolve to .svg + .excalidraw + diagrams.yml. diagrams.yml = 112, 6 new in chapter order under sections "Ch. 37"/"Ch. 38". 6 new SVGs: 0 em-dash, 0 angle-bracket generics in drawn text. **MET**
+
+### Idiomatic review
+- lgtm-idiomatic-review scan: 0 hits each tree. **MET**
+
+### Voice + prose
+- lgtm-professional-voice: ch37 0 ban-tier (13 watch), ch38 0 ban-tier (4 watch). `actually` 0 each. **MET**
+- em-dash across both docs, all new .cs, both READMEs, 6 new SVGs, POSA3 row, diagrams.yml captions: 0. **MET**
+- capstone: 0 everywhere. **MET**
+- No cross-language: java/c++/jvm/spring/rust/golang/goroutine/virtual-by-default 0 across docs, .cs, READMEs, SVGs, diagrams.yml captions (ObjectPool/.NET terms allowed). "None of that is C#-specific" is a positive framing, not a comparison. **MET**
+- No intra-book chapter-number or title/topic leaning; only "this chapter" self-refs. No path leaks (/home/* etc.). **MET**
+
+### Word counts (body prose, excl. code/includes/front matter)
+- ch37 = 3172 (floor 2000). ch38 = 2999 (floor 2000). **MET** (slightly above plan's ~3162/~2833 estimates; count includes heading/caption text.)
+
+### Completion
+- _docs holds ch00-46 (all 47) plus appendices A-G. No `## TODO: body` in `_docs/3[3-8]-*.md`. **This iteration completes all 47 chapters (0-46) and Part 11.** **MET**
+
+### Notes / non-blocking observations
+- Plan text (line 47) says ch37 test #7 expects `ACK:11` for "MANIFEST-XYZ"; the string is 12 chars, so code+test correctly use `ACK:12`. Plan typo only; code self-consistent and passing.
+
+**Verdict: PASS.** All acceptance criteria MET. No blockers, no nits requiring repair. r22 completes all 47 chapters and Part 11.
