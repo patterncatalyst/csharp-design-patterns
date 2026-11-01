@@ -1,0 +1,25 @@
+<!-- Chapter 37 example: Pools (Object Pool, Connection Pool, and ArrayPool<T>)
+     applied to a carrier gateway connection pool and EDI manifest buffer
+     reuse. GatewayConnectionPool is a connection pool backed by a
+     System.Threading.Channels.Channel<T>, which doubles as both the
+     available-set storage and the async-aware wait queue for an exhausted
+     pool. ManifestWriter borrows scratch buffers from an ArrayPool<byte>
+     instead of allocating a fresh array per manifest. Pure BCL: both
+     System.Threading.Channels and System.Buffers ship in the shared
+     framework, so no runtime package is referenced.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);GatewayPooling.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="GatewayPooling.Tests" />
+  </ItemGroup>
+
+</Project>

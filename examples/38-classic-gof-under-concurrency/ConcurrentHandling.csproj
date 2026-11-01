@@ -1,0 +1,27 @@
+<!-- Chapter 38 example: classic GoF patterns re-examined under concurrency.
+     Observer (HandlingEventHub) uses an immutable ImmutableArray<T> snapshot
+     instead of the `event` keyword so a Raise in progress sees a fixed list
+     even if a subscriber unsubscribes mid-raise. Iterator becomes an
+     IAsyncEnumerable<T> over a Channel<T> (HandlingEventFeed). Decorator wraps
+     an async validator (CountingValidatorDecorator over IManifestValidator).
+     Command becomes a Task<T>-returning request (IHandlingCommand) run through
+     a CommandInvoker over Task.WhenAll. The shared domain records lean on
+     immutability as the strategy that makes the rest of the patterns safe to
+     share across threads. Pure BCL: ImmutableArray<T> and Channel<T> both ship
+     in the shared framework, so no runtime package is referenced.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);ConcurrentHandling.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ConcurrentHandling.Tests" />
+  </ItemGroup>
+
+</Project>

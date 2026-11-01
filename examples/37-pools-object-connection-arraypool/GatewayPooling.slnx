@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="GatewayPooling.csproj" />
+  <Project Path="GatewayPooling.Tests/GatewayPooling.Tests.csproj" />
+</Solution>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ConcurrentHandling.csproj" />
+  <Project Path="ConcurrentHandling.Tests/ConcurrentHandling.Tests.csproj" />
+</Solution>
