@@ -275,4 +275,35 @@ captions short; standard net10.0 + xUnit v3 toolchain.
 
 ## r16 verification log
 
-(to be completed by the Wave D validator)
+Opus-validated 2026-11-01 (branch `release/r16`). Verdict: PASS (PASS-WITH-NITS at validation; both nits
+fixed in a repair pass: ch39 figures renumbered to read 39.1 -> 39.2 -> 39.3 in flow after the density
+figure landed mid-chapter; ch40's three generic "earlier chapters" leans reworded to name Strategy/
+Factory Method in place). Part 12 "Patterns in the Wild" (ch39-40) is COMPLETE.
+
+- Tests (live): `examples/39-shortcut-patterns` 13/13; `examples/40-anti-patterns-and-pattern-misuse`
+  16/16; zero warnings under warnings-as-errors. `scripts/verify.sh` green (both auto-discovered, whole
+  suite 31 projects). `scripts/build.sh` 0 Warning(s) 0 Error(s). jekyll clean.
+- ch39: `FrozenDictionary<DocumentKind, Func<...>>` dispatch table built ONCE as `internal static
+  readonly` via `ToFrozenDictionary`, method-group handlers, `Render`/`TryRender`, dedicated
+  `UnknownDocumentKindException` (3 ctors), `InternalsVisibleTo("DocumentDispatch.Tests")`. Tests prove
+  per-kind dispatch, completeness (`Enum.GetValues` == `Table.Keys`), single shared frozen instance.
+- ch40: the right-sized `RateCalculator.Quote` shipped beside an over-abstracted Strategy+Factory tower
+  in `FreightRating.OverAbstracted`, a `Both_forms_produce_the_same_quote` [Theory] proving equivalence.
+  CRITICAL: BOTH forms are clean modern C# 14 (primary ctor, sealed records/classes, expression bodies,
+  collection expressions) — the anti-pattern is abstraction LEVEL, carried by the `OverAbstracted`
+  namespace + prose, NOT any older-idiom contrast; the Part-13 exception was not invoked.
+  `lgtm-idiomatic-review` 0 hits on both.
+- AI sidebar: both chapters use the NEW component (`<blockquote class="ai-sidebar" markdown="1">`,
+  grep == 1/chapter, 0 inline `**AI sidebar.**`, 0 IAL), each in a `## When not to use it` section ADDED
+  this iteration (the stubs lacked one). Rendered HTML emits `<blockquote class="ai-sidebar">` wrapping
+  `<p>` (no `&gt;` parse failure). ch40's sidebar lands the pattern-shaped-LLM-output throughline.
+- Captions SHORT on both surfaces (includes keep `Figure NN.x: ` prefix; diagrams.yml 1-2 sentences, no
+  angle-bracket generics). Both chapters carry a density figure (39.2 frozen-table, 40.3 LLM-output).
+  Six figures #72-77 on disk (.svg + .excalidraw), registered chapter-grouped; diagrams.yml 71 -> 77;
+  name-drift clean.
+- Voice 0 ban-tier both; 0 em-dash (docs + .cs + README); 0 "capstone"; 0 cross-language; no numeric
+  cross-chapter refs. Body prose ~3490 (ch39) / ~2780 (ch40). Both libs pure BCL; test csprojs pin the
+  four packages + IsTestProject + IsPackable false + NoWarn CA1707, omit TestingPlatformDotnetTestSupport;
+  each example its own `.slnx`.
+
+**Part 12 is COMPLETE (ch39-40).**

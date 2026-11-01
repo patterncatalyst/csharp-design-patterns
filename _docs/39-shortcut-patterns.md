@@ -174,7 +174,7 @@ replaces is the part that decides which method runs for which kind.
 
 ## Building the table once with FrozenDictionary
 
-{% include excalidraw.html name="39-frozen-table-built-once" caption="Figure 39.3: A seed dictionary of document kinds to renderer methods is frozen once into the shared Handlers table, and every DocumentDispatcher instance reads that one table instead of rebuilding its own copy." %}
+{% include excalidraw.html name="39-frozen-table-built-once" caption="Figure 39.2: A seed dictionary of document kinds to renderer methods is frozen once into the shared Handlers table, and every DocumentDispatcher instance reads that one table instead of rebuilding its own copy." %}
 
 `DocumentDispatcher` holds the map from kind to method, built a single time
 as a `static readonly` field:
@@ -392,7 +392,7 @@ five kinds are table entries" and "all five kinds are classes"; a table and
 a small number of dedicated types can sit side by side, with the table
 routing to whichever shape a given kind needs.
 
-{% include excalidraw.html name="39-dispatch-table-vs-hierarchy" caption="Figure 39.2: The same five document kinds can route through one frozen lookup table or through an interface with a class per kind and a factory. The table wins when the variation is pure data." %}
+{% include excalidraw.html name="39-dispatch-table-vs-hierarchy" caption="Figure 39.3: The same five document kinds can route through one frozen lookup table or through an interface with a class per kind and a factory. The table wins when the variation is pure data." %}
 
 Both shapes in that comparison solve the identical routing problem, kind in,
 correct behavior out, and both hide that routing behind one call a caller

@@ -53,9 +53,9 @@ running subtotal. Both shapes compile. Both pass a full suite of tests.
 Both return the same quote for the same request, a claim this chapter's
 example proves directly rather than leaving a reader to take on faith.
 
-Only one of those shapes matches what this freight rater needs today. The
-chapters before this one spent real space on Strategy and Factory Method
-because each gives C# a seam that pays for itself: a behavior that varies
+Only one of those shapes matches what this freight rater needs today.
+Strategy and Factory Method each give C# a seam that pays for itself: a
+behavior that varies
 by call site, or a construction decision that needs to move out of the
 code that uses the result. `IRateComponent` and `IRateComponentFactory`
 are built the same way, a clean interface and a passing test behind each
@@ -73,8 +73,8 @@ builds, then reading `FuelLevyComponent` closely enough to notice that its
 correctness depends on running after the two components whose sum it
 taxes, an ordering requirement nothing in `IRateComponent` states. None of
 that reading buys a freight calculation this system does not already
-have. The patterns are not the problem; every earlier chapter in this
-book used one or more of them to real effect. The problem is applying
+have. The patterns are not the problem; each one solves a real problem
+where the variation it carries exists. The problem is applying
 Strategy and Factory Method where the variation they exist to carry does
 not exist, and billing the result as flexibility.
 
@@ -329,8 +329,8 @@ point the interface stops decorating a single rating scheme; it becomes
 the thing that lets two rating schemes share one engine and one test
 suite for the mechanics both schemes rely on, the running-subtotal fold,
 without either scheme's components knowing the other exists. That is the
-same shape earlier chapters in this book built Strategy and Factory
-Method around, the only difference being the one fact this freight rater
+same shape Strategy and Factory Method are built around, the only
+difference being the one fact this freight rater
 has not yet had: more than one occurrence.
 
 Until that second scheme exists, the tower's seven types buy a reader
