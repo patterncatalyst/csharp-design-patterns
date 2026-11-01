@@ -185,7 +185,7 @@
     Three pricing strategies are registered as keyed singletons. One
     consumer resolves the matching strategy at runtime; another binds a
     fixed key at construction. An unrecognized key throws or returns null
-    depending on the lookup method, and a keyless lookup returns null even
+    depending on the method, and a keyless lookup returns null even
     with keyed registrations present.
 
 - name: 12-template-method-and-the-delegate-alternative
@@ -373,7 +373,7 @@
   caption: >-
     A stream wraps a reactive subject and exposes only its observable half,
     so a caller can subscribe but never push a value directly. Because the
-    subject has no replay buffer, an observer that subscribes late misses
+    subject has no replay buffer, an observer subscribing late misses
     earlier events, the gap the retained-history tracker never leaves
     open.
 
@@ -383,7 +383,7 @@
   caption: >-
     A clearance pipeline wires four stages into one chain, each recording
     its name into a shared context and passing the declaration on only
-    while the result stays cleared. A halt stops the chain immediately. A
+    while the result stays cleared. A halt stops the chain. A
     separate mediator routes between two colleagues that never reference
     each other.
 
@@ -560,7 +560,7 @@
     A generator builds a registry from a manifest at compile time,
     referencing each adapter it emits directly, so a dispatcher resolves a
     carrier from source references alone. The alternative scans loaded
-    assemblies at startup instead, a path trimming can break and AOT does
+    assemblies at startup, a path trimming can break and AOT does
     not fully support.
 
 - name: 28-roslyn-analyzers

@@ -144,4 +144,34 @@ reopen the owning agent's files.
 
 ## r15 verification log
 
-<!-- Opus fills this in during Wave 3. -->
+Opus-validated 2026-11-01 (branch `release/r15`). Verdict: PASS (PASS-WITH-NITS at validation; the one
+nit — 4 diagrams.yml captions at 46 words vs the ~45 guideline — fixed in a trim pass, all now 45).
+
+**TRACK 1 (AI-sidebar component):** 27 sidebars converted this iteration (ch05-20, ch22-32) + the ch21
+pilot = 28 chapters carrying exactly one `<blockquote class="ai-sidebar" markdown="1">` (ch00-04 zero).
+Zero inline `**AI sidebar.**` lead-ins remain anywhere. Rendered HTML spot-checked (ch05/18/30): the
+wrappers emit real `<p>` content, no literal `&gt;` parse failure (kramdown IAL `{: .ai-sidebar}` was
+rejected earlier for exactly that failure; the `markdown="1"` HTML wrapper is the working mechanism). CSS
+component (`.tutorial__main blockquote.ai-sidebar` + `::before` "🤖 AI sidebar" strip) shipped in the
+pilot commit.
+
+**TRACK 2 (caption readability):** the 62 ch00-29 `_data/diagrams.yml` captions AND the matching
+chapter-include captions rewritten from dense identifier inventories to short human glosses (<=45 words,
+1-2 sentences, no angle-bracket generics on either surface; `Figure NN.x: ` prefix kept on includes).
+ch21's two flagged captions now short; ch30-32 captions left as-is (already short). Name-drift clean
+(sampled ch11/16/23/27/29 identifiers all exist in `examples/`).
+
+**No forbidden changes:** `git diff main...HEAD` touches only `_docs/*.md`, `_data/diagrams.yml`,
+`CLAUDE.md`, `_plans/r15-plan.md`, and the `assets/css/site.css` + ch21 pilot commit. No `diagrams/`
+(SVG/.excalidraw), no `examples/`, no code. diagrams.yml `name:`/`title:`/`section:` unchanged (only
+`caption:`); parses to 71 entries.
+
+**Voice + hygiene:** across edited ch0-32 docs + diagrams.yml: 0 em-dash, 0 ban-tier, 0 "capstone", no
+cross-language introduced. `bundle exec jekyll build` exits 0.
+
+**CLAUDE.md:** chapter-spine bullet 6 updated to the `<blockquote class="ai-sidebar" markdown="1">`
+convention (header strip carries the label, no inline lead-in), with the kramdown-IAL warning and the
+`grep -c '<blockquote class="ai-sidebar"' == 1` identity check.
+
+**Cleanup pass COMPLETE.** Book is ch0-32 (Parts 0-10) with the upgraded AI sidebar across all pattern
+chapters and short, readable captions throughout.
