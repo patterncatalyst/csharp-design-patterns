@@ -124,4 +124,103 @@ See per-chapter detail above. ch45: end-to-end invoice total == rated amount; St
 
 ## r19 verification log
 
-<!-- Opus fills this in at Wave D. -->
+Validated 2026-11-01 (Opus, adversarial Wave D). Branch `release/r19`. Every
+result below is from reading the actual file or running the actual command.
+
+### Build / test
+- **ch45 `dotnet test --solution ShipmentWorkflow.slnx`** — MET. total: 12,
+  failed: 0, succeeded: 12. Test bodies read and confirmed: end-to-end
+  `Invoice.Total == RatingStrategies.For(...).Quote(...).Amount`; Standard pinned
+  at 1,400.00m; Express pinned at 1,960.00m == standard * 1.40m; Express > Standard;
+  `RatingStrategies.For` returns the right concrete type per `ServiceLevel`;
+  fresh `SequentialSlotAllocator` hands out `SLOT-001`; allocator substituted via
+  NSubstitute with `.Received(1)`; clearance halt on DeclaredValue 0 leaves
+  `Invoice` null; embargoed "ZZZ" rejected with exact reason, `Invoice` null;
+  cleared booking populates every context field; `InvoiceBuilder` sums line items;
+  express invoice itemizes Freight + "Express service surcharge", total ==
+  `RateQuote.Amount`.
+- **ch46 `dotnet test --solution RatingReview.slnx`** — MET. total: 7, failed: 0.
+  Test bodies read and confirmed: fires on one-impl `*Strategy` (Assert.Single);
+  quiet on two-impl; quiet on non-`Strategy` name (`ISlotAllocator`); quiet on
+  zero impls; id==SHIP0002, severity==Warning, span text == interface identifier
+  (`IRoutingStrategy`); message contains both interface and sole impl; two
+  independent single-impl interfaces each flagged (Assert.Equal(2,...)).
+- **`scripts/build.sh`** — MET. Build succeeded, 0 Warning(s), 0 Error(s) across
+  all examples. Analyzer builds green under warnings-as-errors; corrected
+  two-impl consumer does not trip SHIP0002 (no CS9057, no RS2008).
+- **`scripts/verify.sh`** — MET. All suites green; both new examples included
+  (45 → 12 passed, 46 → 7 passed).
+- **`bundle exec jekyll build`** — MET. done in ~0.5s, exit 0, no Liquid errors.
+
+### ch46 toolchain gates
+- Analyzer csproj — MET. netstandard2.0; `Microsoft.CodeAnalysis.CSharp` 5.0.0
+  PrivateAssets=all; `Microsoft.CodeAnalysis.Analyzers` 4.14.0 PrivateAssets=all;
+  EnforceExtendedAnalyzerRules=true; IsPackable=false; IncludeBuildOutput=false;
+  AnalyzerReleases.Shipped.md + Unshipped.md as AdditionalFiles.
+- AnalyzerReleases — MET. Shipped.md = `## Release 1.0` empty skeleton table;
+  Unshipped.md carries `SHIP0002 | ShippingReview | Warning | ...`.
+- Consumer csproj — MET. ProjectReference to analyzer with OutputItemType="Analyzer"
+  ReferenceOutputAssembly="false"; pure BCL otherwise (no runtime PackageReference).
+- Test csproj — MET. four standard pins (xunit.v3 4.0.2, xunit.runner.visualstudio
+  4.0.1, Microsoft.NET.Test.Sdk 18.11.0, NSubstitute 6.2.0) PLUS
+  Microsoft.CodeAnalysis.CSharp 5.0.0; IsTestProject+IsPackable false; NoWarn
+  CA1707; no TestingPlatformDotnetTestSupport; no Microsoft.CodeAnalysis.*.Testing
+  packages, no xunit v2; raw-Roslyn `AnalyzerTestHarness`.
+- DiagnosticDescriptor `customTags: WellKnownDiagnosticTags.CompilationEnd` — MET
+  (reports from CompilationEndAction; satisfies RS1037).
+- No GlobalSuppressions.cs / example .editorconfig — MET (none found).
+
+### ch45 toolchain gates
+- Library csproj — MET. Zero runtime PackageReference (pure BCL);
+  `<InternalsVisibleTo Include="ShipmentWorkflow.Tests" />`; no Microsoft.Extensions.*
+  (no MEDI); composition root `ShipmentPipelineFactory.CreateDefault` wires with
+  plain `new`.
+- Test csproj — MET. four standard pins, IsTestProject+IsPackable false, NoWarn
+  CA1707, no TestingPlatformDotnetTestSupport.
+- .slnx present both examples — MET.
+- ch45 not the ch46 smell — MET. `IRatingStrategy` has TWO impls
+  (StandardRatingStrategy, ExpressRatingStrategy), would pass SHIP0002.
+
+### Structural rules (non-pattern chapters)
+- `## When not to use it` ABSENT both — MET (grep -c == 0 each).
+- ch45 AI-sidebar `grep -c '<blockquote class="ai-sidebar"'` == 1 — MET (in
+  closing `## What the slice shows`).
+- ch46 AI-sidebar == 0 — MET.
+- `## Build, run, observe` present both — MET.
+- `## What the slice shows` present ch45 — MET.
+
+### Voice + prose
+- lgtm-professional-voice: ch45 0 matching lines (0 ban-tier); ch46 0 ban-tier,
+  5 watch-tier (defect framing, deliberate-adjective, hedging, intensifiers,
+  simply/obviously/easy — 1 each) — MET (gate is 0 ban-tier).
+- em-dash across both docs, all new .cs, both READMEs, 6 new SVGs, diagrams.yml —
+  MET (0 everywhere).
+- capstone across docs, .cs, READMEs, SVGs, captions — MET (0 everywhere).
+- No cross-language (java/c++/jvm/spring/rust/golang/virtual-by-default) across
+  docs, .cs, READMEs, 6 SVGs, 6 captions — MET. The three bare-`go` hits in ch46
+  are English false positives ("stay or go", "go find", "go away").
+- Cross-chapter leans — MET (light). Self-referential "this chapter" only; no
+  chapter number or title/topic lean. NIT: ch46 line 360 "The analyzer technique
+  this book has used elsewhere..." is a light topic pointer, permitted by CLAUDE.md.
+
+### Structure + figures
+- Spine order both docs — MET (Learning objectives → Why this matters → primary
+  figure after Why → body → Build/run/observe → [ch45 What the slice shows] →
+  For deeper coverage).
+- `grep -c "TODO caption"` == 0 both — MET. Each doc embeds 3 figures.
+- Captions — MET. All carry `Figure NN.N:` prefix, ~20-45 words, no angle-bracket
+  generics, 0 em-dash; every type named exists in the example.
+- Name-drift — MET. ch45 embeds #90/#91/#92, ch46 embeds #93/#94/#95; every
+  `name="..."` resolves to diagrams/<name>.svg AND .excalidraw on disk AND a
+  diagrams.yml entry.
+- diagrams.yml — MET. 94 entries; six new in chapter order (45s before 46s),
+  sections "Ch. 45"/"Ch. 46".
+- Idiomatic review (lgtm-idiomatic-review): ch45 0 hits, ch46 0 hits — MET.
+
+### Word counts
+- ch45 body prose 2,945 (≥ 2,000) — MET. ch46 body prose 2,877 (≥ 2,000) — MET.
+
+### Verdict
+**PASS.** All acceptance criteria MET. Only non-blocking nit: ch46 carries 5
+watch-tier voice hits (0 ban-tier) and one light "used elsewhere" topic pointer,
+both within policy.
