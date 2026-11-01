@@ -439,20 +439,22 @@ Multiple independent subscribers that come and go wants `event`. Streams
 that need to be filtered, combined, or definitively ended want
 `IObservable<T>`.
 
-> **AI sidebar.** Asked to make a status change "reactive" or "observable,"
-> an AI pairing partner will sometimes reach straight for a `Subject<T>`
-> and an `IObservable<T>` property, package reference and all, for a
-> publisher that has exactly one kind of subscriber and never needs an
-> `OnError` channel or an operator chain, where a one-line
-> `event EventHandler<T>?` would have said the same thing with nothing to
-> install and nothing to dispose. Check a generated answer against the
-> question this chapter keeps coming back to: does a subscriber need to
-> compose this stream with another one, react uniformly to an error across
-> every listener, or detect a definitive end to the sequence. A publisher
-> that just needs to tell zero or more listeners something happened, in
-> order, as it happens, gets everything from a plain `event` that the
-> generated `Subject<T>` would have given it, at a fraction of the
-> ceremony.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make a status change "reactive" or "observable,"
+an AI pairing partner will sometimes reach straight for a `Subject<T>`
+and an `IObservable<T>` property, package reference and all, for a
+publisher that has exactly one kind of subscriber and never needs an
+`OnError` channel or an operator chain, where a one-line
+`event EventHandler<T>?` would have said the same thing with nothing to
+install and nothing to dispose. Check a generated answer against the
+question this chapter keeps coming back to: does a subscriber need to
+compose this stream with another one, react uniformly to an error across
+every listener, or detect a definitive end to the sequence. A publisher
+that just needs to tell zero or more listeners something happened, in
+order, as it happens, gets everything from a plain `event` that the
+generated `Subject<T>` would have given it, at a fraction of the
+ceremony.
+</blockquote>
 
 ## For deeper coverage
 
