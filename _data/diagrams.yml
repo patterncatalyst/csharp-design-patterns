@@ -894,3 +894,56 @@
     LazyTariffProvider caches a failed build and rethrows the exact
     same exception to every later caller, instead of retrying. The test
     asserts the first and second failures are the same instance.
+
+- name: 35-monitor-object-and-active-object
+  section: "Ch. 35"
+  title: Four coordination strategies wrap one shared servant
+  caption: >-
+    SynchronizedStowagePlan locks synchronously, awaiting inside that
+    lock fails to compile, SemaphoreStowagePlan awaits inside an async
+    gate, and StowageActiveObject replaces the gate with a bounded
+    queue that serializes access to the same servant.
+
+- name: 35-active-object-participants
+  section: "Ch. 35"
+  title: Six Active Object participants, mapped onto real code
+  caption: >-
+    Proxy is ReserveAsync, Activation List is the bounded channel, and
+    Servant is StowagePlan. Scheduler and Future are grayed out
+    because they are no longer hand-written types: they dissolved into
+    await foreach and the language's own task.
+
+- name: 35-channel-backpressure
+  section: "Ch. 35"
+  title: A full one-slot channel blocks a third reservation until release
+  caption: >-
+    A one-slot channel fills with B while A's write holds a gated
+    ledger open. A third reservation's write waits until release lets
+    the queue drain, completing C's task.
+
+- name: 36-producer-consumer-and-pipelines
+  section: "Ch. 36"
+  title: Many producers, one bounded channel, many consumers draining it
+  caption: >-
+    Several producers write HandlingEvent values into one bounded
+    channel while several consumers drain it concurrently. A full
+    channel slows the producers, and completing the writer once stops
+    every consumer after the last event.
+
+- name: 36-exactly-once-drain
+  section: "Ch. 36"
+  title: A known count drains to exactly one record per event
+  caption: >-
+    Submitting a known number of events, completing the writer, and
+    waiting for every consumer task to finish proves each event is
+    recorded exactly once; a single producer's order survives a single
+    consumer because the channel is first in, first out.
+
+- name: 36-pipeline-stages
+  section: "Ch. 36"
+  title: Receive, validate, and record chained over bounded channels
+  caption: >-
+    Receive, validate, and record each run as their own producer and
+    consumer pair, linked by bounded channels. When validate slows
+    down, its full channel propagates backpressure upstream to
+    receive.
