@@ -843,3 +843,54 @@
     AnalyzerTestHarness compiles a snippet and runs the analyzer between
     compilation and its diagnostics. A single-implementation Strategy makes
     SHIP0002 fire; a two-implementation one leaves it quiet.
+
+- name: 33-why-dotnet-chose-stackless-async
+  section: "Ch. 33"
+  title: Thousands of suspended bookings, a handful of threads
+  caption: >-
+    SailingBookingDesk lets thousands of bookings await
+    IBookingLedger.ConfirmAsync at once, each suspended as a small heap
+    state object. A handful of pooled threads serve every suspended
+    booking, not one thread per booking.
+
+- name: 33-stackless-vs-stackful
+  section: "Ch. 33"
+  title: Stackful threads prototyped, stackless state machines shipped
+  caption: >-
+    The .NET team prototyped stackful green threads, where every
+    booking reserves a full call stack that grows with concurrency. They
+    shipped stackless state machines instead, where a suspended await
+    costs a small heap allocation and the thread returns to the pool.
+
+- name: 33-suspended-without-a-thread
+  section: "Ch. 33"
+  title: A thousand bookings suspend without a thread each
+  caption: >-
+    A thousand BookingRequest calls start from one calling thread and
+    park at the ledger await with zero threads held. A single release
+    then drains every suspended booking through one Task.WhenAll.
+
+- name: 34-thread-safe-creation
+  section: "Ch. 34"
+  title: Built once under concurrent first use
+  caption: >-
+    Many callers reach LazyTariffProvider.Value at once, but the
+    ExecutionAndPublication mode guarantees the underlying builder runs
+    exactly once. Every caller is handed the same TariffTable instance.
+
+- name: 34-lazy-vs-lock-vs-static
+  section: "Ch. 34"
+  title: Three modern ways to build a singleton
+  caption: >-
+    Three modern idioms each build a TariffTable exactly once: Lazy
+    initialization, a lock-guarded field, and a static type initializer.
+    Double-checked locking, the historical form they replace, is shown
+    as superseded.
+
+- name: 34-exception-caching
+  section: "Ch. 34"
+  title: A cached failure is rethrown, not retried
+  caption: >-
+    LazyTariffProvider caches a failed build and rethrows the exact
+    same exception to every later caller, instead of retrying. The test
+    asserts the first and second failures are the same instance.

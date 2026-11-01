@@ -1,0 +1,22 @@
+<!-- Chapter 33 example: why .NET compiles async methods as a stackless state
+     machine instead of growing a dedicated stack per coroutine. A
+     SailingBookingDesk accepts BookingRequest values through an
+     IBookingLedger; InMemoryBookingLedger suspends with Task.Yield() so a
+     test can push a thousand bookings through concurrently and show they all
+     suspend on the calling thread without parking a thread each. Pure BCL,
+     no runtime package. TargetFramework, LangVersion, Nullable, etc. are
+     inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);SailingBookings.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SailingBookings.Tests" />
+  </ItemGroup>
+
+</Project>
