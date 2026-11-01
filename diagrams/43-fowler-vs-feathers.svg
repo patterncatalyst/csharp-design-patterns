@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="90" width="270" height="380" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="110" font-size="12" font-weight="700" fill="#888">legacy: no seam</text>
+<rect x="325" y="90" width="270" height="380" rx="12" fill="#ffffff" stroke="#ddd"/>
+<text x="337" y="110" font-size="12" font-weight="700" fill="#888">feathers: seam opened</text>
+<rect x="630" y="90" width="310" height="380" rx="12" fill="#fff8ef" stroke="#ddd"/>
+<text x="642" y="110" font-size="12" font-weight="700" fill="#888">fowler: refactored</text>
+<rect x="45" y="130" width="220" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="155.0" y="165.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">LegacyRateEngine</text>
+<text x="155.0" y="182.5" font-size="11.5" fill="#555555" text-anchor="middle">sealed, inline tariff table</text>
+<text x="155.0" y="197.5" font-size="11.5" fill="#555555" text-anchor="middle">DateTime.Now, inline switch</text>
+<rect x="45" y="250" width="220" height="55" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="155.0" y="283.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">untestable</text>
+<rect x="350" y="130" width="220" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="460.0" y="165.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">SeamedRateEngine</text>
+<text x="460.0" y="182.5" font-size="11.5" fill="#555555" text-anchor="middle">(ITariffSource, IClock)</text>
+<text x="460.0" y="197.5" font-size="11.5" fill="#555555" text-anchor="middle">structure unchanged</text>
+<rect x="350" y="250" width="220" height="55" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="460.0" y="283.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">under test</text>
+<rect x="655" y="125" width="260" height="70" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="785.0" y="158.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RateEngine</text>
+<text x="785.0" y="175.0" font-size="11.5" fill="#555555" text-anchor="middle">(ITariffSource, IClock)</text>
+<rect x="655" y="215" width="260" height="50" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="785.0" y="238.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">IServiceSurcharge</text>
+<text x="785.0" y="255.0" font-size="11.5" fill="#555555" text-anchor="middle">Standard / Express / Overnight</text>
+<rect x="655" y="275" width="260" height="50" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="785.0" y="298.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RateRequest</text>
+<text x="785.0" y="315.0" font-size="11.5" fill="#555555" text-anchor="middle">parameter object</text>
+<rect x="655" y="335" width="260" height="50" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="785.0" y="358.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RateRules</text>
+<text x="785.0" y="375.0" font-size="11.5" fill="#555555" text-anchor="middle">named constants</text>
+<path d="M265,175 L350,175" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="313.5" y="165.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">opens a seam</text>
+<text x="313.5" y="165.0" font-size="11" fill="#b8650a" text-anchor="middle">opens a seam</text>
+<path d="M570,175 L655,160" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="618.5" y="157.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">tests stay green</text>
+<text x="618.5" y="157.5" font-size="11" fill="#b8650a" text-anchor="middle">tests stay green</text>
+<text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">Feathers and Fowler combine across one rate engine</text>
+<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">Legacy, seam, and refactor: three stages of one engine, with tests staying green throughout.</text>
+</svg>

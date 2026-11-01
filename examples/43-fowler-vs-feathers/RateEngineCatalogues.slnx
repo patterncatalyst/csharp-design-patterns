@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RateEngineCatalogues.csproj" />
+  <Project Path="RateEngineCatalogues.Tests/RateEngineCatalogues.Tests.csproj" />
+</Solution>

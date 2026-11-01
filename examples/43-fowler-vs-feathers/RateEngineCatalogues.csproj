@@ -1,0 +1,25 @@
+<!-- Chapter 43 example: Fowler's "Extract and Override Call" lineage versus
+     Feathers' seam catalogue, both over the same shipping rate domain. A
+     legacy, untestable RateEngine sits next to a minimally-seamed
+     SeamedRateEngine (Feathers: inject the two collaborators, leave the
+     structure alone) and a fully refactored RateEngine (Fowler: extract the
+     service surcharge into its own polymorphic strategy and the shared rules
+     into named constants). TargetFramework, LangVersion, Nullable, etc. are
+     inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RateEngineCatalogues.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- RateRules and PeakWindow are internal, so the test project can assert
+         the shared rate rules and the peak-hour boundary through reflection
+         and direct calls without widening either to public just for a test. -->
+    <InternalsVisibleTo Include="RateEngineCatalogues.Tests" />
+  </ItemGroup>
+
+</Project>
