@@ -81,7 +81,7 @@ caller's own code as the ceremony goes up, and knowing when to stop at
 which level is as much the point of this chapter as any of the three
 mechanisms themselves.
 
-{% include excalidraw.html name="11-strategy-delegates-interfaces-keyed-services" caption="Figure 11.1: The GoF Strategy pattern supplied three ways: a Func<RateRequest, Money> delegate with no interface in sight, a named IPricingStrategy interface implemented by StandardTariff, ExpressTariff, and EconomyTariff, and a keyed DI registration resolved by GetRequiredKeyedService(key); the caller's call shape, a RateRequest in and a RateQuote out, is identical at every level." %}
+{% include excalidraw.html name="11-strategy-delegates-interfaces-keyed-services" caption="Figure 11.1: The same Strategy pattern supplied three ways, a bare delegate, a named interface with three implementations, and a keyed DI registration, with the caller's call shape unchanged at every level." %}
 
 ## One Strategy, three levels of ceremony
 
@@ -391,7 +391,7 @@ default exists; a type is either resolvable without a key or resolvable
 with one, for each distinct key, and registering it one way buys nothing
 for the other.
 
-{% include excalidraw.html name="11-keyed-service-resolution" caption="Figure 11.2: The keyed-DI composition root registering three IPricingStrategy implementations under the standard, express, and economy keys, KeyedTariffQuoter and ExpressLaneQuoter resolving them at runtime, an unrecognized key throwing from GetRequiredKeyedService but returning null from GetKeyedService, and a plain GetService<IPricingStrategy>() returning null because keyed and non-keyed lookups are separate graphs." %}
+{% include excalidraw.html name="11-keyed-service-resolution" caption="Figure 11.2: A composition root registers three strategy implementations under separate keys; an unrecognized key throws from one resolution method but returns null from another, and a plain lookup finds neither." %}
 
 ## Build, run, observe
 
@@ -462,26 +462,27 @@ other side to justify it. Keyed services earn their place exactly where
 `KeyedTariffQuoter` uses them: a key that already exists as part of the
 request, with no code anywhere that would otherwise have to branch on it.
 
-> **AI sidebar.** Ask an AI pairing partner to make a pricing choice
-> "configurable by service level" and a common result is a hand-rolled
-> `Dictionary<string, IPricingStrategy>` built and populated by hand inside
-> a factory class, wired up with a static initializer or a module
-> constructor, reinventing exactly what `AddKeyedSingleton` and
-> `GetRequiredKeyedService` already do, out of habit from material written
-> before keyed services existed in the base class library. The same prompt
-> sometimes produces the opposite mistake: an `IPricingStrategy` interface
-> and a DI registration wrapped around a single tariff that will never
-> have a second implementation, because "add an abstraction" is the
-> reflexive answer to "make this swappable" regardless of whether a swap
-> is actually planned. Check a generated answer against the two questions
-> this chapter asks directly: does the selecting value arrive as
-> runtime data the code does not control, which is what a keyed
-> registration is for, and does a second implementation of the interface
-> actually exist or is clearly coming, which is what the interface itself
-> is for. A dictionary a developer populates by hand with every valid key
-> already known at compile time is not configurability; it is the
-> container's own job, done worse and left untested by the suite the
-> container's own keyed-service tests already provide without extra code.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make a pricing choice "configurable by service level," a common
+result is a hand-rolled `Dictionary<string, IPricingStrategy>` built and
+populated by hand inside a factory class, wired up with a static
+initializer or a module constructor, reinventing exactly what
+`AddKeyedSingleton` and `GetRequiredKeyedService` already do, out of habit
+from material written before keyed services existed in the base class
+library. The same prompt sometimes produces the opposite mistake: an
+`IPricingStrategy` interface and a DI registration wrapped around a single
+tariff that will never have a second implementation, because "add an
+abstraction" is the reflexive answer to "make this swappable" regardless
+of whether a swap is actually planned. Check a generated answer against
+the two questions this chapter asks directly: does the selecting value
+arrive as runtime data the code does not control, which is what a keyed
+registration is for, and does a second implementation of the interface
+actually exist or is clearly coming, which is what the interface itself is
+for. A dictionary a developer populates by hand with every valid key
+already known at compile time is not configurability; it is the
+container's own job, done worse and left untested by the suite the
+container's own keyed-service tests already provide without extra code.
+</blockquote>
 
 ## For deeper coverage
 

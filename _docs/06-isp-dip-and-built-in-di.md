@@ -62,7 +62,7 @@ looks like a successful booking and isn't. A fat interface like that
 manufactures a Liskov violation that segregation makes structurally
 impossible, because there is nothing left on the narrow interface to fake.
 
-{% include excalidraw.html name="06-isp-dip-and-built-in-di" caption="Figure 6.1: ISP splits one fat ICarrierGateway into ICarrierRates and ICarrierTracking; DIP routes both ShipmentRateAdvisor and ShipmentBookingService through those abstractions, never through RestCarrierGateway or FakeCarrierGateway directly; the built-in container is the one place that resolves the abstraction to a concrete type." %}
+{% include excalidraw.html name="06-isp-dip-and-built-in-di" caption="Figure 6.1: ISP splits one fat carrier interface into focused role interfaces; DIP routes each consumer through those abstractions instead of a concrete gateway, leaving the built-in container as the only place that resolves one to the other." %}
 
 ## The cost of one interface doing three jobs
 
@@ -296,7 +296,7 @@ service from a singleton makes that scoped service behave like a singleton
 too, silently promoting its lifetime and producing state that leaks across
 requests that were supposed to be isolated from each other.
 
-{% include excalidraw.html name="06-singleton-fanout-registration" caption="Figure 6.2: one AddSingleton<TGateway>() registration, fanned out through three factory registrations to ICarrierGateway, ICarrierRates, and ICarrierTracking, all resolving GetRequiredService<TGateway>() back to the same singleton instance." %}
+{% include excalidraw.html name="06-singleton-fanout-registration" caption="Figure 6.2: One singleton registration fans out through three factory registrations, each resolving back to the same gateway instance under a different interface." %}
 <!-- DIAGRAM SPEC: left column, one box "services.AddSingleton<TGateway>()"
      feeding a single "TGateway singleton instance" box. Three arrows fan out
      right from that instance box to three destination boxes stacked
@@ -373,23 +373,24 @@ real, a test needs a double, or a capability varies by consumer;
 skip both when the answer to "what implements this" is, and will stay, one
 fixed type.
 
-> **AI sidebar.** Ask an LLM pairing partner to "add dependency injection"
-> to a C# class and it will sometimes reach past the built-in container for
-> a third-party one, Autofac or similar, out of habit from whichever
-> training examples it has seen most, even when nothing in the prompt
-> mentioned a missing capability and the project already references
-> `Microsoft.Extensions.DependencyInjection`. It will also tend to register
-> everything as scoped by reflex, carrying over a web-request mental model
-> into a console library or a background worker that has no request
-> boundary for a scope to attach to, which is exactly the registration
-> mistake the service-lifetimes documentation warns against. Check a
-> generated registration against the forces this chapter named: does a
-> second implementation actually exist or is coming, does a test need a
-> substitute, and does this process have a request-like boundary that
-> justifies anything narrower than singleton. A generated `IRateGateway`
-> wrapping one C# class with one call site, or a scoped registration inside
-> a tool that runs start to finish with no request in sight, is solving a
-> wiring problem the codebase does not have yet.
+<blockquote class="ai-sidebar" markdown="1">
+Ask an LLM pairing partner to "add dependency injection" to a C# class and
+it will sometimes reach past the built-in container for a third-party one,
+Autofac or similar, out of habit from whichever training examples it has
+seen most, even when nothing in the prompt mentioned a missing capability
+and the project already references `Microsoft.Extensions.DependencyInjection`.
+It will also tend to register everything as scoped by reflex, carrying over
+a web-request mental model into a console library or a background worker
+that has no request boundary for a scope to attach to, which is exactly the
+registration mistake the service-lifetimes documentation warns against.
+Check a generated registration against the forces this chapter named: does
+a second implementation actually exist or is coming, does a test need a
+substitute, and does this process have a request-like boundary that
+justifies anything narrower than singleton. A generated `IRateGateway`
+wrapping one C# class with one call site, or a scoped registration inside a
+tool that runs start to finish with no request in sight, is solving a
+wiring problem the codebase does not have yet.
+</blockquote>
 
 ## Build, run, observe
 

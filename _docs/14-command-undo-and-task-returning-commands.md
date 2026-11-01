@@ -85,7 +85,7 @@ through `AddLineItem` and removed through `RemoveLineItem`. Every command
 this chapter writes changes exactly one of those three things and knows how
 to change it back.
 
-{% include excalidraw.html name="14-command-undo-and-task-returning-commands" caption="Figure 14.1: A booking amendment reified as an IBookingCommand object rather than a direct mutation. ChangeServiceLevelCommand and ChangeWeightCommand snapshot the prior value in Execute and restore it in Undo; AddLineItemCommand's own added value is its snapshot. AmendmentQueue runs enqueued commands FIFO into a history stack and unwinds that stack LIFO on Undo. IAsyncBookingCommand and AsyncAmendmentQueue mirror the same shape over an awaited IAmendmentGateway call instead of an in-memory field assignment." %}
+{% include excalidraw.html name="14-command-undo-and-task-returning-commands" caption="Figure 14.1: A booking amendment reified as a command object instead of a direct mutation, each one snapshotting what its own undo needs; a queue runs commands FIFO and unwinds its history LIFO." %}
 
 ## Command as a reified operation
 
@@ -548,7 +548,7 @@ written justification explaining the name describes the domain concept, an
 amendment queue a booking system's operators already call by that name, not
 a claim that the type satisfies the `Queue<T>` contract.
 
-{% include excalidraw.html name="14-async-command-undo" caption="Figure 14.2: The Task-returning command path. AsyncAmendmentQueue.RunAsync awaits each IAsyncBookingCommand.ExecuteAsync in FIFO order; ConfirmAmendmentCommand calls IAmendmentGateway.ConfirmAsync and RevertAsync with ConfigureAwait(false) on every await. UndoAsync walks the executed history back one command at a time, and the caller's CancellationToken threads unchanged from RunAsync and UndoAsync through to every gateway call beneath them." %}
+{% include excalidraw.html name="14-async-command-undo" caption="Figure 14.2: The Task-returning command path awaits each command through a gateway in FIFO order, unwinds history one step at a time, and threads the caller's cancellation token through every call." %}
 
 ## Build, run, observe
 
@@ -611,26 +611,27 @@ ordering, replay, actually gets used; applied to a change with none of
 those requirements, the machinery is pure overhead with nothing on the
 other side of the ledger to offset it.
 
-> **AI sidebar.** Asked to make a set of operations "support undo," an AI
-> pairing partner will sometimes wrap every setter on a domain object in its
-> own command class, including ones nothing in the request ever asks to
-> reverse, producing a `ChangeDestinationCommand`, a `ChangeCarrierCommand`,
-> and a dozen siblings for a system that only ever needed undo on the one
-> or two fields a user can actually edit after submission. The opposite
-> failure shows up just as often in generated undo code: a command that
-> captures its snapshot as a reference to the same mutable object the
-> receiver already holds, for example storing a reference to a receiver's
-> own list instead of a copy of the values in it at that moment, which
-> compiles cleanly, passes a test that only ever runs one command in
-> isolation, and then silently fails to restore anything once a second
-> command mutates that same shared list before the first command's `Undo`
-> runs, exactly the bug this chapter's value-versus-reference snapshot test
-> is built to catch. Check a generated command against two questions before
-> accepting it: does the operation it wraps actually need undo, queuing, or
-> replay, or would a direct call do, and does its snapshot hold a value
-> immune to being changed by something else before `Undo` runs, or a live
-> reference to the same mutable state the rest of the system keeps
-> modifying.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make a set of operations "support undo," a generated answer will
+sometimes wrap every setter on a domain object in its own command class,
+including ones nothing in the request ever asks to reverse, producing a
+`ChangeDestinationCommand`, a `ChangeCarrierCommand`, and a dozen siblings
+for a system that only ever needed undo on the one or two fields a user
+can actually edit after submission. The opposite failure shows up just as
+often in generated undo code: a command that captures its snapshot as a
+reference to the same mutable object the receiver already holds, for
+example storing a reference to a receiver's own list instead of a copy of
+the values in it at that moment, which compiles cleanly, passes a test
+that only ever runs one command in isolation, and then silently fails to
+restore anything once a second command mutates that same shared list
+before the first command's `Undo` runs, exactly the bug this chapter's
+value-versus-reference snapshot test is built to catch. Check a generated
+command against two questions before accepting it: does the operation it
+wraps actually need undo, queuing, or replay, or would a direct call do,
+and does its snapshot hold a value immune to being changed by something
+else before `Undo` runs, or a live reference to the same mutable state the
+rest of the system keeps modifying.
+</blockquote>
 
 ## For deeper coverage
 

@@ -62,7 +62,7 @@ dispose pattern's guard, the split between synchronous and asynchronous
 cleanup, exists to make that one guaranteed moment do the right thing every
 time it runs.
 
-{% include excalidraw.html name="07-dispose-and-iasyncdisposable" caption="Figure 7.1: a using scope around ManifestWriter holds its FileStream handle exclusively and releases it the instant the scope exits, not at an unpredictable GC pass; an await using scope around LedgerAppender awaits DisposeAsync to flush and unlock the ledger file before the scope completes." %}
+{% include excalidraw.html name="07-dispose-and-iasyncdisposable" caption="Figure 7.1: A using scope releases a file handle the instant it exits, not at an unpredictable garbage-collection pass; an await using scope awaits an asynchronous flush before unlocking the file it wrote to." %}
 
 ## `using` and the scope that releases a handle on schedule
 
@@ -187,7 +187,7 @@ with:
 type reaches for the full pattern without an unmanaged resource or a
 finalizer of its own to justify it.
 
-{% include excalidraw.html name="07-dispose-pattern-paths" caption="Figure 7.2: three dispose shapes side by side. A sealed, managed-only type needs only a guarded Dispose(); an unsealed type that owns an unmanaged handle directly takes the heavier Dispose(bool), finalizer, and GC.SuppressFinalize(this) combination; a type whose release has to await a flush implements IAsyncDisposable instead. ManifestWriter takes the first path and LedgerAppender takes the third." %}
+{% include excalidraw.html name="07-dispose-pattern-paths" caption="Figure 7.2: Three dispose shapes for three different ownership cases: a sealed type with only managed resources needs just a guarded Dispose; one holding an unmanaged handle directly needs the full finalizer pattern; one whose release must await a flush implements the asynchronous contract instead." %}
 
 The simple, one-method `Dispose()` this chapter already showed is not a
 shortcut taken because the full pattern was too much trouble to write. It
@@ -390,25 +390,27 @@ matches whether releasing the resource requires an `await`, guard it with
 one boolean field, and stop there unless an unmanaged handle or a
 subclassing requirement actually shows up to justify more.
 
-> **AI sidebar.** Ask an AI pairing partner to "make this class disposable"
-> and a common result is the full six-member pattern, finalizer,
-> `Dispose(bool)`, and `GC.SuppressFinalize`, pasted in regardless of
-> whether the class is sealed or owns anything unmanaged, because that
-> shape is the one most often reproduced in training material under the
-> heading "the dispose pattern." The same prompt, aimed at a class with one
-> `await`-based cleanup step, will sometimes produce a synchronous
-> `Dispose()` that blocks on `.GetAwaiter().GetResult()` internally rather
-> than reaching for `IAsyncDisposable`, trading a clean async contract for
-> a blocking call with deadlock risk baked in. Check a generated dispose
-> implementation against the two questions this chapter actually turns on:
-> does release require awaiting something, which decides the interface,
-> and does this exact type own an unmanaged resource directly or allow
-> subclassing, which is the only thing that justifies the finalizer and
-> `Dispose(bool)` overload CA1063 and CA1816 exist to gate. A generated
-> finalizer on a sealed class with one managed field, or a blocking
-> `Dispose()` wrapped around what should have been `DisposeAsync`, is
-> solving a safety problem the class does not have while introducing a
-> performance or correctness problem it did not have before.
+<blockquote class="ai-sidebar" markdown="1">
+Ask an AI pairing partner to "make this class disposable" and a common
+result is the full six-member pattern, finalizer, `Dispose(bool)`, and
+`GC.SuppressFinalize`, pasted in regardless of whether the class is sealed
+or owns anything unmanaged, because that shape is the one most often
+reproduced in training material under the heading "the dispose pattern."
+The same prompt, aimed at a class with one `await`-based cleanup step, will
+sometimes produce a synchronous `Dispose()` that blocks on
+`.GetAwaiter().GetResult()` internally rather than reaching for
+`IAsyncDisposable`, trading a clean async contract for a blocking call with
+deadlock risk baked in. Check a generated dispose implementation against
+the two questions this chapter actually turns on: does release require
+awaiting something, which decides the interface, and does this exact type
+own an unmanaged resource directly or allow subclassing, which is the only
+thing that justifies the finalizer and `Dispose(bool)` overload CA1063 and
+CA1816 exist to gate. A generated finalizer on a sealed class with one
+managed field, or a blocking `Dispose()` wrapped around what should have
+been `DisposeAsync`, is solving a safety problem the class does not have
+while introducing a performance or correctness problem it did not have
+before.
+</blockquote>
 
 ## For deeper coverage
 

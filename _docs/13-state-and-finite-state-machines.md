@@ -73,7 +73,7 @@ machine over the identical set of states where one exit is a coin flip
 instead of a carrier event, because not every real transition in a
 logistics system is driven by something a carrier chooses to report.
 
-{% include excalidraw.html name="13-state-and-finite-state-machines" caption="Figure 13.1: The consignment lifecycle as a finite state machine. Transitions.Next advances Booked through Loaded, InTransit, Cleared, and Delivered on the four carrier events it recognizes, throwing InvalidTransitionException on anything else; ProbabilisticTransitMachine drives the same state set but replaces the InTransit-to-Cleared carrier event with a weighted draw that can instead loop through Delayed and back to InTransit." %}
+{% include excalidraw.html name="13-state-and-finite-state-machines" caption="Figure 13.1: A consignment advances through its lifecycle on four carrier events, rejecting anything else; a probabilistic variant replaces one event with a weighted draw that can loop through a delay state." %}
 
 ## The consignment lifecycle as a finite state machine
 
@@ -386,7 +386,7 @@ exactly what CA5394 asks a reviewer to confirm before a suppression goes
 in, and it belongs next to the suppression itself rather than in a
 code-review comment thread that will not travel with the file.
 
-{% include excalidraw.html name="13-probabilistic-transit-model" caption="Figure 13.2: The stochastic exit from InTransit. ProbabilisticTransitMachine.Step draws IRandomSource.NextDouble() and compares it against delayProbability, sending the consignment to Delayed and back to InTransit to retry below the threshold, or on to Cleared and Delivered at or above it. SeededRandomSource wraps that draw in a seeded System.Random so two machines built on the same seed replay the identical sequence of statuses." %}
+{% include excalidraw.html name="13-probabilistic-transit-model" caption="Figure 13.2: A weighted draw decides whether a consignment in transit clears or loops back through a delay state; a seeded random source lets two machines replay the identical sequence." %}
 
 ## Build, run, observe
 
@@ -445,25 +445,27 @@ never anticipated them. The fix at that point is adding the missing states
 and events to the table, not loosening `Transitions.Next` to accept
 anything so the exception stops firing.
 
-> **AI sidebar.** Asked to add a `Cancelled` status to this lifecycle, an
-> AI pairing partner will sometimes generate a full `IConsignmentState`
-> class hierarchy, one new class plus edits to five existing ones, for a
-> change that `Transitions.Next` handles with two or three new switch arms
-> and one new enum member, because class-per-state is the version of State
-> most prevalent in older training material. A second, more consequential
-> failure shows up inside the switch expression itself: a generated
-> transition table that omits the `_ =>` catch-all, either leaving the
-> compiler's CS8509 warning unaddressed or, worse, suppressing it with a
-> pragma instead of adding the arm, so an illegal transition falls through
-> to whatever the last matched arm happened to return instead of failing
-> loudly. Check a generated transition table against two questions this
-> chapter has already answered directly: does every arm correspond to a
-> real, named (status, event) pair the domain actually allows, and does the
-> catch-all arm throw rather than silently returning a plausible-looking
-> status. A table that answers no to the second question is not a stricter
-> state machine with one missing case; it is a flag-based system wearing a
-> switch expression's syntax, with the exact silent-failure mode this
-> chapter's state machine exists to rule out.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add a `Cancelled` status to this lifecycle, a generated answer
+will sometimes produce a full `IConsignmentState` class hierarchy, one new
+class plus edits to five existing ones, for a change that
+`Transitions.Next` handles with two or three new switch arms and one new
+enum member, because class-per-state is the version of State most
+prevalent in older training material. A second, more consequential failure
+shows up inside the switch expression itself: a generated transition table
+that omits the `_ =>` catch-all, either leaving the compiler's CS8509
+warning unaddressed or, worse, suppressing it with a pragma instead of
+adding the arm, so an illegal transition falls through to whatever the
+last matched arm happened to return instead of failing loudly. Check a
+generated transition table against two questions this chapter has already
+answered directly: does every arm correspond to a real, named (status,
+event) pair the domain actually allows, and does the catch-all arm throw
+rather than silently returning a plausible-looking status. A table that
+answers no to the second question is not a stricter state machine with one
+missing case; it is a flag-based system wearing a switch expression's
+syntax, with the exact silent-failure mode this chapter's state machine
+exists to rule out.
+</blockquote>
 
 ## For deeper coverage
 

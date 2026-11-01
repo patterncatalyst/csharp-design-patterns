@@ -68,7 +68,7 @@ Reified generics replace the carrier string with a type the compiler and the
 runtime both understand, so resolving a family and adding a new one are both
 checked at compile time instead of trusted to match a string correctly.
 
-{% include excalidraw.html name="15-factory-method-and-abstract-factory" caption="Figure 15.1: CarrierDispatcher fixes a build-send-parse sequence and exposes CreateGateway as the one overridable step, which FastlineDispatcher, SeabrightDispatcher, and AircoDispatcher each fill in by subclassing, while DelegateCarrierDispatcher reaches the identical result through a constructor-supplied Func<ICarrierGateway> instead; ICarrierGatewayFactory<TCarrier> produces each carrier's matched gateway, request builder, and response parser as one family; and CarrierRegistry keys those families by typeof(TCarrier) so ShipmentDispatchService.Dispatch<TCarrier> resolves one by its reified type argument rather than a carrier string." %}
+{% include excalidraw.html name="15-factory-method-and-abstract-factory" caption="Figure 15.1: CarrierDispatcher fixes a build-send-parse sequence with one overridable step; each carrier's factory produces a matched gateway, builder, and parser; and CarrierRegistry resolves a carrier's family by its type rather than a string." %}
 
 ## Factory Method: one overridable step inside a fixed sequence
 
@@ -382,7 +382,7 @@ anywhere; the only carrier-specific thing in the call is the type argument
 itself, and the compiler checks that argument against `ICarrier` before the
 call is even allowed to compile.
 
-{% include excalidraw.html name="15-type-keyed-carrier-registry" caption="Figure 15.2: CarrierRegistry.Register<TCarrier> writes a factory into a Dictionary<Type, object> keyed by typeof(TCarrier), and FactoryFor reads it back by the same key. Adding Airco costs one Register<Airco> call with no edit to CarrierRegistry, and an unregistered carrier throws UnknownCarrierException instead of returning null." %}
+{% include excalidraw.html name="15-type-keyed-carrier-registry" caption="Figure 15.2: CarrierRegistry stores one factory per carrier type and looks it up the same way. Adding a new carrier costs one registration call with no edit to the registry; an unregistered carrier throws rather than returning null." %}
 
 ## Build, run, observe
 
@@ -467,25 +467,27 @@ argument, gets nothing from `CarrierRegistry` that a directly constructed
 dictionary, a registration step, and an `UnknownCarrierException` failure
 mode with no runtime selection anywhere to justify carrying it.
 
-> **AI sidebar.** Asked to make carrier resolution "pluggable" or
-> "extensible," an AI pairing partner will sometimes reach for
-> `Activator.CreateInstance(carrierType)` against a carrier naming
-> convention and a public parameterless constructor, reflecting a type
-> into existence by name instead of looking up an already-registered
-> factory instance. That approach loses the compile-time check
-> `where TCarrier : ICarrier` already provides, fails at runtime instead of
-> compile time when a typo or a renamed type breaks the naming
-> convention, and pays a reflection cost on every resolution that
-> `CarrierRegistry`'s dictionary lookup does not. A second common
-> suggestion is a hand-rolled `Dictionary<string, object>` keyed by a
-> carrier name string, with a cast back to the right interface type at
-> every call site, reinventing `CarrierRegistry` with a string doing the
-> job `typeof(TCarrier)` already does more safely. Check a generated
-> answer against what `CarrierRegistry` already proves: a `typeof(T)`-keyed
-> `Dictionary<Type, object>` behind a constrained generic method gives
-> every caller a compile-time-checked key and a cast the registry performs
-> once, internally, instead of a cast every caller repeats by hand against
-> a string that the compiler cannot verify matches anything real.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make carrier resolution "pluggable" or
+"extensible," an AI pairing partner will sometimes reach for
+`Activator.CreateInstance(carrierType)` against a carrier naming
+convention and a public parameterless constructor, reflecting a type
+into existence by name instead of looking up an already-registered
+factory instance. That approach loses the compile-time check
+`where TCarrier : ICarrier` already provides, fails at runtime instead of
+compile time when a typo or a renamed type breaks the naming
+convention, and pays a reflection cost on every resolution that
+`CarrierRegistry`'s dictionary lookup does not. A second common
+suggestion is a hand-rolled `Dictionary<string, object>` keyed by a
+carrier name string, with a cast back to the right interface type at
+every call site, reinventing `CarrierRegistry` with a string doing the
+job `typeof(TCarrier)` already does more safely. Check a generated
+answer against what `CarrierRegistry` already proves: a `typeof(T)`-keyed
+`Dictionary<Type, object>` behind a constrained generic method gives
+every caller a compile-time-checked key and a cast the registry performs
+once, internally, instead of a cast every caller repeats by hand against
+a string that the compiler cannot verify matches anything real.
+</blockquote>
 
 ## For deeper coverage
 

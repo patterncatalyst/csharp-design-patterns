@@ -61,7 +61,7 @@ attach to `CarrierShipment` from a file the vendor never sees, and the classic
 new block syntax, so a single extra method does not need to grow into a block
 just to join the group.
 
-{% include excalidraw.html name="25-extension-members" caption="Figure 25.1: CarrierShipment is a sealed vendor type with a constructor and three read-only properties only. CarrierShipmentExtensions attaches everything else from outside that file: instance extension properties WeightKilograms and IsHeavy, a non-mutating instance extension method WithAddedWeight, static extension members Empty and FromKilograms, and an extension operator +, all without CarrierShipment.cs ever changing." %}
+{% include excalidraw.html name="25-extension-members" caption="Figure 25.1: CarrierShipment is a sealed vendor type with only a constructor and three read-only properties. CarrierShipmentExtensions attaches properties, a non-mutating method, static factories, and an operator from outside that file, without CarrierShipment.cs ever changing." %}
 
 ## A sealed vendor type, extended from outside
 
@@ -164,7 +164,7 @@ confirms exactly that: it adapts one shipment, checks the new instance's
 weight, destination, and declared value, and then re-reads the original
 shipment's weight to confirm it never moved.
 
-{% include excalidraw.html name="25-adapting-an-unowned-type" caption="Figure 25.3: CarrierShipment stays frozen in CarrierParcels.Vendor and is never mutated by any extension member. WithAddedWeight returns a new CarrierShipment rather than changing the original, and the instance members, static members, and operator in CarrierShipmentExtensions all add behaviour from outside the vendor type." %}
+{% include excalidraw.html name="25-adapting-an-unowned-type" caption="Figure 25.3: CarrierShipment stays frozen and is never mutated by any extension member. WithAddedWeight returns a new instance rather than changing the original, and every extension member adds behavior entirely from outside the vendor type." %}
 
 ## Static extension members: building the type you don't own
 
@@ -256,7 +256,7 @@ sees exactly where each member's receiver comes from, the named parameter on
 an instance block, the bare type name on a static block, or the `this`
 modifier on a classic method's own parameter list.
 
-{% include excalidraw.html name="25-extension-block-and-classic-form" caption="Figure 25.2: CarrierShipmentExtensions declares WeightKilograms, IsHeavy, WithAddedWeight, and operator + inside an extension(CarrierShipment shipment) block, and Empty and FromKilograms inside a sibling extension(CarrierShipment) block with no parameter. NormalisedDestination keeps the classic this CarrierShipment shipment form. All three declaration shapes resolve onto CarrierShipment at a call site." %}
+{% include excalidraw.html name="25-extension-block-and-classic-form" caption="Figure 25.2: CarrierShipmentExtensions mixes three declaration shapes, an instance extension block, a parameterless static extension block, and a classic this-parameter method, and all three resolve onto CarrierShipment at a call site." %}
 
 Choosing between the two forms for a brand new member is mostly a question
 of what that member needs. One extra method with one receiver and nothing
@@ -372,25 +372,27 @@ operator as something other than built-in arithmetic, which is the whole
 reason the rule exists and the reason this example pairs every operator with
 one.
 
-> **AI sidebar.** Asked to "add a method to this SDK type," an AI pairing
-> partner working against a sealed, vendor-owned class will sometimes
-> propose wrapping it in a new owned type that duplicates every property
-> just to attach one extra method, or reach for reflection to force a field
-> onto an instance that was never designed to hold one. `CarrierShipment
-> Extensions` shows the simpler answer for most of that class of request: a
-> classic `this`-parameter method or an `extension(CarrierShipment shipment)`
-> block attaches the member directly, with no wrapper type and no copied
-> properties to keep in sync with the vendor's own. A second common
-> suggestion, asked for a "static helper for creating these," reaches for a
-> separate `CarrierShipmentFactory` class with its own name a caller has to
-> remember, when a static extension member inside an `extension
-> (CarrierShipment)` block, called through `CarrierShipment.FromKilograms(...)`
-> itself, gives the same factory behaviour under the vendor type's own name.
-> Check a generated answer against the two questions this chapter answers
-> directly: does the new member need an instance, which decides whether it
-> belongs in the parameterised or the parameterless extension block, and is
-> a wrapper type solving a cohesion problem a handful of extension
-> members would not, or just adding a layer an extension could skip.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to "add a method to this SDK type," an AI pairing
+partner working against a sealed, vendor-owned class will sometimes
+propose wrapping it in a new owned type that duplicates every property
+just to attach one extra method, or reach for reflection to force a field
+onto an instance that was never designed to hold one. `CarrierShipment
+Extensions` shows the simpler answer for most of that class of request: a
+classic `this`-parameter method or an `extension(CarrierShipment shipment)`
+block attaches the member directly, with no wrapper type and no copied
+properties to keep in sync with the vendor's own. A second common
+suggestion, asked for a "static helper for creating these," reaches for a
+separate `CarrierShipmentFactory` class with its own name a caller has to
+remember, when a static extension member inside an `extension
+(CarrierShipment)` block, called through `CarrierShipment.FromKilograms(...)`
+itself, gives the same factory behaviour under the vendor type's own name.
+Check a generated answer against the two questions this chapter answers
+directly: does the new member need an instance, which decides whether it
+belongs in the parameterised or the parameterless extension block, and is
+a wrapper type solving a cohesion problem a handful of extension
+members would not, or just adding a layer an extension could skip.
+</blockquote>
 
 ## For deeper coverage
 

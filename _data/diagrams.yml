@@ -7,804 +7,581 @@
   section: "Ch. 0"
   title: The local build-and-test loop
   caption: >-
-    The edit, dotnet build, xUnit v3 run loop every example runs against
-    net10.0: a source change is compiled and exercised by the test suite, and
-    a failing assertion sends you back to the source. The loop runs standalone
-    inside a single example directory, and again across every example at once
-    through scripts/verify.sh.
+    Editing a source file, running dotnet build, then the xUnit v3 suite
+    forms one loop against net10.0: a failing assertion sends you back to the
+    source. The loop runs inside a single example and again across every
+    example through scripts/verify.sh.
 
 - name: 01-patterns-as-decisions-under-forces
   section: "Ch. 1"
   title: Forces resolving to a rate-quote decision
   caption: >-
-    The rating problem as three competing forces, accuracy, speed, and
-    changeability, each pulling the rate-quote design in a different
-    direction. The eventual decision is the compromise point among all three,
-    not a win for any single force.
+    Three competing forces, accuracy, speed, and changeability, each pull a
+    rate-quote design in a different direction. The eventual decision is the
+    compromise point among all three, not a win for any single force.
 
 - name: 01-forces-first-vs-pattern-first
   section: "Ch. 1"
   title: Starting from forces versus starting from a pattern name
   caption: >-
-    Two starting points applied to the same rate-quote decision. Forces first
-    lets accuracy, speed, and changeability converge on a shape that fits the
-    problem; pattern first reaches for a name and gets a four-part structure,
-    an interface, two implementations, and a factory, with no force examined
-    along the way.
+    Two starting points for the same rate-quote decision. Starting from
+    forces lets accuracy, speed, and changeability converge on a fitting
+    shape; starting from a pattern name reaches for a four-part structure
+    before any force is examined.
 
 - name: 02-what-1994-assumed-and-csharp-invalidated
   section: "Ch. 2"
   title: Three 1994 assumptions, now a language feature
   caption: >-
     Observer, Strategy, and Null Object each existed to compensate for a gap
-    in C++ and Smalltalk. C# closes each gap directly: the event keyword
-    generates the subscriber list, a delegate value replaces the strategy
-    interface, and nullable reference types make the compiler check for
-    absence instead of a stand-in object.
+    in earlier object-oriented languages. C# closes each gap directly: the
+    event keyword generates the subscriber list, a delegate replaces the
+    strategy interface, and nullable reference types replace the stand-in
+    object.
 
 - name: 03-the-divergence-map
   section: "Ch. 3"
   title: The modern C# feature map
   caption: >-
-    Ten C# language and runtime features, each mapped against the 1994
-    catalogue's pattern shape it reshapes: event, delegates, yield and LINQ,
-    nullable reference types, extension members, expression trees, source
-    generators, reified generics, static abstract members, and value types.
-    The catalogue's own examples were written in C++ and Smalltalk; each
-    entry here is a self-contained name a reader can file on sight.
+    Ten C# language and runtime features, each mapped against the pattern
+    shape it reshapes: events, delegates, LINQ, nullable reference types,
+    extension members, expression trees, source generators, generics, static
+    abstract members, and value types.
 
 - name: 03-reification-pipeline
   section: "Ch. 3"
   title: How the CLR specializes a generic type
   caption: >-
     A single compile-and-run pipeline for a generic container. Roslyn
-    compiles List<int> and List<string> as separate instantiations, and the
-    CLR JIT produces two distinct, specialized runtime types, each storing
-    its element inline with no boxing. Reification is a CLR guarantee from
-    .NET's first release.
+    compiles each closed generic as a separate instantiation, and the CLR
+    JIT produces distinct, specialized runtime types that store elements
+    inline with no boxing. Reification is a CLR guarantee since .NET's
+    first release.
 
 - name: 04-naming-patterns-for-teams-and-ai
   section: "Ch. 4"
   title: A pattern name as shared vocabulary
   caption: >-
     One name, Cleared, read the same way by an engineer, a teammate, and an
-    AI assistant, each one checking the same precondition and postcondition
-    against the code. The name carries across the full consignment lifecycle,
-    booked, loaded, in transit, cleared, and delivered.
+    AI assistant, each checking the same precondition and postcondition
+    against the code. The name carries across the full consignment lifecycle
+    from booking to delivery.
 
 - name: 05-srp-ocp-lsp
   section: "Ch. 5"
   title: One calculator split into SRP, OCP, and LSP
   caption: >-
     An overloaded rate calculator resolved into single-responsibility
-    collaborators, IRateQuote, ITaxPolicy, and IAuditSink. A
-    SurchargedRateQuote decorator composes the open ISurcharge extension
-    point for Open/Closed, and two pricing calculators substitute for each
-    other through one IRateQuote contract for Liskov Substitution.
+    collaborators such as IRateQuote. A surcharge decorator composes an
+    open extension point for Open/Closed, and two pricing calculators
+    substitute for each other through that same contract for Liskov
+    Substitution.
 
 - name: 06-isp-dip-and-built-in-di
   section: "Ch. 6"
   title: ISP and DIP through the built-in container
   caption: >-
-    A fat ICarrierGateway split into ICarrierRates and ICarrierTracking.
-    ShipmentRateAdvisor depends on the narrow ICarrierRates abstraction and
-    ShipmentBookingService depends on the full ICarrierGateway, never on
-    RestCarrierGateway or FakeCarrierGateway directly; the built-in DI
-    container is the one place that resolves an abstraction to a concrete
-    type.
+    A fat carrier-gateway interface splits into narrow rate and tracking
+    abstractions. One consumer depends on the narrow abstraction, another
+    depends on the full gateway, never on a concrete implementation; the
+    built-in DI container is the one place that resolves an abstraction to
+    a concrete type.
 
 - name: 06-singleton-fanout-registration
   section: "Ch. 6"
   title: One singleton, three resolvable faces
   caption: >-
-    One AddSingleton<TGateway>() registration fans out through three factory
-    registrations, ICarrierGateway, ICarrierRates, and ICarrierTracking, all
-    resolving GetRequiredService<TGateway>() back to the same singleton
-    instance. ShipmentRateAdvisor resolves only ICarrierRates and
-    ShipmentBookingService resolves only the full ICarrierGateway, each
-    consumer taking exactly the face it uses.
+    One singleton registration fans out through three factory
+    registrations, all resolving back to the same instance. Each consumer
+    takes exactly the interface face it needs, a narrow rates view or the
+    full gateway, from one shared registration.
 
 - name: 07-dispose-and-iasyncdisposable
   section: "Ch. 7"
   title: Scope exit drives deterministic cleanup
   caption: >-
-    A using scope around ManifestWriter and an await using scope around
-    LedgerAppender side by side. Both run their cleanup the moment the scope
-    exits rather than waiting on the garbage collector: the synchronous path
-    calls Dispose() and closes the underlying FileStream handle on the spot,
-    while the asynchronous path awaits DisposeAsync(), which flushes pending
-    writes before it closes.
+    A synchronous using scope and an asynchronous await using scope shown
+    side by side. Both run cleanup the moment the scope exits rather than
+    waiting on the garbage collector: one closes a file handle immediately,
+    the other awaits a flush before closing.
 
 - name: 07-dispose-pattern-paths
   section: "Ch. 7"
   title: Three shapes of the dispose pattern
   caption: >-
-    Three dispose shapes compared side by side. A sealed type that owns only
-    managed disposables needs nothing more than a guarded Dispose(), an
-    unsealed type that owns an unmanaged handle directly takes the heavier
-    Dispose(bool disposing), finalizer, and GC.SuppressFinalize(this)
-    combination, and a type whose release has to await a flush implements
-    IAsyncDisposable instead. ManifestWriter takes the first path and
-    LedgerAppender takes the third; the middle path stays a correct choice
-    for the day a type actually owns an unmanaged resource on its own.
+    Three dispose shapes compared: a sealed type owning only managed
+    disposables needs just a guarded Dispose, an unsealed type owning an
+    unmanaged handle needs the heavier finalizer pattern, and a type whose
+    release must await a flush implements IAsyncDisposable instead.
 
 - name: 08-value-types-struct-span
   section: "Ch. 8"
   title: Inline values and zero-allocation field projection
   caption: >-
-    Two readonly record struct values compared side by side, equal by
-    content rather than by reference, set against a reference-type class for
-    contrast. ReadOnlySpan<char> takes the other half: one fixed-width
-    EDI-style record is sliced in place into a consignment ID, a Money, a
-    Weight, and a SlotId, with no intermediate string allocation along the
-    way.
+    Two record struct values compared side by side, equal by content
+    rather than reference, against a reference-type class for contrast. A
+    fixed-width record is sliced in place into its typed fields with no
+    intermediate string allocation.
 
 - name: 08-fixed-width-edi-layout
   section: "Ch. 8"
   title: The 28-character record as a sliced ruler
   caption: >-
-    The fixed-width EDI segment laid out as a ruler of six labeled field
-    spans at their exact zero-based offsets. Each span slices directly into
-    its typed destination, ConsignmentId into int, Bay and Tier into SlotId,
-    WeightKilograms into Weight, and Amount and Currency into Money, and all
-    four converge on one ConsignmentRecord. Every slice is a window over the
-    same backing characters, so no field ever becomes its own allocated
-    string before the numeric fields parse through TryParse.
+    A fixed-width record laid out as a ruler of labeled field spans at
+    their exact offsets. Each span slices directly into its typed
+    destination, and every slice is a window over the same backing
+    characters rather than its own allocated string.
 
 - name: 09-nrts-records-init-required-with
   section: "Ch. 9"
   title: A record with expression, copy then change, original untouched
   caption: >-
-    One Consignment record amended through with. The original object keeps
-    its required ConsignmentId, Weight, and init ReferenceNumber members
-    exactly as they were, including its nested Route record pointing to
-    Dallas. The with expression copies every member into a new object and
-    overrides only Route, producing a second Consignment that points to
-    Houston while the first is never written to. Equality between the two
-    compares member values, not references.
+    A consignment record amended through a with expression. The original
+    keeps its required and init members exactly as they were, including a
+    nested route. The with expression copies every member into a new
+    object and overrides only the route, leaving the first untouched.
 
 - name: 09-required-init-construction-gap
   section: "Ch. 9"
   title: The required and init contract, compiles versus CS9035
   caption: >-
-    Consignment's four kinds of member side by side: required, init-only
-    ConsignmentId, Route, and Weight the compiler forces a caller to set;
-    an init accessor settable only during construction; a legitimately
-    absent string? ReferenceNumber; and a non-required DeclaredValue with
-    its own default. One object initializer that sets every required
-    member compiles; one that leaves Route unset fails at compile time with
-    CS9035, never as a suppressible nullable warning.
+    A record's members side by side: required init-only fields, an init
+    accessor settable only during construction, a legitimately absent
+    optional field, and a plain field with its own default. Omitting a
+    required member fails at compile time, never as a suppressible
+    warning.
 
 - name: 10-testing-with-xunit-and-nsubstitute
   section: "Ch. 10"
   title: ShipmentRatingEngine under a four-phase test with NSubstitute doubles
   caption: >-
-    The four-phase test around ShipmentRatingEngine. Arrange creates
-    NSubstitute doubles for ICarrierRates, ITaxPolicy, and IAuditSink and
-    stubs their return values, then constructs the engine against those
-    three interfaces. Act calls QuoteAsync once. Assert splits into two
-    checks on the result: the returned quote value, and Received()
-    verification that each substitute was called exactly as expected.
+    The four-phase test around a rating engine. Arrange creates NSubstitute
+    doubles for its collaborators and stubs their return values, Act calls
+    the method once, and Assert checks both the returned result and that
+    each substitute was called as expected.
 
 - name: 10-nsubstitute-stub-vs-verify
   section: "Ch. 10"
   title: A substitute's two jobs, stubbing on Arrange and verifying on Assert
   caption: >-
-    The same NSubstitute double doing two separate jobs. On the left, Arrange
-    stubs a return value with Substitute.For and .Returns, including the
-    async GetBaseRateAsync case that wraps a plain value in a completed
-    Task, per-argument stubbing, and the type-default fallback for a call
-    nobody stubbed. On the right, Assert reads back what the substitute
-    recorded with Received(1), DidNotReceive(), and the Arg.Any and Arg.Is
-    matchers, including the await an async Received check needs. Arg
-    matchers work on both sides, narrowing a stub or a verification to the
-    argument that actually matters.
+    The same NSubstitute double doing two jobs. Arrange stubs a return
+    value, including an async case and per-argument stubbing. Assert reads
+    back what the substitute recorded, using argument matchers that work on
+    both the stubbing and verification sides.
 
 - name: 11-strategy-delegates-interfaces-keyed-services
   section: "Ch. 11"
   title: One Strategy, three ways to supply it
   caption: >-
-    The same rate-pricing Strategy collapsed to three different shapes, each
-    with its own caller. A plain Func<RateRequest, Money> drops the interface
-    and the class entirely, consumed by DelegateRateQuoter; IPricingStrategy
-    names the abstraction and gives StandardTariff, ExpressTariff, and
-    EconomyTariff a shared contract, consumed by StrategyRateQuoter; a keyed
-    DI container resolves the same three tariffs by a runtime string key,
-    consumed by KeyedTariffQuoter and, for a fixed key chosen at
-    construction, ExpressLaneQuoter. All three quoters take the same
-    RateRequest in and return the same RateQuote out no matter which level
-    supplied the strategy.
+    The same rate-pricing strategy supplied three ways: a plain delegate
+    with no interface or class, a named interface giving several tariffs a
+    shared contract, and a keyed DI container resolving the same tariffs by
+    a runtime string key. All three return the same quote.
 
 - name: 11-keyed-service-resolution
   section: "Ch. 11"
   title: Keyed resolution, an unrecognized key, and the non-keyed trap
   caption: >-
-    The keyed-DI composition root in AddRateQuoting registering three
-    IPricingStrategy implementations as keyed singletons under "standard",
-    "express", and "economy". KeyedTariffQuoter resolves the matching one at
-    runtime with GetRequiredKeyedService(request.ServiceLevel);
-    ExpressLaneQuoter binds a fixed key at construction with
-    [FromKeyedServices("express")]. An unrecognized key splits behavior:
-    GetRequiredKeyedService throws InvalidOperationException, while
-    GetKeyedService returns null. A plain, keyless GetService<IPricingStrategy>()
-    also returns null, even with three keyed registrations in the container,
-    because keyed and non-keyed lookups are separate graphs.
+    Three pricing strategies are registered as keyed singletons. One
+    consumer resolves the matching strategy at runtime; another binds a
+    fixed key at construction. An unrecognized key throws or returns null
+    depending on the lookup method, and a keyless lookup returns null even
+    with keyed registrations present.
 
 - name: 12-template-method-and-the-delegate-alternative
   section: "Ch. 12"
   title: A fixed skeleton, two ways to vary the steps
   caption: >-
-    The same three-step customs workflow, CollectRequiredFields, then
-    CalculateDuty, then Validate, built two ways. The inheritance form seals
-    Build() on an abstract CustomsDeclarationBuilder so no subclass can
-    reorder the steps, while UnitedStatesDeclarationBuilder,
-    GermanyDeclarationBuilder, and JapanDeclarationBuilder override each
-    step for their own tariff rules. The delegate form moves the same
-    sealed order into DeclarationEngine.Build(), which takes a
-    DeclarationSteps record of Func<> values supplied per country by
-    CountrySteps instead of a subclass. Both paths produce the same
-    CustomsDeclaration; only the steps vary by country, never the order
-    they run in.
+    The same three-step customs workflow built two ways. The inheritance
+    form seals the step order on an abstract builder so no subclass can
+    reorder it; the delegate form moves that order into an engine taking
+    functions supplied per country instead of a subclass.
 
 - name: 12-template-method-step-order
   section: "Ch. 12"
   title: One fixed slot order, three countries' content
   caption: >-
-    The same three fixed slots, CollectRequiredFields, CalculateDuty, and
-    Validate, running left to right in that order for every country. Each
-    slot's box never moves; only the content plugged into it changes: the
-    United States, Germany, and Japan each supply their own required
-    fields, their own duty formula (2.5% USD, 19% EUR, or 5% plus a flat
-    2000 JPY handling fee), and their own validation threshold. The order
-    is the one thing all three countries share; the slot contents are the
-    one thing that is never shared between them.
+    Three fixed workflow slots run in the same order for every country.
+    Each slot's position never moves; only its content changes, as each
+    country supplies its own required fields, duty formula, and validation
+    threshold.
 
 - name: 13-state-and-finite-state-machines
   section: "Ch. 13"
   title: The consignment lifecycle as a finite state machine
   caption: >-
-    ConsignmentStateMachine.Apply(HandlingEvent) drives every move through
-    Transitions.Next, advancing Booked to Loaded to InTransit to Cleared to
-    Delivered on the Load, Depart, ClearCustoms, and Deliver events.
-    Delayed sits off InTransit as a state the enum defines but that
-    Transitions.Next never reaches; only the probabilistic variant drives a
-    consignment there. An unmatched (status, event) pair, delivering a
-    booked consignment included, is rejected rather than ignored: the
-    switch expression's catch-all arm throws InvalidTransitionException
-    instead of returning a placeholder status.
+    A state machine drives a consignment through its lifecycle from booked
+    to delivered on a sequence of events. One state the enum defines is
+    never reached by this machine. An unmatched status-and-event pair is
+    rejected with an exception rather than ignored.
 
 - name: 13-probabilistic-transit-model
   section: "Ch. 13"
   title: The stochastic exit from InTransit
   caption: >-
-    ProbabilisticTransitMachine.Step draws a value from an injected
-    IRandomSource.NextDouble() at InTransit. A draw below delayProbability
-    sends the consignment to Delayed, which maps straight back to InTransit
-    so the next Step retries the same exit; a draw at or above the
-    threshold progresses the consignment to Cleared and then Delivered.
-    SeededRandomSource wraps that draw in a seeded System.Random, so two
-    machines built on the same seed replay the identical sequence of draws
-    and therefore the identical sequence of statuses, which is what keeps
-    the simulation testable.
+    A probabilistic machine draws a value from an injected random source
+    while a consignment is in transit. A low draw delays it and loops back
+    for a retry; a higher draw clears and delivers it. A seeded source
+    keeps the simulation replayable and testable.
 
 - name: 14-command-undo-and-task-returning-commands
   section: "Ch. 14"
   title: A booking amendment reified as a command
   caption: >-
-    IBookingCommand's two methods, Execute and Undo, back four shapes that
-    all act on the same mutable Booking: ChangeServiceLevelCommand and
-    ChangeWeightCommand each snapshot the prior value before overwriting
-    it, AddLineItemCommand's own added LineItem is its snapshot, and
-    DelegateCommand wraps a pair of Action values for a change that does not
-    need its own class. AmendmentQueue enqueues and runs those commands
-    first-in-first-out, then unwinds its execution history
-    last-in-first-out on Undo, with Redo moving a command back from the
-    undone stack to the history stack without ever reconstructing it.
+    A command interface's execute and undo methods back four command
+    shapes acting on the same mutable booking, each snapshotting what it
+    changes. A queue runs commands first-in-first-out, then unwinds its
+    history last-in-first-out on undo, moving commands back and forth
+    without reconstructing them.
 
 - name: 14-async-command-undo
   section: "Ch. 14"
   title: The Task-returning command path
   caption: >-
-    AsyncAmendmentQueue.RunAsync awaits each queued
-    IAsyncBookingCommand.ExecuteAsync in strict FIFO order before dequeuing
-    the next one; ConfirmAmendmentCommand's ExecuteAsync calls
-    IAmendmentGateway.ConfirmAsync with ConfigureAwait(false), and its
-    UndoAsync calls RevertAsync the same way. UndoAsync walks the executed
-    history back one command at a time, and the caller's CancellationToken
-    threads unchanged from RunAsync and UndoAsync through to every
-    ConfirmAsync and RevertAsync call beneath them, which is what lets the
-    queue preserve order and reverse through the gateway rather than a
-    plain in-memory field.
+    An async queue awaits each queued command's execute method in strict
+    order before dequeuing the next. Undo walks the executed history
+    backward one command at a time, and a cancellation token threads
+    unchanged through every call beneath it.
 
 - name: 15-factory-method-and-abstract-factory
   section: "Ch. 15"
   title: One overridable step, one matched family, one type-keyed registry
   caption: >-
-    CarrierDispatcher fixes a build, send, parse sequence and leaves
-    CreateGateway as its one overridable step, matched by
-    DelegateCarrierDispatcher through a constructor-supplied
-    Func<ICarrierGateway> instead of a subclass.
-    ICarrierGatewayFactory<TCarrier> produces a matched ICarrierGateway,
-    IShipmentRequestBuilder, and IShipmentResponseParser as one family per
-    carrier, and CarrierRegistry stores each family by typeof(TCarrier), so
-    a dispatch resolves one by its reified type argument and returns a
-    ShipmentConfirmation.
+    A dispatcher fixes a build, send, parse sequence and leaves gateway
+    creation as its one overridable step. An abstract factory produces a
+    matched gateway, request builder, and response parser as one family
+    per carrier, and a registry stores each family keyed by its carrier
+    type.
 
 - name: 15-type-keyed-carrier-registry
   section: "Ch. 15"
   title: Registering, resolving, and extending by typeof(T)
   caption: >-
-    CarrierRegistry.Register<TCarrier> writes a factory into a
-    Dictionary<Type, object> keyed by typeof(TCarrier), and FactoryFor
-    reads it back by the identical key with no cast a caller has to write.
-    Adding Airco costs one Register<Airco> call with no edit to
-    CarrierRegistry itself, while asking for a carrier that was never
-    registered throws UnknownCarrierException rather than returning null or
-    a stale factory. A generic method's type argument is available at the
-    point it runs, which is what makes typeof(T) a reliable dictionary key.
+    A registry writes a factory into a dictionary keyed by carrier type
+    and reads it back by that key with no cast required. Adding a carrier
+    costs one registration call with no edit to the registry; an
+    unregistered carrier throws rather than returning null.
 
 - name: 16-builder-required-members-prototype-with
   section: "Ch. 16"
   title: Three paths to the same BookingRequest
   caption: >-
-    An object initializer that sets the required Origin, Destination, and
-    DeclaredValue members fails to compile under CS9035 if one is missing.
-    BookingRequestBuilder.Build() accumulates state through fluent calls
-    and raises BookingValidationException on a missing or invalid field
-    instead. BookingTemplates.StandardDomestic is cloned and amended with a
-    with expression. All three paths produce a BookingRequest that
-    Assert.Equal confirms is an equal record value.
+    Three paths reach the same booking request: an object initializer that
+    fails to compile on a missing required member, a builder that raises an
+    exception on an invalid field, and a cloned template amended with a
+    with expression. All three produce an equal record value.
 
 - name: 16-with-prototype-shallow-copy
   section: "Ch. 16"
   title: with leaves the template untouched, the spread leaves it unchanged
   caption: >-
-    Cloning BookingTemplates.StandardDomestic with a with expression copies
-    every member and overrides only the ones named, leaving the template
-    itself untouched. LineItems is a reference-typed member, so a with
-    expression that never mentions it shares the template's own list; the
-    collection-expression spread, LineItems = [.. template.LineItems,
-    extra], replaces that member with a brand-new list instead, so the
-    amended clone's item count grows by one while the template's own count
-    stays exactly where it was.
+    Cloning a template with a with expression copies every member and
+    overrides only the ones named, leaving the template itself untouched.
+    Because a reference-typed member is shared rather than copied, a
+    collection-expression spread replaces that member with a new list
+    instead, growing only the clone.
 
 - name: 17-singleton-lazy-and-di-lifetimes
   section: "Ch. 17"
   title: One tariff table, three ways to guarantee one instance
   caption: >-
-    ClassicTariffTable guarantees one instance with a private constructor
-    and a static Instance property, LazyTariffTable guarantees it with a
-    Lazy<TariffTable> built ExecutionAndPublication, and an AddSingleton
-    registration gets the same guarantee from the built-in DI container
-    with no static field at all. AddScoped and AddTransient registrations
-    of the same CountingTariffSource contrast the lifetimes beyond
-    Singleton, and CountingTariffSource.LoadCount stays at one across every
-    tier.
+    A tariff table guarantees a single instance three ways: a private
+    constructor with a static property, a lazily built value, and a DI
+    singleton registration with no static field at all. Scoped and
+    transient registrations of the same source contrast the lifetimes
+    beyond singleton.
 
 - name: 17-di-lifetime-resolution
   section: "Ch. 17"
   title: Same, different, and caught by scope validation
   caption: >-
-    A singleton resolution returns the identical TariffTable every time,
-    Assert.Same; a transient resolution of CountingTariffSource returns a
-    new instance every call, Assert.NotSame; and a scoped resolution
-    returns the same instance within one scope but a different one in the
-    next. Registering ITariffSource as scoped under an AddSingleton
-    LazyTariffTable and building the provider with ServiceProviderOptions
-    ValidateScopes = true turns that captive dependency into an
-    InvalidOperationException at resolution time, and
-    CountingTariffSource.LoadCount still never exceeds one.
+    A singleton resolution returns the identical instance every time, a
+    transient resolution returns a new instance every call, and a scoped
+    resolution stays the same within one scope but differs in the next. A
+    captive scoped dependency under a singleton becomes a
+    startup-validation exception instead.
 
 - name: 18-adapter-facade-bridge
   section: "Ch. 18"
   title: Three carriers, one gateway, one booking call, one label
   caption: >-
-    FastlineSoapClient, SeabrightRestClient, and AircoLegacyClient are three
-    native carrier clients with nothing in common, each adapted to the same
-    ICarrierGateway by its own FastlineGatewayAdapter, SeabrightGatewayAdapter,
-    or AircoGatewayAdapter. ShipmentBookingFacade sequences an
-    IAddressValidator, that adapted ICarrierGateway, and an ICustomsFiler
-    behind one Book call and returns a ShipmentConfirmation. ShipmentLabel is
-    the Bridge abstraction: StandardShipmentLabel and ReturnShipmentLabel each
-    build their own content and render it through whichever ILabelRenderer
-    they were constructed with, PdfLabelRenderer or ZplLabelRenderer, so a
-    label kind and an output format vary independently.
+    Three native carrier clients with nothing in common are each adapted to
+    the same gateway interface. A facade sequences address validation, that
+    adapted gateway, and customs filing behind one booking call. A label
+    abstraction lets its content and its rendering format vary
+    independently.
 
 - name: 18-conversion-operators
   section: "Ch. 18"
   title: Implicit for a safe widening, explicit for anything that can lose data
   caption: >-
-    Money converts out to decimal implicitly, because every cent count maps
-    to one exact dollars-and-cents figure, and ToDecimal is the named
-    alternate a caller can reach without the operator syntax. Converting a
-    decimal back down to Money is explicit, because a value like 1.005m has
-    no exact whole-cent representation, and FromDecimal names that same
-    rounding step. Kilograms and Pounds convert explicitly in both
-    directions instead, since a unit change, not a rounding of the same
-    figure, is what the cast signals there, and ToPounds and ToKilograms
-    name each direction by hand.
+    A money type converts to decimal implicitly because the conversion is
+    always exact; converting back is explicit because some values cannot
+    round-trip without loss. A weight type converts explicitly in both
+    directions, since a unit change rather than rounding is what the cast
+    signals.
 
 - name: 19-decorator-and-proxy
   section: "Ch. 19"
   title: A fixed wrapping order and a cache standing in the same place
   caption: >-
-    BaseRateCalculator is wrapped by DiscountRateDecorator, then
-    SurchargeRateDecorator, then TaxRateDecorator, each implementing the
-    same IRateCalculator as the layer underneath it, carrying a 100-kilogram
-    quote from 500.00 to 450.00 to 472.50 to 510.30 as it passes through.
-    CachingRateGatewayProxy implements the identical ICarrierRateGateway as
-    the SlowCarrierRateGateway it wraps, and answers a repeated request from
-    its own cache instead of calling the slow gateway again.
+    A base rate calculator is wrapped by a discount, then a surcharge,
+    then a tax decorator, each implementing the same interface as the
+    layer underneath. A caching proxy answers a repeated request from its
+    own cache instead of the slow gateway.
 
 - name: 19-di-decoration-and-dispatchproxy
   section: "Ch. 19"
   title: A composition root that wraps, and a proxy that intercepts
   caption: >-
-    ServiceCollectionExtensions.AddRatePipeline registers IRateCalculator as
-    a factory that resolves BaseRateCalculator from the container and wraps
-    it in all three decorators, so every consumer that asks for
-    IRateCalculator resolves the same fully wrapped chain. LoggingRateProxy,
-    a DispatchProxy subclass, intercepts every call made through it in
-    Invoke, records the invoked member in InvokedMembers, and forwards the
-    call to its own Target; RateProxyFactory.Wrap is the one place that
-    builds the proxy and assigns that Target.
+    A composition root registers a rate calculator as a factory that wraps
+    the base implementation in every decorator, so every consumer resolves
+    the same wrapped chain. A dynamic proxy intercepts each call, records
+    the invoked member, and forwards it to its target.
 
 - name: 20-composite-and-flyweight
   section: "Ch. 20"
   title: One interface for a leaf and a branch, one instance per code
   caption: >-
-    IConsignmentNode gives a ShipmentParcel leaf and a Consolidation branch
-    the same TotalWeightKilograms and Parcels() surface, so a Consolidation
-    sums and flattens its children recursively whether a child is another
-    parcel or another consolidation nested underneath it. PortCodeRegistry
-    builds its set of PortCode values once and hands back the same shared
-    instance on every later Get call, so two parcels bound for the same port
-    point at the identical object rather than two separately built copies.
+    A shared interface gives a leaf and a branch the same weight and
+    enumeration surface, so a branch sums and flattens its children
+    recursively regardless of nesting. A registry builds its values once
+    and hands back the same shared instance on every later lookup.
 
 - name: 20-flyweight-frozen-pool
   section: "Ch. 20"
   title: FrozenDictionary once, shared instances or a named exception after
   caption: >-
-    PortCodeRegistry and CommodityCodeRegistry each build their lookup table
-    once with ToFrozenDictionary into a FrozenDictionary<string, PortCode>
-    or a FrozenDictionary<string, CommodityCode>, then serve every later
-    lookup from that same read-optimized structure. A known code returns
-    the identical interned instance on every call, the reference equality
-    Assert.Same checks directly, while an unrecognized code throws
-    UnknownPortCodeException or UnknownCommodityCodeException instead of
-    returning a stale or default value.
+    Two registries each build their lookup table once into a frozen
+    dictionary, then serve every lookup from that read-optimized
+    structure. A known code returns the identical interned instance every
+    time; an unrecognized code throws a named exception instead.
 
 - name: 21-observer-the-event-keyword
   section: "Ch. 21"
   title: An event with two subscribers and a retained history
   caption: >-
-    ConsignmentTracker declares one event, EventHandler<HandlingReportedEventArgs>?
-    HandlingReported, and raises it from Report through a null-conditional
-    Invoke, so a tracker with nobody listening never throws. CustomerNotifier
-    and AuditLog each subscribe with += and can detach with -=, and either one
-    can stop listening without changing what the other one receives. Report
-    also appends each HandlingEvent to History before the event ever fires, so
-    a reader can ask the tracker what happened regardless of who was
-    listening at the time it happened.
+    A tracker declares one event and raises it through a null-conditional
+    invoke, so nobody listening never causes a throw. Two independent
+    subscribers can attach and detach without affecting each other, and
+    every event is appended to a retained history regardless of who was
+    listening.
 
 - name: 21-event-and-iobservable
   section: "Ch. 21"
   title: A hot stream beside an event that remembers
   caption: >-
-    HandlingEventStream wraps a System.Reactive Subject<HandlingEvent> and
-    exposes only the IObservable<HandlingEvent> half through Events, so a
-    caller can subscribe but never push a value into it directly. Publish
-    forwards to OnNext and Complete forwards to OnCompleted, delivering to
-    whichever RecordingObserver instances are already subscribed at that
-    moment. The Subject is a hot sequence with no replay buffer, so a
-    RecordingObserver that subscribes after an earlier Publish misses that
-    event entirely, the one gap ConsignmentTracker's retained History never
-    leaves open.
+    A stream wraps a reactive subject and exposes only its observable half,
+    so a caller can subscribe but never push a value directly. Because the
+    subject has no replay buffer, an observer that subscribes late misses
+    earlier events, the gap the retained-history tracker never leaves
+    open.
 
 - name: 22-mediator-and-chain-of-responsibility
   section: "Ch. 22"
   title: Four stages in order, a halt, and a mediator that picks the route
   caption: >-
-    CustomsClearancePipeline.Standard wires DocumentCheckStage,
-    DutyCalculationStage, InspectionStage, and ReleaseStage into one chain
-    through SetNext, with every ClearanceStage.Handle call recording its own
-    stage name into a shared ClearanceContext and passing the declaration on
-    only while the running ClearanceResult stays cleared. A halt at any stage
-    returns a non-cleared ClearanceResult immediately, and every stage after
-    it is never reached. CustomsMediator, implementing IClearanceMediator,
-    separately routes a message between DeclarationDesk and DutyDesk, two
-    colleagues that never hold a reference to each other.
+    A clearance pipeline wires four stages into one chain, each recording
+    its name into a shared context and passing the declaration on only
+    while the result stays cleared. A halt stops the chain immediately. A
+    separate mediator routes between two colleagues that never reference
+    each other.
 
 - name: 22-mediator-colleagues
   section: "Ch. 22"
   title: Two colleagues, one mediator, and no echo back to the sender
   caption: >-
-    CustomsMediator implements IClearanceMediator and is the only thing
-    DeclarationDesk and DutyDesk depend on to reach each other; calling Send
-    hands the mediator a message and a reference to the sender itself, never
-    the name of a recipient. CustomsMediator routes by checking
-    ReferenceEquals against each registered colleague and delivers to
-    whichever one did not send the message, so a reply travels the same
-    path in the other direction without either desk ever holding a direct
-    reference back to the one that sent it.
+    A mediator is the only thing two colleagues depend on to reach each
+    other. Sending a message hands the mediator a reference to the sender,
+    never a recipient's name, and the mediator routes by checking identity
+    and delivering to whichever colleague did not send it.
 
 - name: 23-iterator-yield-linq-iasyncenumerable
   section: "Ch. 23"
   title: Paginate validates, PaginateIterator is what yield return becomes
   caption: >-
-    ConsignmentHistory.Paginate(pageSize) validates pageSize and throws
-    immediately on an invalid value, then returns without running any
-    pagination logic itself, delegating that work to the private
-    PaginateIterator method. PaginateIterator is where the yield return
-    statements live, and the compiler turns that method body into a state
-    machine that does nothing until a caller's foreach calls MoveNext,
-    producing one TrackingPage at a time rather than building the whole
-    list up front.
+    A pagination method validates its page size up front, then delegates
+    the work to a private iterator method. That iterator's yield-return
+    body becomes a compiler-generated state machine producing one page at
+    a time instead of building the whole list up front.
 
 - name: 23-async-stream-await-foreach
   section: "Ch. 23"
   title: StreamAsync's IAsyncEnumerable, pulled by await foreach, cut short by break
   caption: >-
-    CarrierEventFeed.StreamAsync returns an async IAsyncEnumerable<TrackingEvent>
-    and marks its CancellationToken parameter with [EnumeratorCancellation], the
-    attribute that lets a consumer's .WithCancellation(ct) on the await foreach
-    reach that same parameter instead of a default token the compiler would
-    otherwise generate. LiveTrackingReader.CollectAsync consumes the stream to
-    completion, while CollectUntilAsync breaks out of its await foreach once
-    trackingEvent.Stage matches the requested stop stage, which disposes the
-    enumerator early and leaves every event after that point never requested
-    from the feed.
+    An async stream exposes a cancellation token that an await-foreach
+    consumer can reach directly instead of a compiler-generated default.
+    One consumer reads the stream to completion, while another breaks out
+    early, disposing the enumerator and skipping every later event.
 
 - name: 23-deferred-execution
   section: "Ch. 23"
   title: One eager check, two deferred sequences, nothing runs before a pull
   caption: >-
-    ConsignmentHistory.Paginate(pageSize) is the one piece of eager work,
-    checked and thrown before the method ever returns. Everything after it is
-    deferred: the private PaginateIterator body does not run until a foreach
-    calls MoveNext, and StagesReached()'s _events.Select(e => e.Stage).Distinct()
-    is itself a LINQ query that composes lazily over the same source rather
-    than materializing a list. Both sequences sit inert until the first
-    foreach iteration pulls an element through them.
+    A pagination method's page-size check is the one piece of eager work.
+    Everything after it is deferred: the iterator body does not run until
+    a foreach pulls it, and a LINQ query composes lazily rather than
+    materializing a list.
 
 - name: 24-visitor-memento-interpreter
   section: "Ch. 24"
   title: One closed TariffRule hierarchy, read by a switch and by a compiler
   caption: >-
-    TariffRule is a closed abstract record with exactly four cases, FlatFee,
-    PerKilogram, Surcharge, and Sum, each capturing its own data. TariffEvaluator
-    .Evaluate(rule, shipment) walks that hierarchy with a recursive switch
-    expression and returns a decimal directly, the pattern-matching
-    alternative to a classic Visitor's double dispatch. TariffCompiler.Compile
-    (rule) walks the same hierarchy once to build a System.Linq.Expressions
-    tree, then calls Expression.Lambda<Func<Shipment,decimal>>(...).Compile()
-    to produce a reusable delegate, the GoF Interpreter pattern as originally
-    described.
+    A closed rule hierarchy with a fixed set of cases is read two ways. A
+    recursive switch expression walks it directly, the pattern-matching
+    alternative to a classic visitor, while a separate compiler walks the
+    same hierarchy once into a reusable delegate.
 
 - name: 24-pattern-match-and-compiled-tree
   section: "Ch. 24"
   title: Same tree, two readings, one assertion that they agree
   caption: >-
-    A single TariffRule tree, a Sum of a Surcharge over PerKilogram and a
-    FlatFee, is read two ways against the same Shipment: TariffEvaluator
-    .Evaluate(tree, shipment) walks it with a recursive switch expression,
-    and TariffCompiler.Compile(tree)(shipment) invokes the compiled delegate
-    built from the same tree. The test
-    Compiled_delegate_matches_the_pattern_matching_evaluator asserts
-    TariffEvaluator.Evaluate(tree, Shipment) equals compiled(Shipment), the
-    decimal from one reading matching the decimal from the other exactly.
+    A single rule tree is read two ways against the same shipment: a
+    recursive switch expression walks it directly, and a compiled delegate
+    built from the same tree is invoked instead. A test asserts that both
+    readings produce exactly the same result.
 
 - name: 24-memento-checkpoint-rollback
   section: "Ch. 24"
   title: Save into a memento, push it, pop it, Restore from the copy
   caption: >-
-    BookingOriginator.Save() captures ServiceLevel, WeightKilograms, and a
-    copy of Lines into a new BookingMemento. AmendmentCaretaker.Checkpoint
-    pushes that memento onto its own Stack<BookingMemento> without ever
-    looking inside it, and Rollback pops the most recent one and hands it to
-    BookingOriginator.Restore(memento). Restore rebuilds _lines with
-    [.. memento.Lines] rather than aliasing the memento's list, so a later
-    mutation on the restored booking can never reach back into the snapshot
-    the caretaker is still holding.
+    An originator captures its state into a new memento. A caretaker
+    pushes it onto a stack without looking inside, and pops the most
+    recent one to restore from. Restoring rebuilds its own copy rather
+    than aliasing the memento's list.
 
 - name: 25-extension-members
   section: "Ch. 25"
   title: An unowned sealed type, decorated from the outside
   caption: >-
-    CarrierShipment is a sealed vendor type with a constructor and read-only
-    WeightGrams, DestinationCode, and DeclaredValueMinorUnits properties only,
-    a stand-in for a third-party SDK this book's examples cannot modify.
-    CarrierShipmentExtensions attaches every behavior those examples need from
-    outside that file: instance extension properties WeightKilograms and
-    IsHeavy, an instance extension method WithAddedWeight, static extension
-    members Empty and FromKilograms, and an extension operator +, all without
-    CarrierShipment.cs ever changing again.
+    A sealed vendor type exposes only a constructor and read-only
+    properties, standing in for third-party code examples cannot modify. An
+    extension class attaches every needed behavior from outside that file,
+    instance members, static members, and even an operator, without the
+    vendor type ever changing.
 
 - name: 25-extension-block-and-classic-form
   section: "Ch. 25"
   title: Two member-declaration syntaxes, one target type
   caption: >-
-    CarrierShipmentExtensions declares its static extension members inside an
-    extension(CarrierShipment) block, the C# 14 form that produces Empty and
-    FromKilograms(kilograms, destinationCode). The same static class also
-    declares NormalisedDestination with the classic this CarrierShipment
-    shipment parameter, the extension-method syntax C# has always had. Both
-    forms resolve onto CarrierShipment at a call site, coexisting in the one
-    static class.
+    An extension class declares static members inside a C# 14 extension
+    block alongside an instance member written with the classic
+    extension-method syntax C# has always had. Both forms resolve onto the
+    same target type at a call site, coexisting in one static class.
 
 - name: 25-adapting-an-unowned-type
   section: "Ch. 25"
   title: Decorating a type you cannot modify, without mutating it
   caption: >-
-    CarrierShipment sits inside CarrierParcels.Vendor, a stand-in for
-    third-party SDK code this book's examples cannot change: its
-    WeightGrams, DestinationCode, and DeclaredValueMinorUnits never move
-    once constructed. CarrierShipmentExtensions attaches every behavior
-    from outside that boundary, instance extension members
-    WeightKilograms and IsHeavy that read the shipment without touching
-    it, static extension members Empty and FromKilograms that need no
-    instance at all, and the extension operator + with its Add
-    alternate. WithAddedWeight(grams) makes the no-mutation rule
-    concrete: it reads shipment.WeightGrams and returns new(...), a
-    brand-new CarrierShipment, leaving the original the vendor handed
-    over exactly as it was.
+    A vendor type's fields never move once constructed, standing in for
+    third-party code examples cannot change. An extension class attaches
+    read-only members, static members needing no instance, and an operator
+    from outside that boundary. One method returns a brand-new instance
+    rather than mutating the original.
 
 - name: 26-expression-trees
   section: "Ch. 26"
   title: One rule authored as data, read two different ways
   caption: >-
-    TariffExpressionLibrary.WeightRate is an
-    Expression<Func<RateRequest, decimal>>, the lambda r => r.WeightKilograms
-    * 2.50m captured as a tree of Expression nodes rather than compiled code.
-    RateDescriber, an ExpressionVisitor, calls Visit(rule.Body) inside
-    Describe(rule) and renders that tree as a string without ever running it.
-    Expression<T>.Compile() takes the same tree and produces a
-    Func<RateRequest, decimal> delegate, the form that actually executes the
-    rule against a RateRequest.
+    A pricing rule is captured as a tree of expression nodes rather than
+    compiled code. A visitor walks that tree and renders it as a string
+    without ever running it, while compiling the same tree produces a
+    delegate, the form that actually executes the rule.
 
 - name: 26-expressionvisitor-rewrite
   section: "Ch. 26"
   title: Visiting without evaluating, and splicing without mutating
   caption: >-
-    ReferencedPropertyCollector, an ExpressionVisitor, overrides VisitMember
-    inside Collect(rule) to record which RateRequest properties a rule
-    touches, never evaluating the tree. RateInflator overrides VisitConstant
-    inside Inflate(rule, factor) to scale every decimal constant by a factor,
-    returning a brand-new Expression<Func<RateRequest, decimal>> because
-    expression trees are immutable. PredicateComposer.And(left, right) uses a
-    ParameterReplacer to rebind right's parameter onto left's, then joins the
-    two bodies with Expression.AndAlso into a single lambda over one shared
-    parameter.
+    One visitor records which properties a rule touches without evaluating
+    the tree. Another scales every constant by a factor, returning a new
+    tree since expression trees are immutable. A third rebinds one rule's
+    parameter onto another's and joins both bodies into one lambda.
 
 - name: 26-inspecting-a-tree
   section: "Ch. 26"
   title: Reading a rule without running it, compiling one that does
   caption: >-
-    TariffExpressionLibrary.WeightRate is the same kind of
-    Expression<Func<RateRequest, decimal>> rule on both sides of this
-    figure. ReferencedPropertyCollector, an ExpressionVisitor, calls
-    Visit(rule.Body) inside Collect(rule) and its VisitMember override
-    records which RateRequest properties, such as WeightKilograms, the
-    rule touches, producing an IReadOnlyCollection<string> without ever
-    compiling or invoking the rule. Expression<Func<RateRequest,
-    decimal>>.Compile() takes the identical tree down a different path:
-    it produces a Func<RateRequest, decimal> delegate that, once
-    invoked against a RateRequest, actually executes the rule, the
-    LINQ-provider distinction between inspecting a tree as data and
-    running it as code.
+    The same expression-tree rule appears on both sides of this figure. A
+    visitor records which properties the rule touches without compiling or
+    invoking it. Compiling the identical tree instead produces a delegate
+    that executes the rule once invoked.
 
 - name: 29-static-abstract-members-and-generic-math
   section: "Ch. 29"
   title: Dispatch through the type parameter, no instance required
   caption: >-
-    IRateable<TSelf> declares static abstract Money BaseRate and static
-    abstract Money RateOf(TSelf shipment), a contract three concrete
-    shipment types each implement: ParcelShipment, FreightPallet, and
-    DocumentEnvelope. RateBook.Quote<T>(shipment), constrained to where T :
-    IRateable<T>, calls T.RateOf(shipment) and reaches whichever concrete
-    type's static member the caller supplied, entirely through the type
-    parameter, with RateBook.BaseRateOf<T>() reading T.BaseRate the same way
-    without constructing an instance at all.
+    An interface declares static abstract members that several concrete
+    shipment types each implement. A generic method constrained to that
+    interface calls the static member through its type parameter and
+    reaches whichever concrete type the caller supplied, entirely without
+    constructing an instance.
 
 - name: 29-generic-math-over-money
   section: "Ch. 29"
   title: One Sum<T> body over a custom type and a built-in one
   caption: >-
-    Money implements IAdditionOperators<Money, Money, Money>,
-    IAdditiveIdentity<Money, Money>, IMultiplyOperators<Money, decimal, Money>,
-    IComparisonOperators<Money, Money, bool>, and IComparable<Money> from
-    System.Numerics. Totals.Sum<T>(values), constrained to
-    IAdditionOperators<T, T, T> and IAdditiveIdentity<T, T>, seeds its total
-    from T.AdditiveIdentity and folds with total += value, the same method
-    body producing a Money total from an IEnumerable<Money> and a decimal
-    total from an IEnumerable<decimal>, since decimal already implements
-    INumber<decimal>.
+    A money type implements the numeric operator interfaces from the base
+    class library. A generic summing method constrained to those
+    interfaces seeds its total from the additive identity, the same body
+    working for both the money type and a built-in decimal.
 
 - name: 29-irateable-static-dispatch
   section: "Ch. 29"
   title: Three static contracts, one generic quote, one generic total
   caption: >-
-    ParcelShipment, FreightPallet, and DocumentEnvelope each implement
-    IRateable<TSelf> with their own static Money BaseRate and static
-    RateOf(shipment): 4.50m plus a per-kilogram surcharge, 35.00m plus
-    weight and per-pallet charges, and 2.00m plus a per-page fee.
-    RateBook.Quote<T>(shipment), constrained to where T : IRateable<T>,
-    calls T.RateOf(shipment) for whichever concrete type the caller
-    passes, and the resulting IEnumerable<Money> quotes feed
-    Totals.Sum<T>(values), which seeds its total from
-    T.AdditiveIdentity and folds with total += value until one Money
-    total comes out, a single generic path from three independent
-    static contracts to one aggregate.
+    Three concrete shipment types each implement their own static base
+    rate and rating formula. A generic method calls the static member for
+    whichever type the caller passes, and the resulting quotes feed a
+    generic summing method into one aggregate total.
 
 - name: 27-source-generators
   section: "Ch. 27"
   title: One manifest, one generator, no runtime registry
   caption: >-
-    carriers.manifest is an AdditionalFiles entry listing the DHLX, FDXG,
-    UPSX, and USPS rows. CarrierGatewayGenerator, an IIncrementalGenerator,
-    reads it at build time and emits one <Code>CarrierGateway adapter per
-    row, such as DHLXCarrierGateway, plus a GeneratedCarrierRegistry
-    exposing All and Find(code). That generated registry replaces a
-    hand-written runtime registry that would otherwise reflect over loaded
-    assemblies at process startup, so the trim- and AOT-compiled output
-    never performs that scan.
+    A manifest file lists carrier rows. An incremental generator reads it
+    at build time and emits one adapter per row, plus a generated
+    registry, replacing a hand-written one that would otherwise scan
+    loaded assemblies at startup.
 
 - name: 27-incremental-generator-pipeline
   section: "Ch. 27"
   title: Parsing to an equatable model so unchanged input is cached
   caption: >-
-    The incremental pipeline behind CarrierGatewayGenerator.
-    AdditionalTextsProvider surfaces carriers.manifest, Parse(text,
-    cancellationToken) turns each file into a CarrierManifestModel, a
-    readonly record struct wrapping an EquatableArray<CarrierEntry>, and
-    Collect().Select(Combine) merges every parsed manifest into one model
-    before RegisterSourceOutput(model, Emit) runs. Because
-    CarrierManifestModel compares by value through EquatableArray<T>, an
+    An incremental pipeline turns a manifest file into an equatable model
+    wrapping its parsed entries, then merges every parsed manifest into one
+    model before emitting output. Because that model compares by value, an
     unchanged manifest produces an unchanged model and the pipeline skips
-    Emit entirely.
+    emission entirely.
 
 - name: 27-generated-registry-vs-reflection
   section: "Ch. 27"
   title: A compile-time registry needs no runtime scan
   caption: >-
-    CarrierGatewayGenerator builds GeneratedCarrierRegistry from
-    carriers.manifest at compile time, statically referencing each
-    <Code>CarrierGateway adapter it emits, so CarrierDispatch.ResolveEndpoint
-    calls GeneratedCarrierRegistry.Find(code) against references that already
-    exist in source. The runtime alternative it replaces calls
-    Assembly.GetTypes() to scan loaded assemblies at process startup and
-    builds its lookup table from whatever the scan finds, a path that
-    trimming can remove types out from under and that native AOT does not
-    fully support.
+    A generator builds a registry from a manifest at compile time,
+    referencing each adapter it emits directly, so a dispatcher resolves a
+    carrier from source references alone. The alternative scans loaded
+    assemblies at startup instead, a path trimming can break and AOT does
+    not fully support.
 
 - name: 28-roslyn-analyzers
   section: "Ch. 28"
   title: Flagging decimal money on a wire contract at compile time
   caption: >-
-    MoneyAsDecimalAnalyzer, a DiagnosticAnalyzer reporting DiagnosticId
-    SHIP0001, inspects every type carrying [WireContract] during
-    compilation. RateQuoteContract and BookingChargeContract pass: both
-    model money as long minor units, AmountMinorUnits and
-    PriceMinorUnits. InternalRateCalculation carries no [WireContract],
-    so its decimal Amount is never even examined. A [WireContract] type
-    with a decimal money property is where the analyzer reports
-    SHIP0001, a build-time warning surfaced at the offending property's
-    location.
+    An analyzer inspects every type carrying a wire-contract attribute
+    during compilation. Types that model money as integer minor units
+    pass, and types without the attribute are never examined. A
+    wire-contract type with a decimal money property gets a build-time
+    warning at that property's location.
 
 - name: 28-analyzer-diagnostic-pipeline
   section: "Ch. 28"
   title: From compilation start to a reported diagnostic
   caption: >-
-    Initialize(context) registers RegisterCompilationStartAction, which
-    resolves the marker symbol for "WireContracts.WireContractAttribute"
-    through start.Compilation.GetTypeByMetadataName and returns early if
-    it is missing. Once resolved, RegisterSymbolAction(ctx =>
-    AnalyzeType(ctx, marker), SymbolKind.NamedType) runs for every named
-    type; AnalyzeType checks type.GetAttributes().Any(...) for the
-    marker, then walks the type's members for any IPropertySymbol whose
-    Type.SpecialType is System_Decimal, calling
-    context.ReportDiagnostic(Rule, location, property.Name, type.Name)
-    on each one it finds.
+    An analyzer registers a compilation-start action that resolves a
+    marker attribute and returns early if it is missing. Once resolved, it
+    registers a symbol action for every named type, checking for the
+    attribute and walking members for a decimal property to report a
+    diagnostic on.
 
 - name: 30-the-options-pattern
   section: "Ch. 30"

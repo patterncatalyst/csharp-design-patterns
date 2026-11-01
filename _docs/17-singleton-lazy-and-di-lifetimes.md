@@ -68,7 +68,7 @@ container-managed singleton, so the guarantee each one makes, and the
 guarantee each one fails to make, is visible side by side rather than
 taken on faith.
 
-{% include excalidraw.html name="17-singleton-lazy-and-di-lifetimes" caption="Figure 17.1: three ways to guarantee one shared TariffTable: ClassicTariffTable's private constructor and static Instance property, LazyTariffTable's Lazy<T> built with ExecutionAndPublication, and the DI container's AddSingleton registration resolving ITariffSource and TariffTable through GetRequiredService; a CountingTariffSource behind all three proves the load runs exactly once." %}
+{% include excalidraw.html name="17-singleton-lazy-and-di-lifetimes" caption="Figure 17.1: Three ways to guarantee one shared TariffTable: a classic private-constructor Singleton, a Lazy-wrapped instance, and a DI container singleton registration. A counting tariff source proves each one loads the table exactly once." %}
 
 ## Singleton as a lifetime, not a class trick
 
@@ -301,7 +301,7 @@ with no container and no scaffolding to work around, while the sharing
 guarantee production code relies on lives entirely in the registration,
 not the type.
 
-{% include excalidraw.html name="17-di-lifetime-resolution" caption="Figure 17.2: A singleton resolution returns the identical TariffTable every time; a transient CountingTariffSource returns a new instance every call; a scoped CountingTariffSource returns the same instance within one scope and a different one in the next. Registering ITariffSource as scoped under a singleton LazyTariffTable and building the provider with ValidateScopes = true turns that captive dependency into an InvalidOperationException at resolution time, with LoadCount never exceeding one." %}
+{% include excalidraw.html name="17-di-lifetime-resolution" caption="Figure 17.2: A singleton resolution always returns the same TariffTable; transient and scoped registrations return new or per-scope instances. Resolving a singleton that depends on a scoped service throws instead of silently capturing it." %}
 
 ## The captive-dependency pitfall
 
@@ -428,25 +428,27 @@ for a service whose entire purpose depends on the table being ready, where
 loading it during startup and failing fast if it cannot load is the safer
 shape.
 
-> **AI sidebar.** Ask an AI pairing partner for "a thread-safe singleton"
-> in C# and a common answer is still the double-checked-locking pattern
-> from well before `Lazy<T>` existed in the base class library: a nullable
-> static field, a null check, a `lock` statement, a second null check
-> inside the lock, then the assignment. That shape compiles and usually
-> works, but it reimplements exactly what `Lazy<T>` with
-> `LazyThreadSafetyMode.ExecutionAndPublication` already does, tested and
-> maintained as part of the runtime, with none of the subtle ordering
-> bugs a hand-rolled double check can introduce if a field read gets
-> reordered relative to its write. The same prompt pattern sometimes
-> produces a static-mutable Singleton for a type that a test later needs
-> to substitute, a cache, a clock, a configuration source, with no
-> constructor parameter anywhere for a test to inject a fake. Check a
-> generated singleton against two questions this chapter answers directly:
-> does `Lazy<T>` already give the same guarantee with far less code to
-> review, and will any test, sandbox, or second consumer ever need to
-> supply something other than the one baked-in implementation, which is
-> exactly what a DI singleton registration keeps open and a static field
-> forecloses.
+<blockquote class="ai-sidebar" markdown="1">
+Ask an AI pairing partner for "a thread-safe singleton"
+in C# and a common answer is still the double-checked-locking pattern
+from well before `Lazy<T>` existed in the base class library: a nullable
+static field, a null check, a `lock` statement, a second null check
+inside the lock, then the assignment. That shape compiles and usually
+works, but it reimplements exactly what `Lazy<T>` with
+`LazyThreadSafetyMode.ExecutionAndPublication` already does, tested and
+maintained as part of the runtime, with none of the subtle ordering
+bugs a hand-rolled double check can introduce if a field read gets
+reordered relative to its write. The same prompt pattern sometimes
+produces a static-mutable Singleton for a type that a test later needs
+to substitute, a cache, a clock, a configuration source, with no
+constructor parameter anywhere for a test to inject a fake. Check a
+generated singleton against two questions this chapter answers directly:
+does `Lazy<T>` already give the same guarantee with far less code to
+review, and will any test, sandbox, or second consumer ever need to
+supply something other than the one baked-in implementation, which is
+exactly what a DI singleton registration keeps open and a static field
+forecloses.
+</blockquote>
 
 ## For deeper coverage
 

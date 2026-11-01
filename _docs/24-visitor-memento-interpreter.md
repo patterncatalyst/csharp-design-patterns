@@ -75,7 +75,7 @@ tree-walking interpreter used to take a class hierarchy to express, and a
 switch expression over four record cases is exactly as many lines as the
 operation itself, not a class hierarchy sized for one.
 
-{% include excalidraw.html name="24-visitor-memento-interpreter" caption="Figure 24.1: TariffRule is a closed record hierarchy with four cases, FlatFee, PerKilogram, Surcharge, and Sum. TariffEvaluator.Evaluate reads it with a recursive switch expression and returns a decimal directly, the pattern-matching alternative to a classic Visitor's double dispatch. TariffCompiler.Compile reads the same hierarchy into a System.Linq.Expressions tree and compiles it to a reusable Func<Shipment, decimal> delegate, the GoF Interpreter pattern as originally described." %}
+{% include excalidraw.html name="24-visitor-memento-interpreter" caption="Figure 24.1: TariffRule's closed hierarchy of four cases gets read two ways: TariffEvaluator walks it with a recursive switch expression, pattern matching standing in for Visitor's double dispatch, while TariffCompiler compiles the same tree into a reusable delegate." %}
 
 ## The real Interpreter: a closed grammar compiled to a delegate
 
@@ -262,7 +262,7 @@ reading a caller reaches for, pattern-matching evaluation for a one-off
 calculation or a compiled delegate for a tariff rule applied across a rating
 run, the answer does not depend on which one was chosen.
 
-{% include excalidraw.html name="24-pattern-match-and-compiled-tree" caption="Figure 24.2: The same TariffRule tree, a Sum of a Surcharge over a PerKilogram and a FlatFee, read two ways against the same Shipment. TariffEvaluator.Evaluate walks it with a recursive switch expression, and TariffCompiler.Compile(tree)(shipment) invokes the compiled delegate built from the same tree. Compiled_delegate_matches_the_pattern_matching_evaluator asserts the two decimals are equal." %}
+{% include excalidraw.html name="24-pattern-match-and-compiled-tree" caption="Figure 24.2: The same TariffRule tree evaluated two independent ways, a pattern-matching switch expression and a compiled delegate built from the identical tree, produces matching decimals against the same shipment." %}
 
 ## Memento: snapshot, checkpoint, and rollback
 
@@ -399,7 +399,7 @@ taken before it ran. `Rollback_with_no_checkpoint_throws` confirms calling
 `InvalidOperationException` rather than returning silently or indexing an
 empty stack.
 
-{% include excalidraw.html name="24-memento-checkpoint-rollback" caption="Figure 24.3: BookingOriginator.Save() captures ServiceLevel, WeightKilograms, and a copy of Lines into a new BookingMemento. AmendmentCaretaker.Checkpoint pushes that memento onto its own Stack<BookingMemento> without ever looking inside it, and Rollback pops the most recent one and hands it to BookingOriginator.Restore(memento), which rebuilds _lines from the memento's copy rather than aliasing it." %}
+{% include excalidraw.html name="24-memento-checkpoint-rollback" caption="Figure 24.3: BookingOriginator.Save captures its state into a BookingMemento, and AmendmentCaretaker pushes checkpoints onto its own stack without ever looking inside one. Rollback pops the most recent checkpoint and restores it, rebuilding state from a copy rather than an alias." %}
 
 ## Build, run, observe
 
@@ -475,24 +475,26 @@ flow with a short, managed history; an unbounded one needs an
 eviction policy the plain `Stack<BookingMemento>` in this example does not
 provide.
 
-> **AI sidebar.** Asked to add "a way to undo this," an AI pairing partner
-> will sometimes reach for a full command-based undo stack, with an
-> `IUndoableAction` interface and a history of action objects, for a problem
-> that is really just capturing and restoring an originator's own state, the
-> shape `BookingOriginator.Save()` and `Restore()` already cover in two
-> methods. A related suggestion defensively deep-clones every field a
-> memento captures, writing a recursive copy routine for `BookingLine` even
-> though `BookingLine` is an immutable record and a shallow list copy is
-> already sufficient, adding cloning logic that protects against a mutation
-> the type system already rules out. On the Interpreter side, a generated
-> answer can reach for `System.Linq.Expressions` and a compiled delegate for
-> a tariff rule that will only ever be evaluated once, paying the cost of
-> building and compiling a tree to save nothing over a direct
-> `TariffEvaluator.Evaluate` call. Check a generated answer against what
-> this chapter built: compile a rule when it will run many times
-> against many shipments, evaluate it directly with pattern matching when it
-> will not, and let a memento's own record immutability do the isolation
-> work before reaching for a hand-written deep clone.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to add "a way to undo this," an AI pairing partner
+will sometimes reach for a full command-based undo stack, with an
+`IUndoableAction` interface and a history of action objects, for a problem
+that is really just capturing and restoring an originator's own state, the
+shape `BookingOriginator.Save()` and `Restore()` already cover in two
+methods. A related suggestion defensively deep-clones every field a
+memento captures, writing a recursive copy routine for `BookingLine` even
+though `BookingLine` is an immutable record and a shallow list copy is
+already sufficient, adding cloning logic that protects against a mutation
+the type system already rules out. On the Interpreter side, a generated
+answer can reach for `System.Linq.Expressions` and a compiled delegate for
+a tariff rule that will only ever be evaluated once, paying the cost of
+building and compiling a tree to save nothing over a direct
+`TariffEvaluator.Evaluate` call. Check a generated answer against what
+this chapter built: compile a rule when it will run many times
+against many shipments, evaluate it directly with pattern matching when it
+will not, and let a memento's own record immutability do the isolation
+work before reaching for a hand-written deep clone.
+</blockquote>
 
 ## For deeper coverage
 

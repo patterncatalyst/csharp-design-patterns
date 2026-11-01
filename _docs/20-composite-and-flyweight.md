@@ -80,7 +80,7 @@ each leaf carries is the Flyweight: `PortCodeRegistry`, and its commodity
 counterpart `CommodityCodeRegistry`, each intern one instance per code and
 hand that same instance to every parcel that names it.
 
-{% include excalidraw.html name="20-composite-and-flyweight" caption="Figure 20.1: IConsignmentNode gives ShipmentParcel and Consolidation the same TotalWeightKilograms and Parcels() surface, so a Consolidation sums and flattens its children recursively without ever checking whether a child is a leaf or another consolidation; PortCodeRegistry and CommodityCodeRegistry each build a FrozenDictionary once from a fixed seed set and hand back the one interned PortCode or CommodityCode instance a code resolves to, so every parcel naming the same port or commodity points at the same shared object." %}
+{% include excalidraw.html name="20-composite-and-flyweight" caption="Figure 20.1: A shared node interface lets a parcel leaf and a consolidation branch answer total weight and parcel listing the same way, recursing through any depth of nesting. Two registries intern shared port and commodity codes." %}
 
 ## Composite: one interface for a leaf and a branch
 
@@ -308,7 +308,7 @@ mirror all four against `CommodityCodeRegistry`, down to
 than the port registry throws, so a caller catching one never accidentally
 swallows the other.
 
-{% include excalidraw.html name="20-flyweight-frozen-pool" caption="Figure 20.2: PortCodeRegistry and CommodityCodeRegistry each build their lookup table once with ToFrozenDictionary into a FrozenDictionary<string, PortCode> or a FrozenDictionary<string, CommodityCode>, then serve every later lookup from that same structure; a known code returns the identical interned instance every time, and an unrecognized code throws UnknownPortCodeException or UnknownCommodityCodeException instead of a stale or default value." %}
+{% include excalidraw.html name="20-flyweight-frozen-pool" caption="Figure 20.2: Port and commodity code registries each build a frozen lookup table once and serve every later lookup from it, returning the identical interned instance for a known code and throwing for an unrecognized one." %}
 
 ## Build, run, observe
 
@@ -384,28 +384,30 @@ the same moment. A value that needs to vary per use belongs on the object
 using it, a field on `ShipmentParcel` itself or alongside it, not folded
 into the interned instance every unrelated parcel also points at.
 
-> **AI sidebar.** Asked to model a shipment's parcels, an AI pairing
-> partner will sometimes produce a full Composite tree, a node interface,
-> a leaf type, and a branch type, for data the request never described as
-> nesting at all: one shipment with a flat list of parcels and no grouping
-> step anywhere between a parcel and the shipment it belongs to. The tree
-> compiles and the single-level case runs through it correctly, since a
-> one-item `Consolidation` recurses exactly once, but every call on it now
-> walks an interface and a `SelectMany` chain to answer a question a
-> direct `Sum` over a list already answered. A second common suggestion,
-> asked to share a repeated value like a port or a commodity, is a
-> registry built correctly at first and then widened later to let a
-> caller update a cached entry in place, a `SetCongestionLevel` method
-> added straight onto `PortCode`, once some other feature needs a
-> port-specific value to change. That addition reintroduces the exact bug
-> Flyweight is built to avoid: mutating the one shared `PortCode` instance
-> for Rotterdam changes what every parcel pointing at it sees, including
-> parcels that have nothing to do with whatever shipment triggered the
-> update. Check a generated registry against the question this chapter
-> answers directly: does the value being interned ever need to change
-> independently per use, and if it does, that value does not belong on
-> the shared instance at all, no matter how convenient one more property
-> on an already-shared object looks in the moment.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to model a shipment's parcels, an AI pairing
+partner will sometimes produce a full Composite tree, a node interface,
+a leaf type, and a branch type, for data the request never described as
+nesting at all: one shipment with a flat list of parcels and no grouping
+step anywhere between a parcel and the shipment it belongs to. The tree
+compiles and the single-level case runs through it correctly, since a
+one-item `Consolidation` recurses exactly once, but every call on it now
+walks an interface and a `SelectMany` chain to answer a question a
+direct `Sum` over a list already answered. A second common suggestion,
+asked to share a repeated value like a port or a commodity, is a
+registry built correctly at first and then widened later to let a
+caller update a cached entry in place, a `SetCongestionLevel` method
+added straight onto `PortCode`, once some other feature needs a
+port-specific value to change. That addition reintroduces the exact bug
+Flyweight is built to avoid: mutating the one shared `PortCode` instance
+for Rotterdam changes what every parcel pointing at it sees, including
+parcels that have nothing to do with whatever shipment triggered the
+update. Check a generated registry against the question this chapter
+answers directly: does the value being interned ever need to change
+independently per use, and if it does, that value does not belong on
+the shared instance at all, no matter how convenient one more property
+on an already-shared object looks in the moment.
+</blockquote>
 
 ## For deeper coverage
 

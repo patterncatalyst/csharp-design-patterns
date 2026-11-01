@@ -370,23 +370,25 @@ whole batch finishes. Plumbing that nothing reads on one end and nothing
 writes on the other should come out of the signature rather than stay as
 an unused parameter implying a capability the method does not have.
 
-> **AI sidebar.** Asked to make a slow method "async," an AI pairing
-> partner will sometimes wrap a purely synchronous computation in
-> `Task.Run` and return the resulting `Task<TResult>`, turning a
-> computation with no I/O at all into one that burns a thread-pool thread
-> to produce a result that was already available without awaiting
-> anything. A related suggestion adds a `CancellationToken` parameter to
-> satisfy the TAP shape and then never calls `ThrowIfCancellationRequested`
-> or passes the token into anything awaited, which compiles cleanly and
-> passes every test that never cancels while silently failing the one that
-> does, exactly the gap `DispatchAsyncTests.DispatchAsync_honours_a_
-> cancelled_token` exists to catch. Check a generated async method against
-> the same two questions this chapter asked of `ICarrierGateway`: does the
-> work need to run asynchronously at all, or would `ValueTask<TResult>`,
-> or no `Task` at all, serve it better, and does every
-> `CancellationToken` or `IProgress<T>` parameter get checked or called
-> somewhere in the body, or is it a parameter that only looks like support
-> for a capability the method does not offer.
+<blockquote class="ai-sidebar" markdown="1">
+Asked to make a slow method "async," an AI pairing
+partner will sometimes wrap a purely synchronous computation in
+`Task.Run` and return the resulting `Task<TResult>`, turning a
+computation with no I/O at all into one that burns a thread-pool thread
+to produce a result that was already available without awaiting
+anything. A related suggestion adds a `CancellationToken` parameter to
+satisfy the TAP shape and then never calls `ThrowIfCancellationRequested`
+or passes the token into anything awaited, which compiles cleanly and
+passes every test that never cancels while silently failing the one that
+does, exactly the gap `DispatchAsyncTests.DispatchAsync_honours_a_
+cancelled_token` exists to catch. Check a generated async method against
+the same two questions this chapter asked of `ICarrierGateway`: does the
+work need to run asynchronously at all, or would `ValueTask<TResult>`,
+or no `Task` at all, serve it better, and does every
+`CancellationToken` or `IProgress<T>` parameter get checked or called
+somewhere in the body, or is it a parameter that only looks like support
+for a capability the method does not offer.
+</blockquote>
 
 ## For deeper coverage
 
