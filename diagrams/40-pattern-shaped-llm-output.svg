@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="40" y="90" width="220" height="90" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="150.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">AI-generated draft</text>
+<text x="150.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">asked for a freight-rate calculator</text>
+<rect x="320" y="40" width="420" height="200" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="530.0" y="115.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Strategy + Factory tower</text>
+<text x="530.0" y="132.5" font-size="11.5" fill="#555555" text-anchor="middle">IRateComponent, IRateComponentFactory</text>
+<text x="530.0" y="147.5" font-size="11.5" fill="#555555" text-anchor="middle">BaseRateComponent, WeightSurchargeComponent</text>
+<text x="530.0" y="162.5" font-size="11.5" fill="#555555" text-anchor="middle">FuelLevyComponent, StandardRateComponentFactory</text>
+<text x="530.0" y="177.5" font-size="11.5" fill="#555555" text-anchor="middle">RateEngine</text>
+<rect x="320" y="320" width="420" height="80" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5"/>
+<text x="530.0" y="358.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Code review asks</text>
+<text x="530.0" y="375.0" font-size="11.5" fill="#555555" text-anchor="middle">what is the second rating scheme?</text>
+<rect x="320" y="440" width="420" height="80" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="530.0" y="478.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">RateCalculator.Quote</text>
+<text x="530.0" y="495.0" font-size="11.5" fill="#555555" text-anchor="middle">three arithmetic steps, no interface, no factory</text>
+<path d="M260,135 L320,140" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="296.0" y="131.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">generates</text>
+<text x="296.0" y="131.5" font-size="11" fill="#555" text-anchor="middle">generates</text>
+<path d="M530,240 L530,320" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="536.0" y="274.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">raises a question</text>
+<text x="536.0" y="274.0" font-size="11" fill="#555" text-anchor="middle">raises a question</text>
+<path d="M530,400 L530,440" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="536.0" y="414.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">finds none, collapses to</text>
+<text x="536.0" y="414.0" font-size="11" fill="#b8650a" text-anchor="middle">finds none, collapses to</text>
+<text x="480" y="20" font-size="11" fill="#888" text-anchor="middle" font-weight="700">One review question collapses the AI-generated tower</text>
+<text x="480" y="545" font-size="11" fill="#888" text-anchor="middle">The draft optimizes for a second rating scheme nobody asked for; the review removes it.</text>
+</svg>

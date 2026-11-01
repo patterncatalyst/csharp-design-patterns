@@ -1,0 +1,15 @@
+<!-- Chapter 40 example: the same freight rate quote computed two ways, a
+     right-sized calculation and an over-abstracted Strategy+Factory tower
+     built for a single concrete use, to make over-abstraction visible as an
+     anti-pattern rather than merely described. TargetFramework, LangVersion,
+     Nullable, etc. are inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);FreightRating.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+</Project>

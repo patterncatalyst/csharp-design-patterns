@@ -654,3 +654,52 @@
     DispatchAsync returns a Task because it awaits real work, while
     IsReachableAsync returns an already-completed ValueTask on its usual
     synchronous path, avoiding an allocation for work that never went async.
+
+- name: 39-shortcut-patterns
+  section: "Ch. 39"
+  title: One frozen lookup replaces a class-per-case hierarchy
+  caption: >-
+    DocumentDispatcher.Render looks up a DocumentKind in a FrozenDictionary
+    built once at startup and calls the matching renderer directly, with no
+    per-kind subclass or switch to maintain.
+
+- name: 39-dispatch-table-vs-hierarchy
+  section: "Ch. 39"
+  title: A dispatch table beside the hierarchy it replaces
+  caption: >-
+    The same five document kinds can route through one frozen lookup table
+    or through an interface with a class per kind and a factory. The table
+    wins when the variation is pure data.
+
+- name: 39-frozen-table-built-once
+  section: "Ch. 39"
+  title: A frozen table built once, shared by every dispatcher
+  caption: >-
+    A seed dictionary of document kinds to renderer methods is frozen once
+    into the shared Handlers table, and every DocumentDispatcher instance
+    reads that one table instead of rebuilding its own copy.
+
+- name: 40-anti-patterns-and-pattern-misuse
+  section: "Ch. 40"
+  title: Two paths, one identical freight quote
+  caption: >-
+    A four-type component tower with a factory and an interface computes the
+    same freight quote as one static method. Both take the same RateRequest
+    and return the identical result.
+
+- name: 40-right-sizing-the-abstraction
+  section: "Ch. 40"
+  title: Collapsing the component tower to one calculation
+  caption: >-
+    Seven cooperating types fold into a three-line static method once the
+    Strategy and Factory machinery is removed, because this scenario has
+    never needed a second rating scheme.
+
+- name: 40-pattern-shaped-llm-output
+  section: "Ch. 40"
+  title: One review question collapses the AI-generated tower
+  caption: >-
+    Asked for a freight-rate calculator, an AI assistant drafts the full
+    Strategy and Factory tower. A review asks what the second rating scheme
+    is, finds none, and collapses it to RateCalculator.Quote's three-line
+    static method.
