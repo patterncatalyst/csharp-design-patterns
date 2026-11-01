@@ -1,0 +1,22 @@
+<!-- Chapter 35 example: Monitor Object and Active Object coordinating
+     concurrent access to a stowage plan. A lock-guarded monitor (Stage 1), an
+     async-aware semaphore gate (Stage 3), and an Active Object scheduled over
+     a bounded System.Threading.Channels.Channel<T> (Stage 4) all wrap the
+     same non-thread-safe servant. Pure BCL: System.Threading.Channels ships
+     in the shared framework, so no runtime package is referenced.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);StowageCoordination.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="StowageCoordination.Tests" />
+  </ItemGroup>
+
+</Project>

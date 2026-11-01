@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="StowageCoordination.csproj" />
+  <Project Path="StowageCoordination.Tests/StowageCoordination.Tests.csproj" />
+</Solution>
