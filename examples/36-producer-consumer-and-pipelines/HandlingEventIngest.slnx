@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="HandlingEventIngest.csproj" />
+  <Project Path="HandlingEventIngest.Tests/HandlingEventIngest.Tests.csproj" />
+</Solution>

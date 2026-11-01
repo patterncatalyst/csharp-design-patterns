@@ -1,0 +1,21 @@
+<!-- Chapter 36 example: a bounded Producer-Consumer pipeline for
+     handling-event ingest, built over System.Threading.Channels. The pattern
+     is Producer-Consumer; the mechanism is a bounded Channel<T> with a fixed
+     pool of consumer tasks. TargetFramework, LangVersion, Nullable, etc. are
+     inherited from examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);HandlingEventIngest.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Kept consistent with the other examples' test-visibility seam, even
+         though every member the tests exercise here is already public. -->
+    <InternalsVisibleTo Include="HandlingEventIngest.Tests" />
+  </ItemGroup>
+
+</Project>
