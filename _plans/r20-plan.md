@@ -101,4 +101,54 @@ Iteration: POSA2 via /bibliography/ + MS Learn (no new row); jekyll clean; diagr
 
 ## r20 verification log
 
-<!-- Opus fills this in at Wave D. -->
+Validated 2026-11-01 (Opus, adversarial, branch `release/r20`). Verdict: **PASS**.
+
+### Determinism (#1 gate)
+- ch33 `dotnet test --solution SailingBookings.slnx` x3: total 6 / failed 0 every run (857/740/757 ms). **MET**
+- ch34 `dotnet test --solution ThreadSafeTariffs.slnx` x3: total 6 / failed 0 every run (800/748/729 ms). **MET**
+- Flaky-primitive grep (`Thread.Sleep|Task.Delay|DateTime.Now|DateTime.UtcNow|Stopwatch|ThreadPool.SetMinThreads|ModuleInitializer`) across both `.cs` trees: 0 hits. **MET**
+- ch33 test bodies read: `A_thousand_bookings_suspend_concurrently_without_a_thread_each` asserts `ArrivedCount==1000`, `DistinctPreAwaitThreadCount==1`, all tasks incomplete before `Release()`, 1000 receipts after; gate is `TaskCompletionSource(RunContinuationsAsynchronously)` + `Interlocked` arrival + `ConcurrentDictionary` pre-await thread capture; distinct-sequence test uses `{1..1000}` HashSet; `HasCapacityAsync` test checks `IsCompletedSuccessfully` before awaiting. **MET**
+- ch34 Barrier build-once tests (Lazy + Lock) assert `BuildCount==1` + `Assert.Same`; cached-exception test uses `Assert.Same` on the rethrown instance; static singleton asserts reference identity only. **MET**
+  - NIT (non-blocking): concurrency tests use `Barrier(16)`, not the plan's `Barrier(64)`. Functionally equivalent, deterministic across 3 runs; invariant holds regardless of race manifestation.
+
+### Build / test / site
+- `scripts/build.sh`: exit 0, 39 "Build succeeded", 0 Warning(s) / 0 Error(s) everywhere; both new examples (`SailingBookings.csproj`, `ThreadSafeTariffs.csproj`) built. ch34 `System.Threading.Lock` is synchronous (no await in lock body), compiles clean, no CS1996. **MET**
+- `scripts/verify.sh`: exit 0, all suites green; discovery globs `examples/*/*.Tests/*.csproj` so both new examples are included. **MET**
+- `bundle exec jekyll build`: exit 0, "done in 0.426 seconds", no Liquid errors (pre-existing commonmarker/prism gem-extension notices only). **MET**
+
+### Structure
+- Spine order ch33: Learning objectives → Why this matters → Figure 33.1 (after Why) → body → Build, run, observe → When not to use it → For deeper coverage. **MET** (the earlier swap is fixed)
+- Spine order ch34: same order confirmed. **MET**
+- `grep -c '<blockquote class="ai-sidebar"'` == 1 each; no inline `**AI sidebar.**`; no `{: .ai-sidebar}`. **MET**
+- `## For deeper coverage` heading == 1 each (ch34 duplicate removed). **MET**
+- `grep -c 'TODO caption'` == 0 both; `grep -c 'excalidraw.html'` == 3 both. **MET**
+- Captions keep `Figure NN.N:` prefix, 23-28 words each, no angle-bracket generics, 0 em-dash. **MET**
+
+### Figures / diagrams
+- All six embedded names resolve to `.svg` + `.excalidraw` on disk. ch33 embeds #96/#97/#98, ch34 embeds #99/#100/#101. **MET**
+- `_data/diagrams.yml`: 100 name entries; six new in chapter order under sections "Ch. 33" / "Ch. 34". **MET**
+- em-dash in the six new SVG drawn text: 0. **MET**
+
+### ch33 historical-claim accuracy
+- Cites real primary sources: `dotnet/runtimelab` #2057 "Green Thread Experiment" and #2398 "Green Thread Experiment Results". Experiment dated 2022, wound down "the following year" (2023). No fabricated blog title, no wrong date. **MET**
+
+### ch34 DCL-as-historical
+- DCL appears only as a labelled historical prose snippet ("Historical idiom (POSA2, circa 2000), shown for context, not written today"). No DCL `.cs` ships (grep for DoubleChecked/LegacyTariffRegistry in example tree: 0). **MET**
+
+### Idiomatic review
+- `lgtm-idiomatic-review` scan: 0 hits on both example trees. **MET**
+
+### Voice + prose gates
+- `lgtm-professional-voice` scan: 0 ban-tier both (ch33 13 watch-tier lines, ch34 5 watch-tier lines). **MET**
+- em-dash across both `_docs`, all new `.cs`, both READMEs, six SVGs: 0 everywhere. **MET**
+- `capstone`: 0 everywhere. **MET**
+- No-cross-language scan (java/c++/jvm/spring/rust/go/golang/goroutine) over docs, `.cs`, READMEs, SVGs, new captions: 0 genuine hits (ch33 line 223 "go asynchronous" is the verb, not the language; green-threads discussion is .NET-vs-its-own-prototype). **MET**
+- Cross-chapter: no number or title/topic dependence in either doc. **MET**
+
+### Word counts
+- Body prose (excl. code/includes/front matter/sidebar): ch33 2527, ch34 2611. Both above the 2000 floor. **MET**
+
+### Iteration mechanics
+- `.slnx` per example; four test pins (xunit.v3 4.0.2, xunit.runner.visualstudio 4.0.1, Microsoft.NET.Test.Sdk 18.11.0, NSubstitute 6.2.0); `TestingPlatformDotnetTestSupport` omitted; `InternalsVisibleTo` in each library csproj; pure BCL / no MEDI; net10.0 / C#14 inherited. **MET**
+
+No blockers. Trivial nits fixed by validator: none required. Single non-blocking nit noted above (Barrier count 16 vs planned 64).
