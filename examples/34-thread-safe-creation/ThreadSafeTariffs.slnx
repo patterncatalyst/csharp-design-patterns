@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ThreadSafeTariffs.csproj" />
+  <Project Path="ThreadSafeTariffs.Tests/ThreadSafeTariffs.Tests.csproj" />
+</Solution>

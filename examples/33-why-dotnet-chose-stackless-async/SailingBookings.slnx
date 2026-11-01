@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SailingBookings.csproj" />
+  <Project Path="SailingBookings.Tests/SailingBookings.Tests.csproj" />
+</Solution>
