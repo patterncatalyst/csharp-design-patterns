@@ -686,3 +686,12 @@
     Seven cooperating types fold into a three-line static method once the
     Strategy and Factory machinery is removed, because this scenario has
     never needed a second rating scheme.
+
+- name: 40-pattern-shaped-llm-output
+  section: "Ch. 40"
+  title: One review question collapses the AI-generated tower
+  caption: >-
+    Asked for a freight-rate calculator, an AI assistant drafts the full
+    Strategy and Factory tower. A review asks what the second rating scheme
+    is, finds none, and collapses it to RateCalculator.Quote's three-line
+    static method.

@@ -382,6 +382,8 @@ identical decimal for the identical request.
 
 ## When not to use it
 
+{% include excalidraw.html name="40-pattern-shaped-llm-output" caption="Figure 40.3: Asked for a freight-rate calculator, an AI assistant drafts the full Strategy and Factory tower. A review asks what the second rating scheme is, finds none, and collapses it to RateCalculator.Quote." %}
+
 Strategy and Factory Method pay for themselves when the thing they
 abstract over has more than one shape in the system that uses it: more
 than one rating scheme behind `IRateComponentFactory`, more than one way
