@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RateEngineSeams.csproj" />
+  <Project Path="RateEngineSeams.Tests/RateEngineSeams.Tests.csproj" />
+</Solution>

@@ -1,0 +1,25 @@
+<!-- Chapter 42 example: the same rate-quoting engine shown twice, a Legacy
+     form with every dependency baked in (a static tariff lookup, a
+     newed-up audit log, Guid.NewGuid, DateTime.UtcNow, Environment.UserName)
+     and a refactored form that breaks each dependency through a seam
+     (InternalsVisibleTo, interface extraction, constructor injection, and
+     Extract-and-Override) so it can be driven and verified under test.
+     TargetFramework, LangVersion, Nullable, etc. are inherited from
+     examples/Directory.Build.props. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- The test project lives in a subdirectory of this one; exclude its
+         sources so this library's own compile item group does not also pick
+         them up. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RateEngineDependencies.Tests/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- LaneValidation is internal, so the test project can exercise the
+         lane-validation seam directly (Test 7) without widening it to
+         public. -->
+    <InternalsVisibleTo Include="RateEngineDependencies.Tests" />
+  </ItemGroup>
+
+</Project>
