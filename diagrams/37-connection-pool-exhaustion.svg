@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="350" y="70" width="260" height="90" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="113.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">GatewayConnectionPool</text>
+<text x="480.0" y="130.0" font-size="11.5" fill="#555555" text-anchor="middle">size 2, 0 available</text>
+<rect x="40" y="70" width="260" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="170.0" y="113.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">renter 1</text>
+<text x="170.0" y="130.0" font-size="11.5" fill="#555555" text-anchor="middle">holds connection A</text>
+<rect x="660" y="70" width="260" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="790.0" y="113.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">renter 2</text>
+<text x="790.0" y="130.0" font-size="11.5" fill="#555555" text-anchor="middle">holds connection B</text>
+<rect x="350" y="220" width="260" height="90" rx="9" fill="#ffffff" stroke="#999999" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="480.0" y="263.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">renter 3</text>
+<text x="480.0" y="280.0" font-size="11.5" fill="#555555" text-anchor="middle">RentAsync awaits, incomplete</text>
+<rect x="40" y="400" width="260" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="170.0" y="443.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">renter 1</text>
+<text x="170.0" y="460.0" font-size="11.5" fill="#555555" text-anchor="middle">calls Return(connection A)</text>
+<rect x="350" y="400" width="260" height="90" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="480.0" y="443.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">renter 3</text>
+<text x="480.0" y="460.0" font-size="11.5" fill="#555555" text-anchor="middle">completes with connection A</text>
+<path d="M350,115 L300,115" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="331.0" y="109.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">rented</text>
+<text x="331.0" y="109.0" font-size="11" fill="#555" text-anchor="middle">rented</text>
+<path d="M610,115 L660,115" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="641.0" y="109.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">rented</text>
+<text x="641.0" y="109.0" font-size="11" fill="#555" text-anchor="middle">rented</text>
+<path d="M480,160 L480,220" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="486.0" y="184.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">pool exhausted</text>
+<text x="486.0" y="184.0" font-size="11" fill="#555" text-anchor="middle">pool exhausted</text>
+<path d="M480,310 L480,400" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<path d="M300,445 L350,445" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="331.0" y="439.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">wakes the parked rent</text>
+<text x="331.0" y="439.0" font-size="11" fill="#b8650a" text-anchor="middle">wakes the parked rent</text>
+<text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">A full connection pool parks a third rent until one returns</text>
+<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">A two-connection GatewayConnectionPool with both connections rented leaves a third RentAsync call incomplete. Returning one connection completes that pending rent with the exact connection that came back.</text>
+</svg>

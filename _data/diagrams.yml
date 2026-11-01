@@ -947,3 +947,51 @@
     consumer pair, linked by bounded channels. When validate slows
     down, its full channel propagates backpressure upstream to
     receive.
+
+- name: 37-pools-object-connection-arraypool
+  section: "Ch. 37"
+  title: A fixed-size connection pool and a scratch buffer pool, side by side
+  caption: >-
+    GatewayConnectionPool hands connections to renters and takes them back on
+    return, parking a renter when the pool runs out. ManifestWriter rents and
+    returns a scratch buffer from an array pool the same way.
+
+- name: 37-connection-pool-exhaustion
+  section: "Ch. 37"
+  title: A full connection pool parks a third rent until one returns
+  caption: >-
+    A two-connection GatewayConnectionPool with both connections rented leaves
+    a third RentAsync call incomplete. Returning one connection completes that
+    pending rent with the exact connection that came back.
+
+- name: 37-arraypool-buffer-reuse
+  section: "Ch. 37"
+  title: Reusing a rented buffer instead of allocating a fresh array every time
+  caption: >-
+    Renting a buffer, using it, and returning it cleared means the next rent
+    gets back the same array. Allocating a fresh array on every call instead
+    produces garbage with nothing to reuse.
+
+- name: 38-classic-gof-under-concurrency
+  section: "Ch. 38"
+  title: Four classic patterns meet concurrency around one immutable event
+  caption: >-
+    Four classic patterns, observer, iterator, decorator, and command, adapt
+    to concurrency by working from one immutable HandlingEvent that every
+    caller can share safely.
+
+- name: 38-observer-immutable-snapshot
+  section: "Ch. 38"
+  title: One immutable snapshot keeps a running notification safe from a concurrent change
+  caption: >-
+    HandlingEventHub captures one immutable snapshot of subscribers before
+    Raise iterates it, while a concurrent subscribe or unsubscribe swaps in a
+    new snapshot without disturbing the notification already in flight.
+
+- name: 38-async-iterator-feed
+  section: "Ch. 38"
+  title: Producers publish into one feed that a consumer drains until it ends
+  caption: >-
+    Producers publish HandlingEvent values into HandlingEventFeed while a
+    consumer drains it with an await foreach loop. Calling Complete ends the
+    sequence cleanly, and cancelling the token ends it early.

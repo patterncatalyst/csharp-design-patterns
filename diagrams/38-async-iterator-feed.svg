@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="60" width="200" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="120.0" y="103.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">producer</text>
+<text x="120.0" y="120.0" font-size="11.5" fill="#555555" text-anchor="middle">PublishAsync(event)</text>
+<rect x="20" y="180" width="200" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="120.0" y="223.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">producer</text>
+<text x="120.0" y="240.0" font-size="11.5" fill="#555555" text-anchor="middle">PublishAsync(event)</text>
+<rect x="20" y="300" width="200" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="120.0" y="343.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">producer</text>
+<text x="120.0" y="360.0" font-size="11.5" fill="#555555" text-anchor="middle">PublishAsync(event)</text>
+<rect x="370" y="150" width="220" height="140" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="480.0" y="210.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">HandlingEventFeed</text>
+<text x="480.0" y="227.5" font-size="11.5" fill="#555555" text-anchor="middle">an async sequence backed</text>
+<text x="480.0" y="242.5" font-size="11.5" fill="#555555" text-anchor="middle">by an unbounded channel</text>
+<rect x="740" y="180" width="200" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="840.0" y="223.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">consumer</text>
+<text x="840.0" y="240.0" font-size="11.5" fill="#555555" text-anchor="middle">drains via await foreach</text>
+<rect x="120" y="430" width="320" height="80" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="280.0" y="468.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">Complete() called</text>
+<text x="280.0" y="485.0" font-size="11.5" fill="#555555" text-anchor="middle">StreamAsync ends after the last event</text>
+<rect x="520" y="430" width="320" height="80" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="680.0" y="468.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">token cancelled</text>
+<text x="680.0" y="485.0" font-size="11.5" fill="#555555" text-anchor="middle">StreamAsync stops early</text>
+<path d="M220,105 L370,190" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M220,225 L370,220" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M220,345 L370,250" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M590,220 L740,225" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="671.0" y="216.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">yields events</text>
+<text x="671.0" y="216.5" font-size="11" fill="#b8650a" text-anchor="middle">yields events</text>
+<path d="M800,270 L320,430" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="566.0" y="344.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Complete()</text>
+<text x="566.0" y="344.0" font-size="11" fill="#555" text-anchor="middle">Complete()</text>
+<path d="M880,270 L680,430" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="786.0" y="344.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">cancelled</text>
+<text x="786.0" y="344.0" font-size="11" fill="#555" text-anchor="middle">cancelled</text>
+<text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">Producers publish into one feed that a consumer drains until it ends</text>
+<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">Producers publish HandlingEvent values into HandlingEventFeed while a consumer drains it with an await foreach loop. Calling Complete ends the sequence cleanly, and cancelling the token ends it early.</text>
+</svg>

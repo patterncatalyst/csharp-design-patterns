@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" font-family="'Red Hat Text', system-ui, sans-serif" role="img">
+<defs><marker id="a" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker><marker id="am" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8650a"/></marker></defs>
+<rect x="20" y="55" width="440" height="430" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="32" y="75" font-size="12" font-weight="700" fill="#888">connection pool</text>
+<rect x="500" y="55" width="440" height="430" rx="12" fill="#fafafa" stroke="#ddd"/>
+<text x="512" y="75" font-size="12" font-weight="700" fill="#888">scratch buffer</text>
+<rect x="40" y="90" width="160" height="360" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="120.0" y="260.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">GatewayConnectionPool</text>
+<text x="120.0" y="277.5" font-size="11.5" fill="#555555" text-anchor="middle">hands out and</text>
+<text x="120.0" y="292.5" font-size="11.5" fill="#555555" text-anchor="middle">takes back connections</text>
+<rect x="260" y="90" width="180" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="350.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">renter A</text>
+<text x="350.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">rents, then uses it</text>
+<rect x="260" y="230" width="180" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="350.0" y="273.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">renter B</text>
+<text x="350.0" y="290.0" font-size="11.5" fill="#555555" text-anchor="middle">returns when done</text>
+<rect x="260" y="370" width="180" height="90" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="350.0" y="413.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">renter C</text>
+<text x="350.0" y="430.0" font-size="11.5" fill="#555555" text-anchor="middle">parked until a return arrives</text>
+<rect x="760" y="90" width="160" height="360" rx="9" fill="#fff8ef" stroke="#e8870c" stroke-width="2"/>
+<text x="840.0" y="260.5" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ArrayPool.Shared</text>
+<text x="840.0" y="277.5" font-size="11.5" fill="#555555" text-anchor="middle">rents and reclaims</text>
+<text x="840.0" y="292.5" font-size="11.5" fill="#555555" text-anchor="middle">scratch buffers</text>
+<rect x="520" y="90" width="180" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="610.0" y="133.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ManifestWriter</text>
+<text x="610.0" y="150.0" font-size="11.5" fill="#555555" text-anchor="middle">rents a scratch buffer</text>
+<rect x="520" y="230" width="180" height="90" rx="9" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+<text x="610.0" y="273.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ManifestWriter</text>
+<text x="610.0" y="290.0" font-size="11.5" fill="#555555" text-anchor="middle">encodes into it</text>
+<rect x="520" y="370" width="180" height="90" rx="9" fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+<text x="610.0" y="413.0" font-size="13.5" font-weight="700" fill="#111111" text-anchor="middle">ManifestWriter</text>
+<text x="610.0" y="430.0" font-size="11.5" fill="#555555" text-anchor="middle">returns it, cleared</text>
+<path d="M200,135 L260,135" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="236.0" y="129.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">rent</text>
+<text x="236.0" y="129.0" font-size="11" fill="#555" text-anchor="middle">rent</text>
+<path d="M260,275 L200,275" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<text x="236.0" y="269.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">return</text>
+<text x="236.0" y="269.0" font-size="11" fill="#555" text-anchor="middle">return</text>
+<path d="M200,415 L260,415" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="236.0" y="409.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">exhausted: parks the renter</text>
+<text x="236.0" y="409.0" font-size="11" fill="#b8650a" text-anchor="middle">exhausted: parks the renter</text>
+<path d="M760,135 L700,135" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="736.0" y="129.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Rent</text>
+<text x="736.0" y="129.0" font-size="11" fill="#b8650a" text-anchor="middle">Rent</text>
+<path d="M610,180 L610,230" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M610,320 L610,370" fill="none" stroke="#555" stroke-width="2" marker-end="url(#a)"/>
+<path d="M700,415 L760,415" fill="none" stroke="#b8650a" stroke-width="2" marker-end="url(#am)"/>
+<text x="736.0" y="409.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">Return, cleared</text>
+<text x="736.0" y="409.0" font-size="11" fill="#b8650a" text-anchor="middle">Return, cleared</text>
+<text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">A fixed-size connection pool and a scratch buffer pool, side by side</text>
+<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">GatewayConnectionPool hands connections to renters and takes them back on return, parking a renter when the pool runs out. ManifestWriter rents and returns a scratch buffer from an array pool the same way.</text>
+</svg>
