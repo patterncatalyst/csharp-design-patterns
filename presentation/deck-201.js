@@ -101,7 +101,7 @@ patternSlide(
   ],
   "08-value-types-struct-span",
   "Weight and Money as readonly record structs; EdiRecordParser reading a consignment segment from a span with zero allocation.",
-  "A readonly record struct is the right shape for a quantity that should behave like a number: assigning it copies it, comparing two instances compares their values, and the compiler writes the equality members so nobody hand-rolls them. The catch every struct carries is the implicit parameterless default every .NET struct gets for free, which bypasses every constructor and every validation a type's own constructor performs; Money answers that by publishing its own safe Money.Zero rather than asking every caller to remember the trap. EdiRecordParser is a readonly ref struct specifically because only a ref struct may hold a ReadOnlySpan<char> field, and that restriction is also what keeps every instance stack-only and forces the parsing to stay synchronous and non-capturing."
+  "A readonly record struct is the right shape for a quantity that should behave like a number: assigning it copies it, comparing two instances compares their values, and the compiler writes the equality members so nobody hand-rolls them. The catch every struct carries is the implicit parameterless default every .NET struct has, which bypasses every constructor and every validation a type's own constructor performs; Money answers that by publishing its own safe Money.Zero rather than asking every caller to remember the trap. EdiRecordParser is a readonly ref struct specifically because only a ref struct may hold a ReadOnlySpan<char> field, and that restriction is also what keeps every instance stack-only and forces the parsing to stay synchronous and non-capturing."
 );
 
 {
@@ -155,7 +155,7 @@ patternSlide(
     "        // remaining fields follow the same Slice-and-TryParse shape",
     "    }",
     "}",
-  ], "A readonly ref struct can hold a ReadOnlySpan<char> field; Slice and TryParse read the segment with CultureInfo.InvariantCulture and allocate nothing on a successful parse.");
+  ], "A readonly ref struct can hold a ReadOnlySpan<char> field; Slice and TryParse read it with no allocation on a successful parse.", { fontSize: 10, y: 1.72, h: 4.95 });
   addNotes(s, "EdiRecordParser never materializes the 28-character segment as a string; it slices the span at fixed offsets and hands each slice straight to int.TryParse or decimal.TryParse, both of which accept a ReadOnlySpan<char> overload directly. CultureInfo.InvariantCulture is passed explicitly so the parse result never depends on the host machine's regional settings, a correctness requirement for EDI data rather than a performance one. The method returns false rather than throwing for a wrong-length segment, a non-numeric field, or an unrecognized currency code, so a stream of consignment records can skip a malformed line without aborting the whole file.");
 }
 
@@ -163,13 +163,13 @@ patternSlide(
   "RECORDS & IMMUTABILITY",
   "State the contract once",
   [
-    "A sealed record Consignment gets recursive value equality for free: two independently built consignments with the same Route, Weight, and reference number compare equal.",
+    "A sealed record Consignment gets recursive value equality from the compiler: two independently built consignments with the same Route, Weight, and reference number compare equal.",
     "required plus init closes a gap nullable reference types leave open: a non-nullable property can only be flagged possibly-unassigned, but required refuses to compile an initializer that omits it.",
     "A non-destructive with expression produces an amended consignment and leaves the original untouched; a nullable string? ReferenceNumber retires the instinct to reach for a do-nothing stand-in object.",
   ],
   "09-nrts-records-init-required-with",
   "Consignment as a sealed record: required and init on the invariant fields, with expressions for every amendment, string? for a legitimately absent reference number.",
-  "Consignment is a non-positional record class: every property is declared explicitly with required and init rather than through a primary constructor, so construction and later amendment read as two separate concerns. required is specifically the piece nullable reference types cannot enforce: a non-nullable property without it can still be left unassigned, with only a compiler warning to catch it, while a required property makes an incomplete object initializer a compile error. A 1994-era object model had no type-level way to mark a reference as never-absent, which is part of why a do-nothing stand-in object was the only safe shape for a legitimately missing value; here string? ReferenceNumber says plainly that absence is expected and lets the compiler's flow analysis catch an unchecked read."
+  "Consignment is a non-positional record class: every property is declared explicitly with required and init rather than through a primary constructor, so construction and later amendment read as two separate concerns. required is specifically the piece nullable reference types cannot enforce: a non-nullable property without it can still be left unassigned, with only a compiler warning to catch it, while a required property makes an incomplete object initializer a compile error. A 1994-era object model had no type-level way to mark a reference as never-absent, which is part of why a do-nothing stand-in object was the only safe shape for a legitimately missing value; here string? ReferenceNumber states that absence is expected and lets the compiler's flow analysis catch an unchecked read."
 );
 
 {
@@ -223,7 +223,7 @@ patternSlide(
     "        _disposed = true;",
     "    }",
     "}",
-  ], "ObjectDisposedException.ThrowIf guards every call after disposal; DisposeAsync returns a ValueTask and flows ConfigureAwait(false) through library code.");
+  ], "ObjectDisposedException.ThrowIf guards every call after disposal; DisposeAsync returns a ValueTask with ConfigureAwait(false).", { fontSize: 10, y: 1.72, h: 4.95 });
   addNotes(s, "ManifestWriter is sealed and owns exactly one managed IDisposable, the underlying FileStream, so it needs no finalizer and no full Dispose(bool) pattern: the full pattern exists for a subclassable type that might hold an unmanaged resource directly, and neither condition applies here. ObjectDisposedException.ThrowIf is the modern one-line guard that replaces a hand-written if-throw block at the top of every member that touches disposed state. LedgerAppender's DisposeAsync flushes and closes an async-capable StreamWriter, returning a ValueTask because disposal rarely needs to allocate a full Task, and ConfigureAwait(false) on every internal await keeps a library method from forcing a continuation back onto a captured synchronization context it does not need.");
 }
 
@@ -281,8 +281,8 @@ patternSlide(
     "        yield return new TrackingPage(pageNumber, buffer);",
     "    }",
     "}",
-  ], "Paginate throws on an invalid page size the instant it is called; PaginateIterator's yield return work only starts once a caller enumerates the result.");
-  addNotes(s, "PaginateIterator is the method the compiler actually rewrites into a state machine: every local variable, the buffer, the page number, and the position in the foreach loop, becomes a field on a compiler-generated class that implements IEnumerable<TrackingPage> and IEnumerator<TrackingPage>. Each yield return suspends execution and hands one TrackingPage back to the caller; the next MoveNext call resumes exactly where the method left off, buffer and all. Paginate itself is deliberately not an iterator method: it validates pageSize synchronously and returns the call to PaginateIterator, so a caller sees the exception immediately rather than on the first enumeration.");
+  ], "Paginate throws on an invalid page size the instant it is called; PaginateIterator's yield return work only starts once a caller enumerates the result.", { fontSize: 9, y: 1.72, h: 4.95 });
+  addNotes(s, "PaginateIterator is the method the compiler actually rewrites into a state machine: every local variable, the buffer, the page number, and the position in the foreach loop, becomes a field on a compiler-generated class that implements IEnumerable<TrackingPage> and IEnumerator<TrackingPage>. Each yield return suspends execution and hands one TrackingPage back to the caller; the next MoveNext call resumes exactly where the method left off, buffer and all. Paginate itself is not an iterator method: it validates pageSize synchronously and returns the call to PaginateIterator, so a caller sees the exception immediately rather than on the first enumeration.");
 }
 
 {
@@ -308,7 +308,7 @@ patternSlide(
     "{",
     "    Record(evt);",
     "}",
-  ], "[EnumeratorCancellation] lets .WithCancellation(token) reach the iterator's own cancellationToken parameter instead of a default, uncancellable token.");
+  ], "[EnumeratorCancellation] lets .WithCancellation(token) reach the iterator's own cancellationToken instead of a default token.");
   addNotes(s, "An async IAsyncEnumerable<T> method combines both state machines at once: it suspends across an await the way any async method does, and it yields one value at a time the way a synchronous iterator does. Without the EnumeratorCancellationAttribute on the token parameter, the compiler generates its own internal, uncancellable token for the enumerator, and a caller's .WithCancellation(token) on the consuming side would have nowhere to attach; the attribute is what wires the two together. Task.Yield stands in for the network hop a real carrier call would make, letting the example demonstrate suspension without any wall-clock delay that would make a test suite flaky.");
 }
 
@@ -356,7 +356,7 @@ patternSlide(
   [
     "EdiTryParser.TryParse reports a malformed message through its boolean return, the Framework Design Guidelines shape, never through an exception for ordinary bad input.",
     "DeclarationProcessor's CanProcess and Process form a Tester-Doer pair, though nothing stops another thread acting between a passed test and a later Process call, an atomicity gap a single Result<T> call does not have.",
-    "Result<T> carries either a value or a named Error and composes through Map, so a chain of operations never branches on IsSuccess by hand; ArgumentNullException.ThrowIfNull still guards a genuinely broken contract.",
+    "Result<T> carries either a value or a named Error and composes through Map, so a chain of operations never branches on IsSuccess by hand; ArgumentNullException.ThrowIfNull still guards a broken contract.",
   ],
   "31-try-parse-vs-result",
   "Three ways to report failure on the same declaration: Try-Parse's boolean return, Tester-Doer's CanProcess/Process pair, and Result<T>'s Success, Failure, and Map.",
@@ -418,7 +418,7 @@ patternSlide(
 // ===========================================================================
 // Section 04: C# as data
 // ===========================================================================
-divider("04", "C# as Data: Extend, Inspect, Generate, Enforce", "Treat code itself as a value the compiler can reason about",
+divider("04", "C# as Data", "Extend, inspect, generate, enforce: treat code itself as a value the compiler can reason about",
   "The last four idioms in this deck treat a piece of code, a type, an expression, or a design rule, as something another piece of code can read, extend, or produce. Extension members add behavior to a sealed vendor type without touching its source; expression trees turn a lambda into a tree of nodes a visitor can read or rewrite before anything runs; source generators and analyzers both run inside the compiler itself, one producing new code from a manifest, the other flagging a violated rule as a build diagnostic. The section closes with static abstract members and generic math, where a single algorithm runs unchanged over a custom shipment type and over a built-in numeric type.");
 
 patternSlide(
@@ -431,7 +431,7 @@ patternSlide(
   ],
   "25-extension-members",
   "Two extension blocks over the same sealed CarrierShipment vendor type: one instance-shaped, one static, plus an extension operator.",
-  "CarrierShipment stands in for a third-party carrier SDK type this codebase cannot modify: sealed, constructor and read-only properties only, owned by a vendor. The two extension blocks let CarrierShipmentExtensions add an instance-shaped surface and a static surface to that type without ever touching its source again, and because the vendor type has no setters, WithAddedWeight returns an entirely new CarrierShipment rather than mutating anything. The classic this-parameter extension method, NormalisedDestination, still earns its keep for a single standalone method; the newer extension block syntax pays off once several related members, including an operator, need to live together against the same receiver."
+  "CarrierShipment stands in for a third-party carrier SDK type this codebase cannot modify: sealed, constructor and read-only properties only, owned by a vendor. The two extension blocks let CarrierShipmentExtensions add an instance-shaped surface and a static surface to that type without ever touching its source again, and because the vendor type has no setters, WithAddedWeight returns an entirely new CarrierShipment rather than mutating anything. The classic this-parameter extension method, NormalisedDestination, still works well for a single standalone method; the newer extension block syntax pays off once several related members, including an operator, need to live together against the same receiver."
 );
 
 {
@@ -510,7 +510,7 @@ patternSlide(
     "        return node;",
     "    }",
     "}",
-  ], "Describe never calls Compile(); it only reads the nodes the compiler already built for the lambda.");
+  ], "Describe never calls Compile(); it only reads the nodes the compiler already built for the lambda.", { fontSize: 10, y: 1.72, h: 4.95 });
   addNotes(s, "RateDescriber inherits ExpressionVisitor and overrides only the node types a tariff rule actually contains, VisitBinary, VisitMember, VisitConstant, and VisitParameter, letting the base class's default traversal handle every other node shape. VisitBinary recurses into both operands before and after writing the operator symbol, which naturally produces a fully parenthesized, readable rendering of however deeply the arithmetic nests. The whole point of the example is restraint: Describe calls Visit, never Compile, so narrating a rule as text never risks running the pricing logic it describes.");
 }
 
@@ -518,9 +518,9 @@ patternSlide(
   "SOURCE GENERATORS",
   "Build the registry at build time",
   [
-    "CarrierGatewayGenerator implements IIncrementalGenerator and runs inside the compiler itself, turning a plain-text carriers.manifest file into real gateway classes before the project's own code ever compiles.",
+    "CarrierGatewayGenerator implements IIncrementalGenerator and runs inside the compiler, turning a plain-text carriers.manifest into real gateway classes at build time.",
     "The pipeline reads AdditionalTextsProvider, Parses each manifest, Collects and Combines them, then RegisterSourceOutput emits one class per carrier plus a GeneratedCarrierRegistry.",
-    "EquatableArray<CarrierEntry> lets the incremental pipeline compare an unchanged manifest by value, so an editor keystroke that does not touch the manifest reruns nothing; GeneratedCarrierRegistry.Find is called directly, with no reflection scan involved.",
+    "EquatableArray<CarrierEntry> lets the pipeline compare an unchanged manifest by value, so an edit elsewhere reruns nothing; GeneratedCarrierRegistry.Find needs no reflection scan.",
   ],
   "27-incremental-generator-pipeline",
   "AdditionalTextsProvider feeds Parse, Collect, and Combine; RegisterSourceOutput emits one carrier gateway class per manifest row plus the registry.",
@@ -635,7 +635,7 @@ patternSlide(
     "    public static Money operator +(Money left, Money right) => new(left.Amount + right.Amount);",
     "}",
   ], "This Money is a single-field readonly record struct built purely to satisfy the generic math interfaces; it carries no currency field.");
-  addNotes(s, "The self-constraint on IRateable<TSelf> is what makes RateOf callable through a bare type parameter: it tells the compiler that any T satisfying IRateable<T> also supplies a static RateOf(T) member, so Quote<T> can call T.RateOf(shipment) with the JIT specializing the call per concrete value-type T rather than paying a virtual-dispatch cost. Money's interface list is what lets it plug into any algorithm written against the BCL's generic math interfaces without that algorithm knowing Money exists; AdditiveIdentity in particular gives a generic summation a correct starting point to fold from instead of an arbitrary literal zero that might not even be the right type. This Money is deliberately minimal, one Amount field with no currency, which keeps the generic math interfaces themselves the entire point of the example rather than mixing in the validation and currency concerns a production Money type would carry.");
+  addNotes(s, "The self-constraint on IRateable<TSelf> is what makes RateOf callable through a bare type parameter: it tells the compiler that any T satisfying IRateable<T> also supplies a static RateOf(T) member, so Quote<T> can call T.RateOf(shipment) with the JIT specializing the call per concrete value-type T rather than paying a virtual-dispatch cost. Money's interface list is what lets it plug into any algorithm written against the BCL's generic math interfaces without that algorithm knowing Money exists; AdditiveIdentity in particular gives a generic summation a correct starting point to fold from instead of an arbitrary literal zero that might not even be the right type. This Money is minimal, one Amount field with no currency, which keeps the generic math interfaces themselves the entire point of the example rather than mixing in the validation and currency concerns a production Money type would carry.");
 }
 
 {
@@ -670,7 +670,7 @@ refTable(
     { code: "Source generators", name: "Idiom", purpose: "A build-time registry that survives trimming and ahead-of-time compilation, with no reflection scan at startup." },
     { code: "Analyzers", name: "Idiom", purpose: "A design rule enforced as a build diagnostic, promotable to a build failure with TreatWarningsAsErrors." },
     { code: "Static abstract / generic math", name: "Idiom", purpose: "One algorithm written once, running unchanged over a custom type and over a built-in numeric type." },
-    { code: "Records + NRT + required", name: "Idiom", purpose: "Recursive value equality, a required property, and a nullable string? retire the Null-Object reflex for a genuinely absent value." },
+    { code: "Records + NRT + required", name: "Idiom", purpose: "Recursive value equality, a required property, and a nullable string? retire the Null-Object reflex for an absent value." },
   ],
   "A quick-reference scan from idiom to what it buys. Each row names a C# 14 or .NET 10 feature covered in this deck and states the capability it hands a developer directly, in the positive, with no comparison to any other language or era beyond the temporal one this whole book measures against. Keep this slide open as a checklist when deciding whether a new piece of code reaches for one of these idioms or stays with a simpler shape."
 );
