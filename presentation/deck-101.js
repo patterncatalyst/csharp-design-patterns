@@ -140,13 +140,13 @@ patternSlide(
   "WHAT MODERN C# CHANGED",
   "What 1994 assumed",
   [
-    "The 1994 object model gave no cheap, type-safe way to pass a piece of behavior around as an ordinary value, so wrapping behavior in an object and passing the object was the only portable option available.",
-    "The same object model gave no type-level way to say a reference could never be absent; every reference was a potential null, so a method with nothing to return picked between a check at every call site or a do-nothing stand-in object.",
-    "Those two gaps, no first-class functions and no compiler-checked nullability, explain a disproportionate share of the catalogue's structural ceremony, and C# closes both directly in the language rather than asking every team to re-solve them.",
+    "No cheap, type-safe way to pass behavior as an ordinary value, so wrapping behavior in an object was the only portable option.",
+    "No type-level way to mark a reference as never-absent, so a method with nothing to return chose between a check at every call site or a do-nothing stand-in.",
+    "Those two gaps, no first-class functions and no compiler-checked nullability, drive much of the catalogue's structural ceremony. C# closes both in the language.",
   ],
   "02-what-1994-assumed-and-csharp-invalidated",
   "Three gaps the 1994 object model left open, no first-class functions, no compiler-checked nullability, and hand-rolled subscriber lists, each now closed by a C# language feature.",
-  "A developer trained only on the catalogue's abstract-class-and-factory habits reaches for an interface, a concrete class per variation, and a factory the moment a rate quote needs to vary by customer, because that was the only type-safe way to parameterize behavior under the catalogue's original constraints. In C#, the same requirement is a parameter typed as a delegate value. Writing the interface-and-factory version anyway is not more correct; it is several extra types a reviewer has to read, a test suite has to cover, and an assistant has to load into context before it can reason about a one-line change, all to resolve a force the compiler already resolves for free."
+  "A developer trained only on the catalogue's abstract-class-and-factory habits reaches for an interface, a concrete class per variation, and a factory the moment a rate quote needs to vary by customer, because that was the only type-safe way to parameterize behavior under the catalogue's original constraints. In C#, the same requirement is a parameter typed as a delegate value. Writing the interface-and-factory version anyway is not more correct; it is several extra types a reviewer has to read, a test suite has to cover, and an assistant has to load into context before it can reason about a one-line change, all to resolve a force the compiler already resolves on its own."
 );
 
 {
@@ -179,7 +179,7 @@ patternSlide(
     "",
     "Money expedited = QuoteRate(consignment,",
     "    c => c.Weight.Kilograms * ExpeditedRatePerKilogram + ExpeditedSurcharge);",
-  ], "QuoteRate has no rate-strategy interface, no concrete class per algorithm, and no factory to choose between them: the caller's lambda is the whole solution.");
+  ], "No strategy interface, no class per algorithm, no factory: the caller's lambda is the whole solution.");
   addNotes(s, "A delegate type built into the base class library encapsulates a method with one parameter and a return value, specifically so a caller does not have to define a delegate of its own; the caller passing a lambda at the call site is Strategy's force, substitutable behavior chosen by the caller, resolved with a value instead of an object graph. An interface-based Strategy still earns its structure when the algorithm needs to carry its own state across calls, implement several related operations instead of one, or be resolved by the dependency injection container under a key rather than chosen inline. Those are different forces; when the sole requirement is that the caller picks the behavior, a delegate value is the entire answer.");
 }
 
@@ -196,7 +196,7 @@ patternSlide(
     "{",
     "    Book(quote);",
     "}",
-  ], "Quote? and the compiler's flow analysis move the absent-value check into the type signature; a do-nothing stand-in survives only as a deliberate default or test fixture.");
+  ], "Quote? and flow analysis move the absent-value check into the type; a stand-in survives only as a deliberate default.");
   addNotes(s, "A non-nullable return type is a claim that a value is always present, enforced by the compiler; a nullable return type tells a caller the method sometimes has nothing to return, and the compiler warns on a dereference that has not first checked for that case. That warning is the mechanism a do-nothing stand-in object existed to make unnecessary by a different route: instead of guaranteeing every call site behaves safely by handing it a safe object that does nothing, the compiler now tells a call site directly when it is handling a possibly-absent value unsafely, before the program runs. A collaborator that wants a no-op implementation it can call unconditionally, a null audit sink used in a test double or a default configuration, still benefits from a real object that satisfies the interface and does nothing, because the goal there is eliminating a branch, not expressing possible absence.");
 }
 
@@ -215,16 +215,16 @@ patternSlide(
     "A language-expressibility gap is a candidate to dissolve into the feature that closes it; a domain-shape gap keeps earning its original structure, in modern C#, for as long as the domain keeps presenting that shape of problem.",
     "Composite is the counter-example: treating a single shipment and a consolidated shipment made of several smaller ones through the same interface is a statement about how a shipping company's domain pieces relate, not a gap any delegate type or nullable annotation closes.",
   ], { fontSize: 17 });
-  addNotes(s, "Observer, Strategy, and Null Object dissolve under this reading because the force each one resolved, broadcasting to unknown listeners, substituting behavior at a call site, representing an absent value safely, is now resolved by a construct built into the language and checked by the compiler. None of the three disappear because they were wrong when first described; they disappear because the gap they were invented to fill is not there anymore in C#. Composite fails the test in the opposite direction on purpose: no delegate type, no nullable annotation, and no other language feature changes what a consolidated shipment is or how its parts compose, which is why this book keeps Composite's original shape, in idiomatic modern syntax, while letting Observer, Strategy, and Null Object collapse.");
+  addNotes(s, "Observer, Strategy, and Null Object dissolve under this reading because the force each one resolved, broadcasting to unknown listeners, substituting behavior at a call site, representing an absent value safely, is now resolved by a construct built into the language and checked by the compiler. None of the three disappear because they were wrong when first described; they disappear because the gap they were invented to fill is not there anymore in C#. Composite fails the test in the opposite direction: no delegate type, no nullable annotation, and no other language feature changes what a consolidated shipment is or how its parts compose, which is why this book keeps Composite's original shape, in idiomatic modern syntax, while letting Observer, Strategy, and Null Object collapse.");
 }
 
 patternSlide(
   "WHAT MODERN C# CHANGED",
   "Naming patterns for teams and AI",
   [
-    "A pattern name is compressed, checkable design intent: labeling a class a Decorator around a rate quote tells a reviewer it keeps the same interface, delegates the call it does not change, and adds exactly one responsibility, before a line of the body is read.",
-    "The same compression applies below the pattern catalogue, to a domain's own vocabulary: a method named MarkCleared commits to a specific precondition, customs documentation validated, and a specific postcondition, billing may proceed, that a status code typed as a bare integer never states.",
-    "The same compression steers an AI assistant: a request that names the pattern or the lifecycle stage narrows what gets generated toward a known shape, and a name an assistant attaches to its own output is a claim to check, not a guarantee to trust.",
+    "A pattern name is compressed, checkable design intent: calling a class a Decorator says it keeps the interface, delegates the rest, and adds one responsibility, before the body is read.",
+    "The same compression works on domain vocabulary: a method named MarkCleared states a precondition (documentation validated) and a postcondition (billing may proceed) a bare status code never does.",
+    "It steers an AI assistant too: naming the pattern narrows generation toward a known shape, and a name the assistant attaches to its output is a claim to check, not a guarantee to trust.",
   ],
   "04-naming-patterns-for-teams-and-ai",
   "One pattern name, read the same way by a code reviewer and an AI assistant, carrying the same invariants both times.",
@@ -290,8 +290,8 @@ patternSlide(
     "            (running, surcharge) => running + surcharge.Apply(running, consignment));",
     "    }",
     "}",
-  ], "A new HazmatHandlingSurcharge, defined only in a test, composes alongside the shipped FuelSurcharge with zero edits to any pricing or surcharge type already shipped.");
-  addNotes(s, "SurchargedRateQuote implements the same IRateQuote interface its wrapped base pricing implements, so a caller that only knows about IRateQuote cannot tell whether it is quoting a bare calculator or one wrapped in an arbitrary stack of surcharges. The proof that this pipeline stays open for extension is a test file that defines a brand-new flat-fee surcharge nowhere in the shipped library, composes it alongside the existing fuel surcharge, and asserts on the combined total, with zero changes required to the calculator, the quote wrapper, or any surcharge that existed before the test was written. Open/Closed is not free: a surcharge abstraction costs a constructor parameter and a small amount of indirection that a single fixed fuel surcharge would not need, and paying that cost ahead of a second surcharge actually arriving is speculation, not Open/Closed design.");
+  ], "A new HazmatHandlingSurcharge, defined only in a test, composes with the shipped FuelSurcharge with zero edits to shipped code.");
+  addNotes(s, "SurchargedRateQuote implements the same IRateQuote interface its wrapped base pricing implements, so a caller that only knows about IRateQuote cannot tell whether it is quoting a bare calculator or one wrapped in an arbitrary stack of surcharges. The proof that this pipeline stays open for extension is a test file that defines a brand-new flat-fee surcharge nowhere in the shipped library, composes it alongside the existing fuel surcharge, and asserts on the combined total, with zero changes required to the calculator, the quote wrapper, or any surcharge that existed before the test was written. Open/Closed is not free: a surcharge abstraction costs a constructor parameter and a small amount of indirection that a single fixed fuel surcharge would not need, and paying that cost ahead of a second surcharge arriving is speculation, not Open/Closed design.");
 }
 
 {
@@ -315,7 +315,7 @@ patternSlide(
   ],
   "06-isp-dip-and-built-in-di",
   "ISP splits one fat carrier interface into focused role interfaces; DIP routes each consumer through those abstractions instead of a concrete gateway.",
-  "A shipping backend touches a carrier at two moments that have nothing to do with each other: a prospective customer wants a price before committing to anything, and a customer who already committed wants a shipment booked and later wants to know where it is. A rate-shopping consumer built against one fat interface still carries a constructor parameter for booking and tracking it never calls, and its test has to substitute something for both anyway because the compiler requires the full interface before anything type-checks. Segregating into a rates role and a tracking role, recomposed into one gateway interface only where an implementer genuinely needs both, means a quote-only freight broker integration now implements just the rates role and has nothing left to throw from or fake."
+  "A shipping backend touches a carrier at two moments that have nothing to do with each other: a prospective customer wants a price before committing to anything, and a customer who already committed wants a shipment booked and later wants to know where it is. A rate-shopping consumer built against one fat interface still carries a constructor parameter for booking and tracking it never calls, and its test has to substitute something for both anyway because the compiler requires the full interface before anything type-checks. Segregating into a rates role and a tracking role, recomposed into one gateway interface only where an implementer needs both, means a quote-only freight broker integration now implements just the rates role and has nothing left to throw from or fake."
 );
 
 {
@@ -416,7 +416,7 @@ divider("05", "Choosing Well", "Forces before names",
     "Ask an assistant to apply SOLID and a common result is an interface for every class regardless of whether a second implementation exists, because that shape appears constantly in material that treats the principles as a checklist.",
     "Hold generated code to the same forces test a human author's diff gets: does a proposed split follow a real difference in who changes the code and why, and does a generated implementation honor the contract its interface promises, not merely its method signature.",
   ], { fontSize: 17 });
-  addNotes(s, "Interface Segregation and Dependency Inversion both earn their cost only when a second implementation or a second capability-shaped consumer is actually in the picture; splitting a two-method interface into two single-method interfaces when every consumer already needs every member produces a maze of role types for no consumer's benefit. An assistant asked to add a fuel surcharge as a Decorator sometimes generates the full apparatus, a new interface and a concrete wrapper class, when the codebase's own convention for the same shape is a single delegate field; naming the pattern tells the assistant what contract to honor, not which mechanism satisfies that contract most directly. A reviewer who knows both the pattern and the team's idiom for it catches the oversized version before it merges, the same way a reviewer catches a hand-rolled loop where one built-in query operator would do the same job.");
+  addNotes(s, "Interface Segregation and Dependency Inversion both earn their cost only when a second implementation or a second capability-shaped consumer is in the picture; splitting a two-method interface into two single-method interfaces when every consumer already needs every member produces a maze of role types for no consumer's benefit. An assistant asked to add a fuel surcharge as a Decorator sometimes generates the full apparatus, a new interface and a concrete wrapper class, when the codebase's own convention for the same shape is a single delegate field; naming the pattern tells the assistant what contract to honor, not which mechanism satisfies that contract most directly. A reviewer who knows both the pattern and the team's idiom for it catches the oversized version before it merges, the same way a reviewer catches a hand-rolled loop where one built-in query operator would do the same job.");
 }
 
 // ===========================================================================
