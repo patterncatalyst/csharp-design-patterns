@@ -388,7 +388,7 @@ a second implementation actually exist or is coming, does a test need a
 substitute, and does this process have a request-like boundary that
 justifies anything narrower than singleton. A generated `IRateGateway`
 wrapping one C# class with one call site, or a scoped registration inside a
-tool that runs start to finish with no request in sight, is solving a
+tool that runs start to finish with no request to serve, is solving a
 wiring problem the codebase does not have yet.
 </blockquote>
 

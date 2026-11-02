@@ -158,7 +158,7 @@ implementation on either side of the decision.
 rewrite's seams and structure many times over; code that has not changed in
 two years may never recoup that investment no matter how clean the result
 would be. A rate engine quoting one rule set for a stable set of lanes, with
-no pending change in sight, is a weak candidate for a ground-up rewrite
+no pending change, is a weak candidate for a ground-up rewrite
 regardless of how dated its internals read, because nothing is coming that
 would exploit a cleaner shape.
 
