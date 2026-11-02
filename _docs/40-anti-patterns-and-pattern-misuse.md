@@ -409,7 +409,7 @@ over-abstracting reads as building it right from the start; neither
 label checks the one fact that decides which approach fits here, whether
 a second occurrence of this thing exists or is planned with enough
 certainty to act on now. For `FreightRating`, today's answer is a single
-rating scheme with no second one in sight, which is why this book ships
+rating scheme with no second one planned, which is why this book ships
 `RateCalculator.Quote` as the form a reader should reach for, keeping
 `RateEngine` and its supporting types around as what a second scheme
 would plug into, not as the default shape a one-off calculation should

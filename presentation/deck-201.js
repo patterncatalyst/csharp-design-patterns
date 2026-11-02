@@ -451,6 +451,10 @@ patternSlide(
     "        public static CarrierShipment operator +(CarrierShipment left, CarrierShipment right) =>",
     "            new(left.WeightGrams + right.WeightGrams, left.DestinationCode,",
     "                left.DeclaredValueMinorUnits + right.DeclaredValueMinorUnits);",
+    "",
+    "        // CA2225: every operator overload ships a named alternate.",
+    "        public static CarrierShipment Add(CarrierShipment left, CarrierShipment right) =>",
+    "            left + right;",
     "    }",
     "",
     "    extension(CarrierShipment)",
@@ -460,7 +464,7 @@ patternSlide(
     "            new(decimal.ToInt32(decimal.Round(kilograms * 1000m)), destinationCode, 0);",
     "    }",
     "}",
-  ], "The vendor's CarrierShipment class is never edited; every added member lives in CarrierShipmentExtensions instead.");
+  ], "The vendor's CarrierShipment class is never edited; every added member lives in CarrierShipmentExtensions instead.", { fontSize: 10 });
   addNotes(s, "The first extension block takes a shipment receiver and adds instance-shaped members that read exactly like real instance properties and methods at the call site; WithAddedWeight constructs a brand-new CarrierShipment because the vendor type offers nothing to mutate. The second block has no receiver parameter at all, which is what makes Empty and FromKilograms static members of CarrierShipment rather than of some separate helper class. The extension operator plus a named Add alternate follows the same convention every operator overload in this book follows, because an analyzer rule expects a named method alongside any custom operator so a caller in a language or context that cannot use operator syntax still has a way to call it.");
 }
 
@@ -650,7 +654,7 @@ patternSlide(
 // ===========================================================================
 {
   const s = S();
-  addContentTitle(s, "CLOSING", "The idiomatic C# 14 / .NET 10 toolkit, in one pass");
+  addContentTitle(s, "CLOSING", "The idiomatic C# 14 and .NET 10 toolkit");
   addTwoColBullets(s, [
     "Substrate: readonly record struct for Money and Weight, a sealed record Consignment built on required, init, and with, IDisposable and IAsyncDisposable for deterministic cleanup.",
     "Sequences and async: yield return state machines, IAsyncEnumerable<T> with await foreach, and a TAP surface where every Async method honors its CancellationToken.",

@@ -135,7 +135,7 @@ on the incoming request to the grams `SubmitQuote` expects, call
 `SubmitQuote`, and wrap its `FastlineQuoteResponse` back into a
 `CarrierQuote` under the fixed code `"FASTLINE"`. Fastline already prices in
 cents, the same unit `Money` stores internally, so the amount passes
-straight into `Money`'s constructor with no conversion operator in sight;
+straight into `Money`'s constructor with no conversion operator needed;
 only the weight unit needed translating on the way out.
 `CarrierGatewayAdapterTests.FastlineGatewayAdapter_maps_the_SOAP_response_to_a_carrier_quote`
 calls the real `FastlineSoapClient` directly with the same request the
@@ -519,7 +519,7 @@ implicit version of either would let that loss happen on an ordinary
 assignment with no cast in the code to flag it. A second common
 suggestion, asked to let a single carrier's client plug into some future
 carrier abstraction, is a Bridge built around one renderer and one label
-kind with nothing else in sight, two hierarchies standing in for one
+kind with nothing else planned, two hierarchies standing in for one
 concrete class because the pattern sounds forward-looking. Check a
 generated answer against the same two questions this chapter relies on
 directly: is the conversion lossless, which means implicit, or can it
