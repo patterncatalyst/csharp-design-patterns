@@ -25,5 +25,4 @@
 <text x="486.0" y="339.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">channel FIFO</text>
 <text x="486.0" y="339.0" font-size="11" fill="#b8650a" text-anchor="middle">channel FIFO</text>
 <text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">A known count drains to exactly one record per event</text>
-<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">Submitting a known number of events, completing the writer, and waiting for every consumer task to finish proves each event is recorded exactly once; a single producer&#x27;s order survives a single consumer because the channel is first in, first out.</text>
 </svg>

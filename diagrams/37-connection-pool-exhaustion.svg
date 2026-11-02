@@ -32,5 +32,4 @@
 <text x="331.0" y="439.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">wakes the parked rent</text>
 <text x="331.0" y="439.0" font-size="11" fill="#b8650a" text-anchor="middle">wakes the parked rent</text>
 <text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">A full connection pool parks a third rent until one returns</text>
-<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">A two-connection GatewayConnectionPool with both connections rented leaves a third RentAsync call incomplete. Returning one connection completes that pending rent with the exact connection that came back.</text>
 </svg>

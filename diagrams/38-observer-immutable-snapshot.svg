@@ -35,5 +35,4 @@
 <text x="566.0" y="261.5" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">field now points to V2</text>
 <text x="566.0" y="261.5" font-size="11" fill="#b8650a" text-anchor="middle">field now points to V2</text>
 <text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">One immutable snapshot keeps a running notification safe from a concurrent change</text>
-<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">HandlingEventHub captures one immutable snapshot of subscribers before Raise iterates it, while a concurrent subscribe or unsubscribe swaps in a new snapshot without disturbing the notification already in flight.</text>
 </svg>
