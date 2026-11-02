@@ -27,13 +27,13 @@ function divider(code, title, subtitle, notes) {
 }
 
 // A pattern slide: title + 2-4 bullets, optional figure on the right.
-function patternSlide(eyebrow, title, bullets, fig, caption, notes) {
+function patternSlide(eyebrow, title, bullets, fig, caption, notes, opts = {}) {
   const s = S();
   addContentTitle(s, eyebrow, title);
   const hasFig = !!fig;
   addBullets(s, bullets, {
     x: 0.62, y: 1.85, w: hasFig ? 5.55 : 12.09, h: 4.55,
-    fontSize: hasFig ? 15.5 : 17,
+    fontSize: opts.fontSize ?? (hasFig ? 15.5 : 17),
   });
   if (hasFig) {
     s.addImage({
@@ -407,7 +407,8 @@ divider("04", "Handing Work Across a Queue", "Producers and consumers, decoupled
     ],
     "36-exactly-once-drain",
     "CompleteAndDrainAsync completes the writer, awaits every consumer task, then reports a result; the pipeline is known finished by task completion, not elapsed time.",
-    "These four properties come from the same small set of channel features working together, not from four separate mechanisms bolted on. FullMode.Wait is what makes backpressure visible rather than silent, turning a slow consumer into a producer that is observably waiting instead of a buffer that silently grows. Exactly-once processing falls out of the channel's own ownership transfer: once an item is read by one consumer, no other consumer can read that same item, so the ConcurrentQueue and Interlocked counter on the consuming side only need to be safe against concurrent consumers writing to them, not against double-processing the same event. The deterministic drain in CompleteAndDrainAsync, completing the writer and then awaiting every consumer task, is the direct alternative to a wall-clock wait, and it generalizes cleanly: a second pipeline stage chained after the first experiences the same backpressure the first producer does, because its own bounded channel fills exactly the same way under a slow final consumer, and that pressure propagates back through every stage connected to it."
+    "These four properties come from the same small set of channel features working together, not from four separate mechanisms bolted on. FullMode.Wait is what makes backpressure visible rather than silent, turning a slow consumer into a producer that is observably waiting instead of a buffer that silently grows. Exactly-once processing falls out of the channel's own ownership transfer: once an item is read by one consumer, no other consumer can read that same item, so the ConcurrentQueue and Interlocked counter on the consuming side only need to be safe against concurrent consumers writing to them, not against double-processing the same event. The deterministic drain in CompleteAndDrainAsync, completing the writer and then awaiting every consumer task, is the direct alternative to a wall-clock wait, and it generalizes cleanly: a second pipeline stage chained after the first experiences the same backpressure the first producer does, because its own bounded channel fills exactly the same way under a slow final consumer, and that pressure propagates back through every stage connected to it.",
+    { fontSize: 13 }
   );
 }
 
@@ -600,7 +601,8 @@ divider("06", "Classic Patterns Under Concurrency", "The GoF catalogue, made saf
     ],
     "38-observer-immutable-snapshot",
     "HandlingEventHub's Raise iterates a captured snapshot of immutable observers over an immutable event: nothing in that loop can change while it runs.",
-    "HandlingEvent being a sealed record and TrackingId being a readonly record struct is not an incidental detail in this deck; it is the reason none of the four classic patterns revisited in this section needed a lock protecting the event data itself. A record's generated equality and its by-value with expression mean a thread that wants a modified version of an event produces an entirely new instance, leaving the original exactly as every other thread currently holding a reference to it last saw it, so there is no shared mutable field for two threads to race over in the first place. This is the deck's closing thesis stated directly: every coordination mechanism covered earlier, a lock-based gate, a semaphore, an Active Object's channel, a producer-consumer queue, a connection pool, exists because some piece of state behind it can change while more than one caller might touch it. Immutable data removes that condition outright rather than coordinating around it more cleverly, which is why HandlingEventHub's Raise method needs nothing more than an immutable snapshot of its observer list and an immutable event to iterate safely under any amount of concurrent subscribing, unsubscribing, or raising happening around it."
+    "HandlingEvent being a sealed record and TrackingId being a readonly record struct is not an incidental detail in this deck; it is the reason none of the four classic patterns revisited in this section needed a lock protecting the event data itself. A record's generated equality and its by-value with expression mean a thread that wants a modified version of an event produces an entirely new instance, leaving the original exactly as every other thread currently holding a reference to it last saw it, so there is no shared mutable field for two threads to race over in the first place. This is the deck's closing thesis stated directly: every coordination mechanism covered earlier, a lock-based gate, a semaphore, an Active Object's channel, a producer-consumer queue, a connection pool, exists because some piece of state behind it can change while more than one caller might touch it. Immutable data removes that condition outright rather than coordinating around it more cleverly, which is why HandlingEventHub's Raise method needs nothing more than an immutable snapshot of its observer list and an immutable event to iterate safely under any amount of concurrent subscribing, unsubscribing, or raising happening around it.",
+    { fontSize: 13 }
   );
 }
 
