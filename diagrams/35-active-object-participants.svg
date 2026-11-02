@@ -28,5 +28,4 @@
 <text x="646.0" y="304.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">returns</text>
 <text x="646.0" y="304.0" font-size="11" fill="#555" text-anchor="middle">returns</text>
 <text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">POSA2&#x27;s six Active Object participants, mapped onto real code</text>
-<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">Proxy is ReserveAsync, Activation List is the bounded channel, and Servant is StowagePlan. Scheduler and Future are grayed out because they are no longer hand-written types: they dissolved into await foreach and the language&#x27;s own task.</text>
 </svg>

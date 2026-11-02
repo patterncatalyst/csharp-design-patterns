@@ -36,5 +36,4 @@
 <text x="486.0" y="369.0" font-size="11" fill="#ffffff" stroke="#ffffff" stroke-width="3" paint-order="stroke" text-anchor="middle">completes the writer</text>
 <text x="486.0" y="369.0" font-size="11" fill="#555" text-anchor="middle">completes the writer</text>
 <text x="480" y="30" font-size="15" fill="#888" text-anchor="middle" font-weight="700">Many producers, one bounded channel, many consumers draining it</text>
-<text x="480" y="530" font-size="12.5" fill="#555555" text-anchor="middle">Several producers write HandlingEvent values into one bounded channel while several consumers drain it concurrently. A full channel slows the producers, and completing the writer once stops every consumer after the last event.</text>
 </svg>
