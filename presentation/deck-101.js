@@ -96,7 +96,7 @@ patternSlide(
   "Patterns as decisions under forces",
   [
     "A force is a competing requirement pulling a design in a different direction: more flexibility against more predictability, faster execution against easier change, a cache against a guarantee the cache can go stale.",
-    "The Consequences section of a classic pattern description is a forces ledger: what the pattern buys you and what it costs, stated in the same breath, not a list of benefits alone.",
+    "The Consequences section of a classic pattern description is a forces ledger: what the pattern buys you and what it costs, stated in the same breath.",
     "Name the forces before naming a pattern. A pattern reached for by name, forces unexamined, produces an interface, several concrete classes, and a factory for a decision a single method already resolves.",
   ],
   "01-patterns-as-decisions-under-forces",
@@ -108,7 +108,7 @@ patternSlide(
   "WHY PATTERNS",
   "The rating problem: three forces pull at once",
   [
-    "A rate quote for a consignment has to be accurate enough to match what a carrier bills, fast enough to return inside a checkout flow, and changeable enough for a surcharge or discount tier to update on finance's schedule, not a release calendar.",
+    "A rate quote for a consignment has to be accurate enough to match what a carrier bills, fast enough to return inside a checkout flow, and changeable enough for a surcharge or discount tier to update on finance's schedule.",
     "The three forces compete directly: calling every carrier's live rate API maximizes accuracy and fails the speed force; caching tariffs maximizes speed and risks a stale surcharge the moment one changes between refreshes.",
     "Forces are local, not global: changeability dominates a base-tariff lookup, accuracy dominates the final cross-carrier comparison, and a workable design assigns a different compromise to each stage of the same pipeline.",
   ],
@@ -242,7 +242,7 @@ patternSlide(
   "One overloaded calculator, three reasons to break",
   [
     "A single rate-quote method that prices a consignment, applies a jurisdiction's tax, and writes an audit record mixes three unrelated reasons to change: a new pricing tier, a tax-rate update from finance, a new compliance field on the audit record.",
-    "Splitting the method into focused collaborators, a pricing calculator, a tax policy, an audit sink, means a change to one never risks the other two, and each one gets its own focused test with no unrelated collaborator standing in the way.",
+    "Splitting the method into focused collaborators, a pricing calculator, a tax policy, an audit sink, means a change to one never risks the other two, and each one gets its own focused test.",
     "The split sets up the rest of this discussion: a surcharge pipeline that grows by addition, and two pricing strategies that substitute for each other because a test proves it rather than assumes it.",
   ],
   "05-srp-ocp-lsp",
