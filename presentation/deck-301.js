@@ -164,7 +164,7 @@ divider("01", "Proving it works", "xUnit for the suite, NSubstitute for the stan
     "    { 500m, 625.00m },",
     "    { 2000m, 2400.00m },",
     "};",
-  ], "InlineData's 100.0 literal is a C# double; the decimal kilograms parameter widens it on every call.", { fontSize: 9, y: 1.72, h: 4.95 });
+  ], "InlineData's 100.0 literal is a C# double; the decimal kilograms parameter widens it on every call.", { fontSize: 9 });
   addNotes(s, "InlineData accepts object arguments, so a literal like 100.0 is compiled as a double even though the test method's parameter is declared decimal; the runtime conversion from double to decimal happens silently and correctly here, but the same pattern with a value that does not round-trip cleanly through binary floating point is a real source of flaky theories, which is why a chapter on this idiom calls it out by name rather than leaving it implicit. WeightTierBaseRates returns TheoryData<decimal, decimal> instead of a bare IEnumerable<object[]>, keeping every case strongly typed from declaration through to the test method's parameters; the analyzer rule xUnit1042 specifically flags the untyped array form, nudging a team toward the typed source shown here. Three weight tiers and their expected carrier base rates read as named cases rather than as positional magic numbers in an array literal.");
 }
 
@@ -201,7 +201,7 @@ divider("01", "Proving it works", "xUnit for the suite, NSubstitute for the stan
     "    await auditSink.DidNotReceive().RecordAsync(",
     "        Arg.Any<string>(), Arg.Is<Money>(quoted => quoted != new Money(110.00m)), Arg.Any<CancellationToken>());",
     "}",
-  ], "DidNotReceive with an Arg.Is predicate proves no other quote amount was ever recorded, not just that one call happened.", { fontSize: 9, y: 1.72, h: 4.95 });
+  ], "DidNotReceive with an Arg.Is predicate proves no other quote amount was ever recorded, not just that one call happened.", { fontSize: 9 });
   addNotes(s, "BuildEngine centralizes the three-substitute setup every verification test in this class shares, returning the audit sink through an out parameter so each test keeps its own reference to assert against. DidNotReceive is the negative counterpart to Received: rather than proving a call happened, it proves a call matching the given arguments never happened across the whole test run. The Arg.Is<Money> predicate here checks every recorded quote against the one correct taxed amount, so the assertion is stronger than checking RecordAsync was called exactly once; it rules out a second, incorrect call sneaking in alongside a correct one. This shape generalizes beyond auditing: anywhere a collaborator must receive exactly the right data and nothing else, DidNotReceive paired with a negated predicate closes the gap a bare Received(1) leaves open.");
 }
 
@@ -231,7 +231,7 @@ divider("01", "Proving it works", "xUnit for the suite, NSubstitute for the stan
     "    await carrierRates.Received(1).GetBaseRateAsync(\"Felixstowe\", 12m, cancellationSource.Token);",
     "    await auditSink.Received(1).RecordAsync(\"C-2002\", new Money(15.00m), cancellationSource.Token);",
     "}",
-  ], "xUnit1051 flags a test that ignores an available cancellation token; both tests verify the caller's exact token reached both collaborators.", { fontSize: 9, y: 1.72, h: 4.95 });
+  ], "xUnit1051 flags a test that ignores an available cancellation token; both tests verify the caller's exact token reached both collaborators.", { fontSize: 9 });
   addNotes(s, "An async member on an NSubstitute double returns an already-completed task wrapping whatever .Returns stubbed, so awaiting a stubbed call behaves exactly like awaiting the real implementation would; verifying that same call needs the same await, because Received(1) on an async member itself returns a task that must complete before the assertion is meaningful. The second test builds a real CancellationTokenSource rather than relying on a default token, then asserts both carrierRates and auditSink received that exact token instance, proving the token flows through QuoteAsync's own internal awaits unchanged rather than being silently replaced with CancellationToken.None somewhere inside the method. The analyzer rule xUnit1051 exists for exactly this reason: a test method that accepts or has access to a real cancellation token but never threads it through its awaits is a test that cannot actually be cancelled when a test run is cut short.");
 }
 
@@ -283,7 +283,7 @@ divider("02", "Changing Inherited Code", "Seams, the dependency-breaking catalog
     "",
     "// Reflection proof: IsSealed is true, GetConstructors() returns exactly one",
     "// parameterless constructor, and the Quote MethodInfo reports IsVirtual as false.",
-  ], "A hard-coded new LegacyTariffTable() and the ambient DateTime.Now leave nothing here for a test to substitute.", { fontSize: 10, y: 1.72, h: 4.95 });
+  ], "A hard-coded new LegacyTariffTable() and the ambient DateTime.Now leave nothing here for a test to substitute.", { fontSize: 10 });
   addNotes(s, "This RateEngine closes off every seam a test could use at once: it is sealed, so no subclass can override anything; its tariff table is a hard-coded new inside the method rather than a constructor parameter; and its peak-hour check reads the ambient wall clock through DateTime.Now rather than an injected notion of now. A test that wanted to prove this engine untestable without itself becoming flaky cannot assert against DateTime.Now directly, since the result would depend on when the suite happens to run; instead, a reflection-based test asserts on the type's structure, IsSealed, a single parameterless constructor, and a non-virtual Quote method, which together rule out a constructor seam, an interface seam, and an override seam in one assertion block. Every fact that reflection test checks is a structural property of the class, not a runtime outcome, which is what makes the proof of untestability itself reliable.");
 }
 
@@ -368,7 +368,7 @@ refTable(
     "        message.Contains(\"RQ-0002\", StringComparison.Ordinal) &&",
     "        message.Contains(\"C-9002\", StringComparison.Ordinal)));",
     "}",
-  ], "All four seams, ITariffBook, IAuditLog, IClock, and IReferenceGenerator, are fakes here; the Arg.Is predicate checks the audit message's exact text.", { fontSize: 9, y: 1.72, h: 4.95 });
+  ], "All four seams, ITariffBook, IAuditLog, IClock, and IReferenceGenerator, are fakes here; the Arg.Is predicate checks the audit message's exact text.", { fontSize: 9 });
   addNotes(s, "BuildEngine wires four separate Substitute.For<T>() fakes into one RateEngine, one for each dependency the legacy shape baked in, and hands all four back through out parameters so a test can configure and assert against exactly the ones it needs. The audit log was never reachable from outside the legacy method at all; here it is a fifth fake whose single Record call becomes directly verifiable. The Arg.Is<string> predicate checks that the recorded message contains both the generated reference and the consignment identifier, a stronger assertion than checking a message was recorded at all, since it proves the right values flowed into the audit trail rather than merely that something did. This same four-fake pattern repeats, with different stubbed values, across every test in the suite that exercises a different one of the four seams.");
 }
 
@@ -489,7 +489,7 @@ divider("03", "Working with AI and LLM Tools", "Name the intent, hold the output
     "",
     "// IsStrategyInterface: type.TypeKind == TypeKind.Interface",
     "//     && type.Name.EndsWith(\"Strategy\", StringComparison.Ordinal)",
-  ], "CompilationEnd tells the analyzer this rule can only be judged once every type in the compilation has been seen.", { fontSize: 9, y: 1.72, h: 4.95 });
+  ], "CompilationEnd tells the analyzer this rule can only be judged once every type in the compilation has been seen.", { fontSize: 9 });
   addNotes(s, "Counting how many types implement a given Strategy interface can only be judged once every type in the whole compilation has been visited, so SHIP0002 reports from a RegisterCompilationEndAction rather than a per-type check, and the WellKnownDiagnosticTags.CompilationEnd tag on the descriptor is what the Roslyn analyzer rule RS1037 requires to say so. RegisterCompilationStartAction runs once at the start of each compilation and sets up the concurrent collections every subsequent symbol visit writes into; RegisterSymbolAction then runs CollectType against every named type the compiler visits, safely in parallel, recording each Strategy-suffixed interface and every type that implements it. The naming guard itself, type.Name.EndsWith(\"Strategy\"), is a convention rather than a language feature, which is exactly why this rule needs to be written down as code: no compiler feature enforces a Strategy-suffix naming convention on its own.");
 }
 
