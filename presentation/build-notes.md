@@ -7,8 +7,9 @@ Accent is Red Hat red #EE0000 (series parity); diagrams are amber.
 |-------------|--------|
 | `deck-101.js` | `csharp-design-patterns-101-patterns-and-solid.pptx` |
 | `deck-201.js` | `csharp-design-patterns-201-idiomatic-csharp.pptx` |
+| `deck-301.js` | `csharp-design-patterns-301-testing-legacy-and-ai.pptx` |
 
-(301 testing/legacy/AI and 401 concurrency decks follow, one at a time.)
+(401 concurrency deck follows.)
 
 ## Rebuild
 ```sh
