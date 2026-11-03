@@ -19,7 +19,7 @@ By the end of this chapter you can:
   `BookingRequest` needs no builder at all to prove that gap closed.
 - State the difference between a compile-time failure and a runtime one:
   an object initializer that omits a `required` member fails to build
-  under CS9035, while a fluent builder only discovers a missing field
+  under compiler error CS9035, while a fluent builder only discovers a missing field
   when `Build()` runs, and must raise its own exception to report it.
 - Build a staged, validating `BookingRequestBuilder` whose fluent methods
   accumulate state and whose `Build()` method enforces cross-field rules
@@ -244,9 +244,10 @@ close: a builder that never calls `WithOrigin` still compiles cleanly,
 because `WithOrigin` is an ordinary optional method call on a mutable
 accumulator with no `required` concept of its own, and the omission is
 only caught when `Build()` runs and throws `BookingValidationException`.
-That exception, a `sealed class` with the three constructors CA1032
-expects on a custom exception type, a parameterless one, a
-message-only one, and a message-plus-inner-exception one, is the runtime
+That exception, a `sealed class` with the three constructors CA1032, the
+.NET code-analysis rule for custom exception types, expects, a
+parameterless one, a message-only one, and a message-plus-inner-exception
+one, is the runtime
 mirror of the compile-time CS9035 error the object-initializer path
 raises for the identical kind of omission. The two failures look
 different, one a build error with a line number, the other a thrown
