@@ -22,7 +22,7 @@ By the end of this chapter you can:
   instead.
 - Choose between throwing a custom exception and returning a result value for
   an illegal transition, and implement the three constructors a custom
-  exception type needs to satisfy CA1032.
+  exception type needs to satisfy the CA1032 analyzer rule.
 - Build a probabilistic state transition behind an `IRandomSource`
   abstraction, and explain why a seeded source makes a simulation
   repeatable without weakening the randomness anywhere it actually matters.
@@ -252,9 +252,10 @@ to read and less to extend.
 
 `Transitions.Next` signals an illegal pair by throwing
 `InvalidTransitionException`, a sealed exception type with the three
-constructors a custom exception needs to satisfy the CA1032 analyzer rule:
-a parameterless constructor, a constructor taking only a message, and a
-constructor taking a message and an inner exception.
+constructors a custom exception needs to satisfy CA1032, the .NET
+code-analysis rule that flags a custom exception type missing the standard
+constructor set: a parameterless constructor, a constructor taking only a
+message, and a constructor taking a message and an inner exception.
 
 ```csharp
 public sealed class InvalidTransitionException : Exception
