@@ -360,17 +360,21 @@ fourth hook onto the template. That country isn't a variation of the same
 algorithm, so it doesn't belong behind the same skeleton.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to add a new country, a generated answer often reaches for a new sealed
-subclass of `CustomsDeclarationBuilder`, even when the country's rules never
-call shared base behavior and nothing else pattern-matches on the type. That's
-the case the delegate form handles with one new property on `CountrySteps`.
-Template Method examples in training data are overwhelmingly class hierarchies,
-so a model defaults to inheritance by habit. Check a generated subclass against
-the four reasons inheritance fits here: does it share a protected helper with
-its siblings, carry state across its own steps, get pattern-matched on by
-something outside the hierarchy, or have one step call another. If the answer is
-no to all four, it's a `DeclarationSteps` value in class's clothing, and
-collapsing it to a value removes a file without removing behavior.
+Put this chapter's decision rule in the prompt, not just in the review. Ask a
+model to "add Canada to the customs declarations" and it will usually return a
+new sealed `CustomsDeclarationBuilder` subclass, because the Template Method
+examples it trained on are overwhelmingly class hierarchies. You get the form
+you left unspecified. So specify it: tell the model to add a `DeclarationSteps`
+value on `CountrySteps` unless the new country needs one of the four things a
+base class gives, and to name which one if it reaches for a subclass anyway.
+That turns the four conditions from something you catch afterward into something
+the model has to justify up front.
+
+Then check what comes back against the same four: does the rule set share a
+protected helper, carry state across steps, get pattern-matched on from outside,
+or have one step call another? If the answer is no to all four, a returned
+subclass is a `DeclarationSteps` value in class's clothing. Ask for it as a
+value, and you drop a file without dropping any behavior.
 </blockquote>
 
 ## For deeper coverage
