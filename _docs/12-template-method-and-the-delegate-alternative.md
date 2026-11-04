@@ -299,25 +299,33 @@ same choice.
 
 ## Build, run, observe
 
-The example is standalone-testable from its own directory, with no
-container in the loop:
+The chapter makes two claims: both forms run the steps in the same fixed order,
+and both produce the same declaration for the same shipment. The suite lets you
+watch those hold rather than trust the prose. Run it from the example's own
+directory, no container in the loop:
 
 ```sh
 cd examples/12-template-method-and-the-delegate-alternative
 dotnet test
 ```
 
-It's also picked up, alongside every other example, by the repo-level
-`scripts/verify.sh`. Both paths run the same xUnit v3 suite: two
-`StepOrderTests` cases proving both forms run `CollectRequiredFields`, then
-`CalculateDuty`, then `Validate`; four `PerCountryDeclarationTests` cases
-proving the United States, Germany, and Japan rules each produce their own
-required fields, duty, and validation outcome, plus a fourth confirming one
-shipment run through all three countries comes back with three distinct
-declarations; and three
-`ParityTests.Inheritance_and_delegate_forms_agree_for_the_same_country` theory
-cases, one per country, proving the two forms agree field by field. Observed
-locally on Fedora with the .NET 10 SDK:
+The repo-level `scripts/verify.sh` runs the same xUnit v3 suite. It checks three
+things:
+
+- **The order holds, both ways.** Two `StepOrderTests` cases record the steps as
+  they run and assert the order is `CollectRequiredFields`, `CalculateDuty`,
+  `Validate`, once through the inheritance form and once through the delegate
+  form. This is the guarantee the whole pattern rests on.
+- **The content varies by country.** Four `PerCountryDeclarationTests` cases
+  confirm the United States, Germany, and Japan each produce their own fields,
+  duty, and validation outcome, and that one shipment run through all three comes
+  back as three distinct declarations.
+- **The two forms agree.** Three
+  `ParityTests.Inheritance_and_delegate_forms_agree_for_the_same_country` theory
+  cases, one per country, check that the builder and the engine produce the same
+  declaration field by field, so the two forms are interchangeable.
+
+Observed locally on Fedora with the .NET 10 SDK:
 
 ```
 Test run summary: Passed!
