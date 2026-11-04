@@ -259,43 +259,42 @@ var declaration = DeclarationEngine.Build(shipment, CountrySteps.Japan);
 
 ## Record equality and the parity test
 
-Proving the two forms agree sounds like one equality assertion: build a
-declaration each way and assert the two records are equal. That assertion
-doesn't do what it looks like it does, and the reason shows up anywhere a
-record carries a collection behind an interface type.
+Proving the two forms agree sounds like one line: build a declaration each way,
+then assert the two records are equal. That assertion won't hold even when the
+two carry identical values. The reason is worth knowing, because it shows up with
+any record that holds a collection behind an interface.
 
-`CustomsDeclaration` declares `RequiredFields` and `ValidationMessages` as
+Start with two plain arrays:
+
+```csharp
+string[] a = ["Importer of Record", "HTS Code", "Country of Origin"];
+string[] b = ["Importer of Record", "HTS Code", "Country of Origin"];
+
+bool sameReference = a == b;             // false: two separate array objects
+bool sameContents = a.SequenceEqual(b);  // true: same strings, same order
+```
+
+`CustomsDeclaration` holds `RequiredFields` and `ValidationMessages` as
 `IReadOnlyList<string>`. The `Equals` a record generates compares each member
-with `EqualityComparer<T>.Default` for that member's declared type. For an
-interface type like `IReadOnlyList<string>`, which has no equality of its own,
-`EqualityComparer<IReadOnlyList<string>>.Default` falls back to reference
-equality on whatever array or list backs the interface reference. Build two
-declarations independently, one from `UnitedStatesDeclarationBuilder.Build` and
+with `EqualityComparer<T>.Default`, and for an interface type that carries no
+equality of its own, that comparer uses the first check above: reference
+equality. Build one declaration from `UnitedStatesDeclarationBuilder.Build` and
 one from `DeclarationEngine.Build(shipment, CountrySteps.UnitedStates)`, and
-each constructs its own `string[]` holding the same three strings in the same
-order. The generated record equality still reports them unequal. They're two
-different array instances behind the same interface type, and reference
-equality never looks inside the array to compare elements.
+their `RequiredFields` lists hold the same three strings in two separate arrays.
+So whole-record equality reports the declarations as unequal, even though every
+value in them matches.
 
-`ParityTests.Inheritance_and_delegate_forms_agree_for_the_same_country` is
-written around that fact. It never calls `Assert.Equal` on the two whole
-`CustomsDeclaration` values. It compares `DestinationCountry`, `RequiredFields`,
-`Duty`, and `ValidationMessages` one at a time, as a `[Theory]` over all three
-countries. The distinction matters because xUnit's `Assert.Equal` isn't the
-record's `Equals`. When the compile-time type of both arguments is an
-`IEnumerable<T>` such as `IReadOnlyList<string>`, `Assert.Equal` walks both
-sequences and compares them element by element, which is exactly what the
-record's generated equality skips. So
-`Assert.Equal(fromBuilder.RequiredFields, fromEngine.RequiredFields)` does
-compare the three required-field strings for content and order, even though
-`Assert.Equal(fromBuilder, fromEngine)` on the whole declarations would not.
+The parity test gets around that by comparing fields, not whole records.
+`ParityTests.Inheritance_and_delegate_forms_agree_for_the_same_country` asserts
+`DestinationCountry`, `RequiredFields`, `Duty`, and `ValidationMessages` one at a
+time, as a `[Theory]` over all three countries. For the two list members it
+leans on xUnit's `Assert.Equal`, which walks the two sequences element by
+element, the second check above. That comparison is what proves the two forms
+produce the same declaration.
 
-So the test compares fields, not whole records. Default record equality asks
-whether the members are the same objects.
-`Assert.Equal` on two sequences asks whether the elements match. The parity
-test only claims the two forms produce the same field values, so it uses the
-check that compares values. Any record with an `IEnumerable<T>` member faces the
-same choice.
+The split is general. A record's own equality compares a collection member by
+reference; a collection-aware check compares it by content. For any record with
+an `IEnumerable<T>` member, pick the one that matches what you're claiming.
 
 ## Build, run, observe
 
@@ -374,6 +373,26 @@ the prompt:
 
 If the reply is a subclass with no reason given, ask for the value form.
 </blockquote>
+
+## Where this leaves you
+
+You can now:
+
+- Say what Template Method fixes (the order of the steps) and what it leaves open
+  (each step's content), the split the customs skeleton is built around.
+- Write the inheritance form: `CustomsDeclarationBuilder`'s protected
+  constructor, its non-virtual `Build`, and the three protected abstract steps
+  each country overrides.
+- Write the delegate form: a `DeclarationSteps` record of `Func<>` values that
+  `DeclarationEngine.Build` runs in the same fixed order, with one value per
+  country on `CountrySteps`.
+- Add a country as a value instead of a subclass, and name the trade: a value is
+  cheaper to add and read until a variation needs shared base behavior, state
+  across steps, or a type other code matches on.
+- Explain why a record with an `IReadOnlyList<string>` member can't be compared
+  by its generated whole-object equality (that check falls to reference equality
+  on the interface member), and write the parity test that compares the fields
+  instead.
 
 ## For deeper coverage
 
