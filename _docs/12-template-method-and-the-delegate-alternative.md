@@ -360,21 +360,19 @@ fourth hook onto the template. That country isn't a variation of the same
 algorithm, so it doesn't belong behind the same skeleton.
 
 <blockquote class="ai-sidebar" markdown="1">
-Put this chapter's decision rule in the prompt, not just in the review. Ask a
-model to "add Canada to the customs declarations" and it will usually return a
-new sealed `CustomsDeclarationBuilder` subclass, because the Template Method
-examples it trained on are overwhelmingly class hierarchies. You get the form
-you left unspecified. So specify it: tell the model to add a `DeclarationSteps`
-value on `CountrySteps` unless the new country needs one of the four things a
-base class gives, and to name which one if it reaches for a subclass anyway.
-That turns the four conditions from something you catch afterward into something
-the model has to justify up front.
+Ask an AI to "add Canada to the customs declarations" and it will usually return
+a new sealed `CustomsDeclarationBuilder` subclass, because that is how most
+Template Method examples are written. When Canada's rules are just three
+functions, that subclass is a file you don't need. Put this chapter's decision in
+the prompt:
 
-Then check what comes back against the same four: does the rule set share a
-protected helper, carry state across steps, get pattern-matched on from outside,
-or have one step call another? If the answer is no to all four, a returned
-subclass is a `DeclarationSteps` value in class's clothing. Ask for it as a
-value, and you drop a file without dropping any behavior.
+> Add Canada to the customs declarations. Use a `DeclarationSteps` value on
+> `CountrySteps` rather than a new `CustomsDeclarationBuilder` subclass, unless
+> Canada's rules need shared base behavior, state carried across steps, or a type
+> something else pattern-matches on. If you use a subclass, say which of those
+> three it needs.
+
+If the reply is a subclass with no reason given, ask for the value form.
 </blockquote>
 
 ## For deeper coverage
