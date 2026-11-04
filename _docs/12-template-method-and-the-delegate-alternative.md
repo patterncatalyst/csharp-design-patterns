@@ -30,52 +30,57 @@ By the end of this chapter you can:
 
 ## Why this matters
 
-A customs declaration for an international shipment goes through the same
-three moves, whatever its destination. Figure out which fields the
-destination's customs authority requires on the paperwork. Calculate the
-duty owed. Run the shipment against that country's validation rules to see
-whether anything needs a human's attention before it crosses a border.
+Template Method fixes the order of an algorithm's steps in one place and lets
+the content of each step vary on its own. Reach for it when a sequence has to
+stay the same across every variation while the work inside each step changes
+from one case to the next. The pattern puts the sequence where no variation can
+reach it, so each variation only supplies the steps.
 
-What changes from country to country is the content of each move, not the
-sequence. The United States wants an Importer of Record and an HTS code.
-Germany wants an EORI number and a commodity code. Japan wants a tax ID and a
-certificate of origin. The duty formula is a flat percentage in two countries
-and a percentage plus a handling fee in the third. The rule that flags a
-shipment for extra scrutiny trips on a declared-value threshold in two
-countries and a weight threshold in the third. None of that touches the
-order. Every country collects its fields, then calculates its duty, then
-validates, every time.
+The value is in what that prevents. When every variation carries its own copy
+of the sequence, nothing stops one of them from running the steps out of order
+or dropping a step. That bug is hard to catch in review, because the reviewer
+is reading the part that changes, the step content, not the part that should
+never change, the order.
 
-Let each country reinvent that sequence from scratch and you invite a bug no
-code review catches easily. A new country's handler, written in a hurry,
-calculates duty before confirming which fields are required, or skips
-validation because whoever wrote it didn't realize every other country runs
-one. The sequence isn't the interesting part of any country's rules, and it's
-the part a reviewer is least likely to re-check line by line: the variation
-under review lives in the duty formula and the validation threshold, not in
-whether `Validate` ran before `CalculateDuty`. Template Method takes that
-sequence out of the hands of whoever writes the next country's rules. The
-only thing left to write, and to review, is the country-specific content of
-three well-defined seams.
+Customs declarations have this shape. Every international shipment goes through
+the same three moves, whatever its destination. Collect the fields the
+destination's customs authority requires. Calculate the duty owed. Validate the
+shipment against that country's rules to flag anything that needs a human before
+it crosses a border.
 
-The example for this chapter lives in
-`examples/12-template-method-and-the-delegate-alternative`. It builds the same
-fixed three-step skeleton two ways against the same shipping domain.
-`CustomsDeclarationBuilder` is the classic Template Method: an abstract class
-whose public method is sealed against reordering by construction, with three
-protected abstract steps a subclass fills in. `DeclarationEngine` is the
+The content of each move changes from country to country; the order never does.
+The United States wants an Importer of Record and an HTS code. Germany wants an
+EORI number and a commodity code. Japan wants a tax ID and a certificate of
+origin. Duty is a flat percentage in two countries and a percentage plus a
+handling fee in the third. The scrutiny flag trips on a declared-value
+threshold in two countries and a weight threshold in the third. Through all of
+it, every country collects its fields, then calculates its duty, then validates.
+
+Let each country carry its own copy of that sequence and sooner or later one of
+them calculates duty before confirming the fields, or skips validation
+entirely. Template Method moves the sequence out of reach. Each country writes
+only its content for three fixed steps, and that content is all a reviewer has
+to check.
+
+The example for this chapter builds that skeleton two ways, in
+`examples/12-template-method-and-the-delegate-alternative`.
+`CustomsDeclarationBuilder` is the classic inheritance form: an abstract class
+whose `Build` method runs the sequence and seals it against reordering, with
+three protected steps a subclass fills in. `DeclarationEngine` is the
 alternative: a static method that runs the identical sequence but reads each
-step from a `DeclarationSteps` record of `Func<>` values instead of
-dispatching through an override. Both produce the same `CustomsDeclaration`
-for the same shipment and country, and the test suite proves it.
+step from a `DeclarationSteps` record of `Func<>` values instead of an
+override. Both produce the same `CustomsDeclaration` for the same shipment and
+country.
 
 {% include excalidraw.html name="12-template-method-and-the-delegate-alternative" caption="Figure 12.1: The same three-step customs skeleton, collect fields, calculate duty, validate, built two ways: a sealed inheritance hierarchy and a record of delegates, producing identical results per country." %}
 
 ## The inheritance form: a sealed skeleton
 
-`CustomsDeclarationBuilder` is an abstract class with exactly one public
-member, `Build`, and three protected abstract members that a subclass must
-supply:
+The inheritance form puts the sequence in a base class and makes it unreachable
+from below. That is where the pattern's one guarantee lives: no subclass, now or
+later, can change the order. `CustomsDeclarationBuilder` has one public method,
+`Build`, that runs the three steps in order, and three protected abstract steps
+a subclass supplies:
 
 ```csharp
 public abstract class CustomsDeclarationBuilder
@@ -109,34 +114,25 @@ subclass that will ever exist.
 `#D` The three seams each country fills.
 
 The three per-country classes, `UnitedStatesDeclarationBuilder`,
-`GermanyDeclarationBuilder`, and `JapanDeclarationBuilder`, are each `sealed`
-and override only those three steps. Each fills the seams with different
-content.
-`UnitedStatesDeclarationBuilder` requires an Importer of Record, an HTS code,
-and a country of origin; charges 2.5 percent of declared value in US dollars;
-and flags a shipment for formal entry paperwork once its declared value
-exceeds 2500.00 USD. `GermanyDeclarationBuilder` requires an EORI number, a
-commodity code, and Incoterms; charges 19 percent in euros; and flags a
-shipment once its weight exceeds 1000 kilograms, on the theory that a heavy
-shipment needs a licensed customs broker on file. `JapanDeclarationBuilder`
-requires an importer tax ID, an HS code, and a certificate of origin; charges
-5 percent plus a flat 2000 JPY handling fee; and flags a shipment once its
-declared value exceeds 200000 JPY, triggering a mandatory customs inspection.
-All three duty calculations round with
-`Math.Round(amount, 2, MidpointRounding.AwayFromZero)`, and all three
-validation steps flag any shipment with zero line items, a check that has
-nothing to do with the country: every customs authority wants to see at least
-one declared good. Reading any one subclass tells a reviewer everything that
-country does differently. None of them can tell a reviewer anything about step
-order, because step order was never theirs to control.
+`GermanyDeclarationBuilder`, and `JapanDeclarationBuilder`, are each `sealed` and
+override only those three steps. `UnitedStatesDeclarationBuilder`, for one,
+requires an Importer of Record and an HTS code, charges 2.5 percent of declared
+value, and flags a shipment once its value exceeds 2500.00 USD. Germany and
+Japan differ only in their fields, formulas, and thresholds, which Figure 12.2
+lays out side by side. One check is shared across all three: a shipment with
+zero line items is flagged everywhere, since every customs authority wants to
+see at least one declared good. Reading any one subclass shows what that country
+does differently. None of them says anything about step order, because the order
+was never theirs to control.
 
 {% include excalidraw.html name="12-template-method-step-order" caption="Figure 12.2: Three countries plug different required fields, duty formulas, and validation thresholds into the same fixed three-step slot order; the order never moves, only the content." %}
 
 ## The delegate form: steps as values
 
-The second half of the example builds the identical skeleton without a
-class hierarchy. `DeclarationSteps` is a record holding three functions, one
-per step:
+A class per country is a lot of ceremony when the rules are just three
+functions. The delegate form keeps the same guarantee, the fixed order, but
+drops the hierarchy. `DeclarationSteps` is a record holding the three step
+functions, one each:
 
 ```csharp
 public sealed record DeclarationSteps(
@@ -199,61 +195,34 @@ with three recording `Func<>` values passed into `DeclarationEngine.Build`.
 ## Where inheritance still fits
 
 A record of delegates doesn't always beat an inheritance hierarchy. The
-delegate form fits here because every step is a pure function of the
-`Shipment` it's handed. No step calls another. No step needs state that
-persists across the three calls. And nothing outside `DeclarationEngine`
-treats a country's rule set as a type in its own right, the way a consumer
-that pattern-matches on a concrete subclass or stores a builder in a
-dictionary keyed by `Type` would. Change any one of those conditions and the
-balance shifts back toward a class.
+delegate form fits here because every step is a pure function of its `Shipment`:
+no step calls another, none carries state between calls, and nothing outside
+`DeclarationEngine` treats a country's rules as a type. Four situations shift the
+balance back toward a class.
 
-A shared protected helper is the first case. If every country's
-`CalculateDuty` applied the same currency-rounding helper, or the same lookup
-against a shared tariff table, a base class hands every subclass that helper
-as a protected method, inherited without re-wiring at each call site. A
-`DeclarationSteps` value has no equivalent. The helper becomes a separate
-static method or a captured local that every lambda references by hand. That
-works, but it scatters the wiring across every property in `CountrySteps`
-instead of centralizing it once on the base type.
+**A helper shared across steps.** If every country's `CalculateDuty` used the
+same rounding helper or tariff-table lookup, a base class hands it down as a
+protected method. With `DeclarationSteps`, that helper becomes a static method or
+a captured local every lambda wires up by hand, scattered across `CountrySteps`
+instead of living once on the base.
 
-State shared across steps is the second case. Here the three steps never pass
-information to each other beyond what each receives fresh in `shipment`;
-`CalculateDuty` doesn't need to know what `CollectRequiredFields` just
-decided. A workflow where step two needs a value step one computed, a running
-total, or a flag set partway through fits a class far better than a record of
-independent functions. Instance fields on the subclass carry that state across
-the calls naturally. A closure-based design has to thread the value through
-parameters and return values by hand, or capture a mutable variable across
-lambdas, which reintroduces the shared-state bug the pattern exists to avoid.
+**State shared between steps.** The steps here never pass anything to each other
+beyond the `shipment` each receives. When step two needs a value step one
+computed, instance fields on a subclass carry it naturally; a closure-based
+design has to thread it through parameters or share a captured variable, the
+manual coordination a field removes.
 
-A type hierarchy that a consumer pattern-matches on is the third case. If code
-elsewhere needed to ask whether something is a European Union declaration
-builder and branch on the answer, or register builders in a dictionary keyed
-by `Type` for a plugin-style lookup, the inheritance form gives that consumer
-something to match against: `GermanyDeclarationBuilder is IEuCustomsDeclaration`,
-say, if such an interface existed. A `DeclarationSteps` record carries no
-identity beyond its three function references. There's nothing to pattern-match
-on besides equality of the whole value, and the record's default equality
-compares delegate fields by reference, not by behavior.
+**A type something else matches on.** If code elsewhere asked whether a builder
+is a European Union declaration, or kept builders in a dictionary keyed by
+`Type`, inheritance gives it a type to match against:
+`GermanyDeclarationBuilder is IEuCustomsDeclaration`. A `DeclarationSteps` record
+has no identity beyond its three function references.
 
-A step that must call another step is the fourth case, and it's the one classic
-Template Method literature leans on hardest. Gamma, Helm, Johnson, and
-Vlissides describe template methods that call not just the fixed hook steps but
-also concrete, non-overridable operations on the base class itself, letting a
-subclass's override reach back into shared base behavior mid-step. Nothing in
-`CustomsDeclarationBuilder` does that today. But if `Validate` needed to call a
-shared `FormatMessage` helper that every subclass inherits and none overrides,
-that helper lives naturally as a `protected` or `private` method on the base
-class, callable from every override without being passed around. A `Func<>` has
-no inherited private helper to call into. Every closure in `CountrySteps` is
-self-contained, so one that needed shared internal behavior would have to take
-it in as another delegate.
-
-Neither form is the better default. Pure, independent per-country functions with
-no shared helper and no cross-step state favor the delegate form: a value is
-cheaper to add and to read than a class. Steps that share state, call shared
-base behavior, or sit in a type hierarchy something else depends on favor
-inheritance, where a base class gives those needs a natural home.
+**A step that calls another step.** This is the case classic Template Method
+leans on hardest: Gamma, Helm, Johnson, and Vlissides describe steps that call
+concrete, non-overridable operations on the base class mid-run. A base class
+holds such a helper as a `protected` method every override can call. A `Func<>`
+would have to take it in as yet another delegate.
 
 {% include codetabs.html langs="Inheritance|Delegate" %}
 ```csharp
