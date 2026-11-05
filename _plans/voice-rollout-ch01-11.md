@@ -7,7 +7,7 @@ output: false
 
 Apply the chapter-12 readability+structure treatment (encoded in
 `lgtm-professional-voice`) to chapters 01-11. ch12 is the merged exemplar.
-Documentation voice/pedagogy pass only: no code, commands, `{% include %}`,
+Documentation voice/pedagogy pass only: no code, commands, {% raw %}`{% include %}`{% endraw %},
 captions, recorded output, or `<!-- EXAMPLE -->` comments change.
 
 ## Baseline (measured)

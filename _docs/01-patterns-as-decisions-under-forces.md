@@ -24,31 +24,29 @@ By the end of this chapter you can:
 ## Why this matters
 
 A team that has only skimmed the Gang of Four catalogue tends to treat it as
-a lookup table: you have a "creation" problem, so you reach for a Factory; you
-have a "varying behavior" problem, so you reach for a Strategy. The catalogue
-rewards this reading. Each entry has a one-line intent, a bolded name, and a
-tidy class diagram, and all three are easy to memorize and easy to pattern-match
-against a sentence in a ticket.
+a lookup table: a "creation" problem gets a Factory, a "varying behavior"
+problem gets a Strategy. The catalogue rewards this reading. Each entry has a
+one-line intent, a bolded name, and a tidy class diagram. All three are easy
+to memorize, and just as easy to pattern-match against a sentence in a ticket.
 
 The catalogue was never written to be read that way. Its own introduction
 borrows its definition of a pattern from Christopher Alexander's work on
-architecture, where a pattern names a recurring problem together with the
-*forces* in tension around it, and describes a solution that balances those
-forces in a given context. A force is a pressure pulling the design in some
-direction: toward more flexibility, toward faster execution, toward fewer
-moving parts, toward tolerance for a requirement nobody has written down yet.
-Most real design problems have several forces pulling in different
-directions at once, and the pattern is the compromise point, not a shape you
-apply because its name sounds like your problem.
+architecture. There, a pattern names a recurring problem together with the
+*forces* in tension around it, and a solution that balances those forces in a
+given context. A force is a pressure pulling the design in some direction:
+toward more flexibility, faster execution, fewer moving parts, or tolerance
+for a requirement nobody has written down yet. Most real design problems have
+several forces pulling in different directions at once. The pattern is the
+compromise point, not a shape you apply because its name sounds like your
+problem.
 
-Reading patterns as decisions under forces matters for a second reason that
-is specific to this book. Several of the forces that justified a pattern's
-full class-and-interface structure in 1994 are resolved today by a single
-C# language feature. A reflex, name-matching reading of the catalogue can't
-tell the difference between a force that still needs an explicit structure
-and one a delegate variable or a nullable annotation already resolves. A
-forces reading can, because it asks what tension is actually present before
-asking what shape resolves it.
+This book has a second reason to read patterns as decisions under forces.
+Several of the forces that justified a pattern's full class-and-interface
+structure in 1994 are resolved today by a single C# language feature. A
+reflex, name-matching reading of the catalogue can't tell a force that still
+needs an explicit structure from one a delegate variable or a nullable
+annotation already resolves. A forces reading can, because it asks what
+tension is actually present before asking what shape resolves it.
 
 {% include excalidraw.html name="01-patterns-as-decisions-under-forces" caption="Figure 1.1: The rating problem as three forces, accuracy, speed, and changeability, pulling against a single rate-quote decision." %}
 
@@ -64,7 +62,7 @@ gets skipped most often in a skim, and the one that matters most for this
 book, is Consequences. That section is a forces ledger. It states what the
 pattern buys you and what it costs, in the same breath. A Decorator buys you
 the ability to add responsibilities to an object at runtime, in any
-combination, without a subclass for every combination; it costs you a system
+combination, without a subclass for every combination. It costs you a system
 built from many small objects that look alike, and a caller that can't
 always tell at a glance which decorators are in effect. Both halves are the
 point. A pattern that only listed benefits wouldn't be a design pattern,
@@ -82,12 +80,12 @@ The catalogue's remaining two sections reinforce the same point. Known Uses
 lists real systems where this exact tradeoff was already chosen, which is
 evidence that the forces line up this way often, not a license to apply the
 shape anywhere the name seems to fit. Related Patterns points sideways to
-the neighboring compromise that applies once one force shifts: swap a
-flexibility force for a simplicity force and a Strategy
-can collapse into a single parameterized method; swap a runtime-substitution
-force for a build-time one and a Factory Method can become a static
-dispatch table. Reading these two sections together turns the catalogue into
-a map of nearby tradeoffs rather than a set of forty-some isolated recipes.
+the neighboring compromise that applies once one force shifts. Swap a
+flexibility force for a simplicity force, and a Strategy can collapse into a
+single parameterized method. Swap a runtime-substitution force for a
+build-time one, and a Factory Method can become a static dispatch table.
+Reading these two sections together turns the catalogue into a map of nearby
+tradeoffs rather than a set of forty-some isolated recipes.
 
 ## The rating problem
 
@@ -123,29 +121,28 @@ Three forces compete over how this gets built:
 
 These forces pull against each other directly. Maximizing accuracy argues for
 calling every carrier's live rate API and recomputing every surcharge from
-the freshest index on every quote; that's also the slowest possible design,
+the freshest index on every quote. That's also the slowest possible design,
 and it fails the speed force the moment a carrier's API is slow or down.
-Maximizing speed argues for caching tariffs and precomputing surcharges; a
+Maximizing speed argues for caching tariffs and precomputing surcharges. A
 cache is only as accurate as its last refresh, so this design pushes directly
 against the accuracy force the moment a surcharge changes between refreshes.
 Maximizing changeability argues for pulling the surcharge logic out of code
-entirely, into a table or a small rule language a non-engineer can edit;
-every layer of indirection that buys that flexibility is a layer a bug or a
-misconfigured rule can hide in, which puts both accuracy and the
+entirely, into a table or a small rule language a non-engineer can edit.
+Every layer of indirection that buys that flexibility is also a layer a bug
+or a misconfigured rule can hide in, which puts both accuracy and the
 engineering team's ability to reason about a wrong quote at risk.
 
 None of this is a defect in the problem. It's what a real pricing problem
 looks like once you stop assuming one force dominates. The company's actual
-answer, at any given time, is a specific compromise: perhaps carrier tariffs
-are cached with a short time-to-live and refreshed on a schedule the finance
-team controls, surcharges are evaluated from a small rule set at quote time
-because the inputs are cheap to compute locally, and only the final
-comparison across carriers is allowed to make a live call, because that is
-the one step accuracy can't tolerate being stale. That compromise is a
-design decision, made under these three forces, for this company, at this
-scale. A different company, with a smaller catalogue of surcharges or a
-higher tolerance for a slightly stale quote, would land somewhere else on the
-same three axes.
+answer, at any given time, is a specific compromise. Carrier tariffs are
+cached with a short time-to-live and refreshed on a schedule the finance team
+controls. Surcharges are evaluated from a small rule set at quote time,
+because the inputs are cheap to compute locally. Only the final comparison
+across carriers is allowed to make a live call, because that's the one step
+accuracy can't tolerate being stale. That compromise is a design decision,
+made under these three forces, for this company, at this scale. A different
+company, with a smaller catalogue of surcharges or a higher tolerance for a
+slightly stale quote, would land somewhere else on the same three axes.
 
 ## Forces are local, not global
 
@@ -154,66 +151,64 @@ pipeline that turns a consignment into a quote. They compound differently
 stage by stage, and a design that treats the whole pipeline as one force
 budget misses that.
 
-At the base-tariff lookup, changeability dominates: a carrier revises its
-zone-and-weight table a few times a year, finance wants that revision live
-the same day it is published, and nothing about looking up a number in a
+At the base-tariff lookup, changeability dominates. A carrier revises its
+zone-and-weight table a few times a year, and finance wants that revision
+live the same day it's published. Nothing about looking up a number in a
 table threatens accuracy or speed, so the lookup can be as data-driven as the
-business wants it to be. At the surcharge stage, changeability still
-dominates, but now it is in tension with accuracy, because a surcharge rule
-written sloppily enough to be easy to edit is also sloppy enough to silently
-mis-price a shipment, so the design has to buy editability without buying a
-rule language expressive enough to hide a mistake. At the final
-cross-carrier comparison, the dominant force flips to accuracy: this is the
-one number the customer sees and the one number the invoice will be checked
-against, so a cached or approximate answer here is unacceptable even though
-caching was the right call two stages earlier.
+business wants. At the surcharge stage, changeability still dominates, but
+now it's in tension with accuracy: a surcharge rule written sloppily enough
+to be easy to edit is also sloppy enough to silently mis-price a shipment.
+So the design has to buy editability without buying a rule language
+expressive enough to hide a mistake. At the final cross-carrier comparison,
+the dominant force flips to accuracy. This is the one number the customer
+sees, and the one number the invoice gets checked against. A cached or
+approximate answer here is unacceptable, even though caching was the right
+call two stages earlier.
 
 Treating the pipeline as having one answer, "cache everything" or "call
 everything live," ignores that the three stages are answering to different
 forces. A workable design assigns a different compromise to each stage and
-is explicit about why. That's also, mechanically, what a well-chosen pattern
-does when it is applied at the right granularity: the structure at the
-surcharge stage and the structure at the comparison stage can, and often
-should, be different, because they're resolving different forces, not
-because one is more "advanced" than the other.
+is explicit about why. That's also what a well-chosen pattern does at the
+right granularity. The surcharge-stage structure and the comparison-stage
+structure can, and often should, differ, because they're resolving different
+forces, not because one is more "advanced" than the other.
 
 ## What a pattern actually buys you
 
 Once the forces are named, a structural idea stops being a name to memorize
 and becomes an answer to a specific tension. Layering each surcharge as an
-independent unit that wraps a base tariff, so a rule table can add or remove
-a surcharge without touching the others, is a direct response to the
-changeability force: each surcharge becomes something a sales or finance
-change can swap without an engineer rewriting a quote calculation, and the
-unit's isolation bounds how far a mistake in one surcharge's logic can reach
-into the rest of the price. Whether the eventual shape in code gets called
-Decorator or Chain of Responsibility matters far less than why it was
-chosen: changeability was the dominant force at the point in the pipeline
-where surcharges are applied, and accuracy was dominant at the point where
-carrier tariffs get compared.
+independent unit that wraps a base tariff is a direct response to the
+changeability force: a rule table can then add or remove a surcharge without
+touching the others. Each surcharge becomes something a sales or finance
+change can swap, without an engineer rewriting a quote calculation. The
+unit's isolation also bounds how far a mistake in one surcharge's logic can
+reach into the rest of the price. Whether the eventual shape in code gets
+called Decorator or Chain of Responsibility matters far less than why it was
+chosen. Changeability was the dominant force where surcharges are applied;
+accuracy was dominant where carrier tariffs get compared.
 
 The reflex reading of the catalogue produces a different, worse habit:
 "we need to vary behavior, so this needs a Strategy." Applied to the rating
 problem without asking which forces are present, that reflex can produce an
 interface, three or four concrete pricing classes, and a factory to select
-among them, for a computation that, in C#, a single method or a delegate
-value already expresses without any of that structure. The ceremony doesn't
-resolve a force that was actually present in the problem. It imitates the
-textbook shape because the textbook shape is what the name brings to mind.
-The cost is not hypothetical: every extra type is one more thing a new
-engineer has to locate and trust is still wired up correctly, and it is a
-type an AI coding assistant has to load into context before it can reason
-about a change, whether or not it does any useful work.
+among them. In C#, a single method or a delegate value already expresses the
+same computation without any of that structure. The ceremony doesn't resolve
+a force that was actually present in the problem. It imitates the textbook
+shape because the textbook shape is what the name brings to mind. The cost
+is not hypothetical. Every extra type is one more thing a new engineer has
+to locate and trust is wired up correctly. It's also a type an AI coding
+assistant has to load into context before it can reason about a change,
+whether or not that type does any useful work.
 
 This is also where the catalogue's age starts to matter directly. Several of
-the forces that once justified a full class hierarchy, specifically the need
-to pass behavior as a value, to react to an event without hand-rolling a
-subscriber list, or to represent the deliberate absence of an object, are
-resolved today by a feature built into the language. Recognizing that a force
-has already been resolved by the compiler is itself a forces judgment: the
-question is not "does this look like the Strategy pattern," it is "is there
-still a flexibility, substitutability, or lifetime force here that a
-built-in language construct doesn't already cover."
+the forces that once justified a full class hierarchy are resolved today by a
+single language feature. That feature covers the need to pass behavior as a
+value, to react to an event without hand-rolling a subscriber list, or to
+represent the deliberate absence of an object. Whether a force has already
+been resolved by the compiler is itself a forces judgment. The question
+isn't "does this look like the Strategy pattern," it's "is there still a
+flexibility, substitutability, or lifetime force here that a built-in
+language construct doesn't already cover."
 
 ## Where this lens goes from here
 
@@ -234,6 +229,26 @@ consignment, the same three forces, and the same vocabulary introduced here.
 The goal isn't novelty on every page. It's a shared example specific enough
 that the forces stay concrete, and recognizable enough that a returning
 reader never has to re-learn the domain to follow a new decision.
+
+## Where this leaves you
+
+You can now:
+
+- Define what a force is and point to where a classic pattern writes its
+  forces down: the Consequences section, read here as a forces ledger that
+  states what a Decorator buys and what it costs in the same breath.
+- Name the three forces in the rating problem, accuracy, speed, and
+  changeability, and say what pulls each one up and what that costs, using
+  the base-tariff, surcharge, and cross-carrier stages where each force
+  dominates in turn.
+- Explain why a forces reading beats matching a problem to a pattern by name,
+  using the Strategy reflex applied to the rating problem: an interface and a
+  factory for a tension a C# delegate value already resolves.
+- State the question this book asks of every classic pattern before reaching
+  for its original structure: not "does this look like the pattern," but "is
+  there still a force here a built-in language construct doesn't already
+  cover." Figure 1.2 contrasts that question against starting from a pattern
+  name.
 
 ## For deeper coverage
 
