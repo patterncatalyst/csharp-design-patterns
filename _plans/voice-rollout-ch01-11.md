@@ -52,7 +52,12 @@ new cross-chapter-number or cross-language refs; no em-dash/`--`; jekyll build
 passes per batch; no padding to the floor.
 
 ## Status
-- [ ] Batch 1 (01-04) — executing
-- [ ] Batch 2 (05-06)
+- [x] Batch 1 (01-04) — merged (PR #39)
+- [x] Batch 2 (05-06) — merged
 - [ ] Batch 3 (07-08)
 - [ ] Batch 4 (09-11)
+
+## Note on callouts (learned in Batch 2)
+Use `// #A` in-code markers only where they anchor to lines PRESENT in the shown
+block (ch12/ch06 style). Where a block shows interfaces/definitions and the
+explanation is about types not shown, use tight prose, not `#A` labels (ch05).
