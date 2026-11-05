@@ -54,7 +54,7 @@ passes per batch; no padding to the floor.
 ## Status
 - [x] Batch 1 (01-04) — merged (PR #39)
 - [x] Batch 2 (05-06) — merged
-- [ ] Batch 3 (07-08)
+- [x] Batch 3 (07-08) — merged
 - [ ] Batch 4 (09-11)
 
 ## Note on callouts (learned in Batch 2)
