@@ -55,7 +55,7 @@ passes per batch; no padding to the floor.
 - [x] Batch 1 (01-04) — merged (PR #39)
 - [x] Batch 2 (05-06) — merged
 - [x] Batch 3 (07-08) — merged
-- [ ] Batch 4 (09-11)
+- [x] Batch 4 (09-11) — merged (ROLLOUT COMPLETE: ch01-12 all treated)
 
 ## Note on callouts (learned in Batch 2)
 Use `// #A` in-code markers only where they anchor to lines PRESENT in the shown
