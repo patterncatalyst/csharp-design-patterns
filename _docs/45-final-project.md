@@ -286,13 +286,11 @@ All 12 tests pass: four on rating (both pinned amounts, express costing more, st
 
 Every seam in the slice exists because a check would fail without it, and that's easier to see with the four stages side by side than while writing any one of them. `RatingStage` keeps its Strategy because strategy selection and the two pinned amounts depend on it. `StowageStage` could have grown a Strategy as soon as someone imagined a second allocation rule; it stayed a single interface parameter because no second rule has needed one, and a substituted double justifies an interface where an imagined rule doesn't. One question, asked four times, gave four answers: a Strategy at rating, a constructor parameter at stowage, a result type at clearance and a Builder at invoicing.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a pipeline stage.** "Make the shipment pipeline more extensible" leaves open which stages get a pattern and which get a plain constructor parameter. State each:
-
-> Each `IShipmentStage.Process` returns `context with { ... }` on the immutable `ShipmentContext`, and `ShipmentPipeline.Run` stops after any stage once `Clearance` is `{ Cleared: false }`. `RatingStage` picks an `IRatingStrategy` through `RatingStrategies.For(context.Booking.Service)`. `StowageStage` takes one `ISlotAllocator` through its constructor; don't give it a strategy, a factory or a result type. `ClearanceStage` records the `ClearanceResult` from `IClearanceCheck`. `InvoiceStage` builds with `InvoiceBuilder`. Keep `ShipmentPipelineFactory.CreateDefault` as four `new` calls, with no container.
-
-Run `dotnet test --project ShipmentWorkflow.Tests --filter PipelineTests`; `Slot_allocator_can_be_substituted` must still pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Each `IShipmentStage.Process` returns `context with { ... }` on the immutable `ShipmentContext`, and `ShipmentPipeline.Run` stops after any stage once `Clearance` is `{ Cleared: false }`. `RatingStage` picks an `IRatingStrategy` through `RatingStrategies.For(context.Booking.Service)`. `StowageStage` takes one `ISlotAllocator` through its constructor; don't give it a strategy, a factory or a result type. `ClearanceStage` records the `ClearanceResult` from `IClearanceCheck`. `InvoiceStage` builds with `InvoiceBuilder`. Keep `ShipmentPipelineFactory.CreateDefault` as four `new` calls, with no container."
+>
+> Run `dotnet test --project ShipmentWorkflow.Tests --filter PipelineTests`; `Slot_allocator_can_be_substituted` must still pass.
 
 ## For deeper coverage
 

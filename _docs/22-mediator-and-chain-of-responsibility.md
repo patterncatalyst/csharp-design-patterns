@@ -304,13 +304,11 @@ Checking the sender's inbox matters: a mediator that delivered to both desks wou
 - **Mediator, too early.** Two desks that will stay two, exchanging one kind of message, get little that a direct call on an injected `DutyDesk` wouldn't say in fewer lines.
 - **Mediator, too much.** A `Send` that branches on message content to compute duty or validate a declaration has stopped routing. It centralizes every rule in one class, the concentration the pattern exists to prevent.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a chain.** "Make clearance extensible" doesn't say which steps run in what order, where a failure stops the run or who decides. State those in the prompt:
-
-> Subclass `ClearanceStage` and override only `Process`; leave `Handle` to record the stage, stop on a `ClearanceResult` whose `Cleared` is false and pass the `ClearanceContext` on. Wire `DocumentCheckStage`, `DutyCalculationStage`, `InspectionStage` and `ReleaseStage` in that order with `SetNext` in `CustomsClearancePipeline.Standard`. Keep `CustomsMediator.Send` a router that forwards between `DeclarationDesk` and `DutyDesk` by sender and never branches on the message text. For two checks that will always be those two, write an `if` instead.
-
-Run `dotnet test --project CustomsClearance.Tests --filter ClearanceChainTests`; a `Send` that inspects `message` is the defect.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Subclass `ClearanceStage` and override only `Process`; leave `Handle` to record the stage, stop on a `ClearanceResult` whose `Cleared` is false and pass the `ClearanceContext` on. Wire `DocumentCheckStage`, `DutyCalculationStage`, `InspectionStage` and `ReleaseStage` in that order with `SetNext` in `CustomsClearancePipeline.Standard`. Keep `CustomsMediator.Send` a router that forwards between `DeclarationDesk` and `DutyDesk` by sender and never branches on the message text. For two checks that will always be those two, write an `if` instead."
+>
+> Run `dotnet test --project CustomsClearance.Tests --filter ClearanceChainTests`; a `Send` that inspects `message` is the defect.
 
 ## Build, run, observe
 

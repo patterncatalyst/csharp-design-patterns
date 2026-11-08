@@ -154,13 +154,11 @@ The two capabilities compose. `shipments.Select(RateBook.Quote)` projects three 
 - **One numeric type.** A `Sum` that only ever takes `decimal[]` states its requirement in one word. `where T : IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>` is worth writing once a second type actually uses the algorithm, as `Money` and `decimal` do here.
 - **Money with currencies.** A currency code changes every operator: adding two currencies needs a conversion policy or an exception, and so does comparing them. The interfaces say which operations exist, not what happens when operands disagree about units. Decide that policy before `Money` grows a second field.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a numeric type.** "Make `Money` support math" doesn't say which operations, and invites every `System.Numerics` interface the type could satisfy. State the operations callers use:
-
-> Make `Money` a `readonly record struct` over `decimal Amount` implementing `IAdditionOperators<Money, Money, Money>`, `IAdditiveIdentity<Money, Money>`, `IMultiplyOperators<Money, decimal, Money>`, `IComparisonOperators<Money, Money, bool>` and `IComparable<Money>`, with `Add` and `Multiply` as named alternates. Add no division or negation. Constrain `Totals.Sum<T>` to `IAdditionOperators<T, T, T>` and `IAdditiveIdentity<T, T>`, not `INumber<T>`, so it sums both `Money` and `decimal`.
-
-Run `dotnet test --project RateMath.Tests --filter MoneyGenericMathTests`; `IDivisionOperators` or `INumber<T>` in the reply is the defect.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Make `Money` a `readonly record struct` over `decimal Amount` implementing `IAdditionOperators<Money, Money, Money>`, `IAdditiveIdentity<Money, Money>`, `IMultiplyOperators<Money, decimal, Money>`, `IComparisonOperators<Money, Money, bool>` and `IComparable<Money>`, with `Add` and `Multiply` as named alternates. Add no division or negation. Constrain `Totals.Sum<T>` to `IAdditionOperators<T, T, T>` and `IAdditiveIdentity<T, T>`, not `INumber<T>`, so it sums both `Money` and `decimal`."
+>
+> Run `dotnet test --project RateMath.Tests --filter MoneyGenericMathTests`; `IDivisionOperators` or `INumber<T>` in the reply is the defect.
 
 ## Build, run, observe
 

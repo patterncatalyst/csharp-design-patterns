@@ -122,13 +122,11 @@ Producer-Consumer pays when the two sides run at different paces or in different
 - **Global order across many producers or consumers.** The queue doesn't provide it. Use one consumer for events that must stay ordered, or partition so related events always reach the same consumer.
 - **An unbounded queue instead of a bounded one.** It hides a slow consumer as memory growth until an out-of-memory failure turns it into an outage. `BoundedChannelFullMode.Wait` turns the same problem into a visibly waiting producer while it's still a performance issue.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a pipeline.** "Add a queue between ingest and processing" leaves open its bound, how many consumers read it and how shutdown drains it. State them:
-
-> In `HandlingEventPipeline`, create the channel with `Channel.CreateBounded<HandlingEvent>` and `BoundedChannelFullMode.Wait`, never `CreateUnbounded`. Start `consumerCount` `ConsumeAsync` tasks in the constructor, each reading with `ReadAllAsync`. `SubmitAsync` returns the writer's `WriteAsync(e, ct)`, so a full channel makes the producer wait and a cancelled token throws. `CompleteAndDrainAsync` calls `Writer.Complete()`, awaits `Task.WhenAll` over the consumers, and only then builds the `IngestReport`. Don't add sleeps or timeouts.
-
-Run `dotnet test --project HandlingEventIngest.Tests --filter "PipelineTests|BackpressureTests"`; all 5 must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `HandlingEventPipeline`, create the channel with `Channel.CreateBounded<HandlingEvent>` and `BoundedChannelFullMode.Wait`, never `CreateUnbounded`. Start `consumerCount` `ConsumeAsync` tasks in the constructor, each reading with `ReadAllAsync`. `SubmitAsync` returns the writer's `WriteAsync(e, ct)`, so a full channel makes the producer wait and a cancelled token throws. `CompleteAndDrainAsync` calls `Writer.Complete()`, awaits `Task.WhenAll` over the consumers, and only then builds the `IngestReport`. Don't add sleeps or timeouts."
+>
+> Run `dotnet test --project HandlingEventIngest.Tests --filter "PipelineTests|BackpressureTests"`; all 5 must pass.
 
 ## For deeper coverage
 

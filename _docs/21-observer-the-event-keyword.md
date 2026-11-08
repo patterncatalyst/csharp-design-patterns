@@ -226,13 +226,11 @@ A Roslyn analyzer flags a type named `*Stream` as implying a `System.IO.Stream`,
 | Several independent ones that come and go | `event` |
 | Streams to filter, combine or end definitively | `IObservable<T>` |
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying an observer.** "Make the tracker observable" doesn't say whether subscribers need operators, an error channel or an end signal, or how they unsubscribe. State those in the prompt:
-
-> In `ConsignmentTracker`, declare `public event EventHandler<HandlingReportedEventArgs>? HandlingReported` and raise it from `Report` with `HandlingReported?.Invoke` after adding the event to `History`, so a tracker with no subscribers doesn't throw. Give `CustomerNotifier` and `AuditLog` an `OnHandlingReported(object? sender, HandlingReportedEventArgs e)` handler and unsubscribe with `-=`. Don't add `System.Reactive` or a `Subject<T>` to the tracker; that belongs in `HandlingEventStream`, where a subscriber needs `OnCompleted`.
-
-Run `dotnet test --project ConsignmentTracking.Tests --filter ConsignmentTrackerTests`, and confirm `ConsignmentTracker.cs` never mentions `IObservable`.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `ConsignmentTracker`, declare `public event EventHandler<HandlingReportedEventArgs>? HandlingReported` and raise it from `Report` with `HandlingReported?.Invoke` after adding the event to `History`, so a tracker with no subscribers doesn't throw. Give `CustomerNotifier` and `AuditLog` an `OnHandlingReported(object? sender, HandlingReportedEventArgs e)` handler and unsubscribe with `-=`. Don't add `System.Reactive` or a `Subject<T>` to the tracker; that belongs in `HandlingEventStream`, where a subscriber needs `OnCompleted`."
+>
+> Run `dotnet test --project ConsignmentTracking.Tests --filter ConsignmentTrackerTests`, and confirm `ConsignmentTracker.cs` never mentions `IObservable`.
 
 ## Build, run, observe
 

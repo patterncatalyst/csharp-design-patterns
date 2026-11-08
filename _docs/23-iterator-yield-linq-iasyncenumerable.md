@@ -225,13 +225,11 @@ Nothing is cached between enumerations. Calling `Paginate(2)` and enumerating th
 - **Re-enumerating a sequence with side effects.** A `yield return` body re-runs from the start on every enumeration. Harmless for a pure projection like `StagesReached`, wrong for a body that increments a counter, logs or calls a service per element. A caller that reads twice, or needs the same answer both times, should materialize once with `.ToList()` or `.ToArray()`.
 - **`IAsyncEnumerable<T>` over in-memory data.** Wrapping data already in memory adds a state machine and an `await` per element for nothing. `CarrierEventFeed` uses it because a live feed is an asynchronous source over time; a method over in-memory data stays synchronous.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying an iterator.** "Page the tracking history" doesn't say when the argument is checked, when the work runs or whether the source is already in memory. State those in the prompt:
-
-> In `ConsignmentHistory`, make `Paginate(int pageSize)` a plain method that throws `ArgumentOutOfRangeException` for a size below 1 and returns `PaginateIterator(pageSize)`, which holds the `yield return` and emits `TrackingPage` records with no trailing empty page. Leave `StagesReached` a lazy `Select` and `Distinct` with no `ToList`. Use `IAsyncEnumerable<TrackingEvent>` only for `ICarrierFeed.StreamAsync`, mark its token `[EnumeratorCancellation]`, and let `LiveTrackingReader.CollectUntilAsync` `break` out of `await foreach` at the stop stage.
-
-Run `dotnet test --project TrackingHistory.Tests --filter PaginationTests`; `Paginate_validates_page_size_eagerly_before_enumeration` fails if the check moves into the iterator.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `ConsignmentHistory`, make `Paginate(int pageSize)` a plain method that throws `ArgumentOutOfRangeException` for a size below 1 and returns `PaginateIterator(pageSize)`, which holds the `yield return` and emits `TrackingPage` records with no trailing empty page. Leave `StagesReached` a lazy `Select` and `Distinct` with no `ToList`. Use `IAsyncEnumerable<TrackingEvent>` only for `ICarrierFeed.StreamAsync`, mark its token `[EnumeratorCancellation]`, and let `LiveTrackingReader.CollectUntilAsync` `break` out of `await foreach` at the stop stage."
+>
+> Run `dotnet test --project TrackingHistory.Tests --filter PaginationTests`; `Paginate_validates_page_size_eagerly_before_enumeration` fails if the check moves into the iterator.
 
 ## Build, run, observe
 

@@ -182,13 +182,11 @@ Use `Get` where an unknown port is a data fault to stop on, and `TryGet` when va
 - **Flyweight, for unique values.** A customs declaration number that exists once has no redundancy to remove. A registry around it adds a lookup, a seed set and an exception path with nothing to share.
 - **Flyweight, for per-use state.** If a port's live congestion, or a commodity's duty rate on one shipment, must vary independently, one shared instance can't hold both values; mutating it changes every parcel's view. Put that value on `ShipmentParcel` or beside it, not on the interned instance.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a flyweight.** "Cache the port codes" doesn't say whether two lookups return the same object, what an unknown code does or whether a shared port can change. State those in the prompt:
-
-> Keep `PortCode` a `sealed class` with get-only `Code` and `Name`, not a record, so reference equality shows that every parcel bound for `NLRTM` shares one instance. Seed `PortCodeRegistry` once with `ToFrozenDictionary`, make `Get` throw `UnknownPortCodeException` and make `TryGet` return `false` for an unknown code. Put nothing that varies per use, such as congestion, on `PortCode`. Keep `IConsignmentNode`, `Consolidation` and `ShipmentParcel` only because consolidations nest; a flat parcel list is a `Sum`.
-
-Run `dotnet test --project ConsignmentRouting.Tests --filter FlyweightRegistryTests`; its `Assert.Same` checks fail if `Get` builds a new `PortCode`.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Keep `PortCode` a `sealed class` with get-only `Code` and `Name`, not a record, so reference equality shows that every parcel bound for `NLRTM` shares one instance. Seed `PortCodeRegistry` once with `ToFrozenDictionary`, make `Get` throw `UnknownPortCodeException` and make `TryGet` return `false` for an unknown code. Put nothing that varies per use, such as congestion, on `PortCode`. Keep `IConsignmentNode`, `Consolidation` and `ShipmentParcel` only because consolidations nest; a flat parcel list is a `Sum`."
+>
+> Run `dotnet test --project ConsignmentRouting.Tests --filter FlyweightRegistryTests`; its `Assert.Same` checks fail if `Get` builds a new `PortCode`.
 
 ## Build, run, observe
 

@@ -171,13 +171,11 @@ A value type fits a type that is small, immutable and has no identity beyond its
 - **Inheritance.** A struct can implement interfaces but can't derive or be derived from. A concept that needs a base class with shared behavior isn't a candidate.
 - **`ref struct` beyond one synchronous call.** A parser that yields records through an iterator or hands a span to an `await`ed step can't be a `ref struct`; the compiler rejects it. Materialize a `ConsignmentRecord` or a `string` before the boundary and keep the `ref struct` in the synchronous part. A span returned from a method and held past its backing memory is a bug the compiler can't always catch, so the discipline applies outside `ref struct` too.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a value type.** "Make this a struct for performance" leaves open the size of the type, whether it needs identity, whether it's immutable and where a span may live.
-
-> Keep `Weight`, `Money` and `SlotId` as `readonly record struct` types with each property validated in its initializer; don't hand-write `Equals`, `GetHashCode` or the operators. `ConsignmentRecord` stays a `readonly record struct` of those values. Write `EdiRecordParser` as a `readonly ref struct` used only inside the static `TryParse(ReadOnlySpan<char>, out ConsignmentRecord)`, slicing the span and parsing with `CultureInfo.InvariantCulture` and explicit `NumberStyles`. Use no `Substring`, and return `false` for bad input instead of throwing.
-
-Check with `dotnet test --project FreightValueTypes.Tests --filter TryParse`; `TryParse_steady_state_allocates_nothing_on_the_current_thread` must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Keep `Weight`, `Money` and `SlotId` as `readonly record struct` types with each property validated in its initializer; don't hand-write `Equals`, `GetHashCode` or the operators. `ConsignmentRecord` stays a `readonly record struct` of those values. Write `EdiRecordParser` as a `readonly ref struct` used only inside the static `TryParse(ReadOnlySpan<char>, out ConsignmentRecord)`, slicing the span and parsing with `CultureInfo.InvariantCulture` and explicit `NumberStyles`. Use no `Substring`, and return `false` for bad input instead of throwing."
+>
+> Check with `dotnet test --project FreightValueTypes.Tests --filter TryParse`; `TryParse_steady_state_allocates_nothing_on_the_current_thread` must pass.
 
 ## For deeper coverage
 

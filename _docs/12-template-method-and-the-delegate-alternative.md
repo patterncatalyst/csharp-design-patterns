@@ -170,13 +170,11 @@ Compare the fields instead: `DestinationCountry`, `RequiredFields`, `Duty` and `
 - **One implementation.** A two-step sequence with one caller and no second implementation coming is a plain method that does both in order. The customs example earns the pattern with three countries today and a realistic fourth; a system with one hardcoded destination writes `BuildUnitedStatesDeclaration` and stops.
 - **No shared skeleton.** If a country needs a fourth step the others skip, or runs duty before required fields, forcing it through the same `Build` produces a subclass or a `DeclarationSteps` that lies about following the process. Don't bolt on an optional fourth hook; that country isn't a variation of this algorithm.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a new country.** "Add Canada to the declarations" leaves open whether it's a new `CustomsDeclarationBuilder` subclass or a `DeclarationSteps` value.
-
-> Add the country as one more static `DeclarationSteps` property on `CountrySteps`, shaped like `CountrySteps.Japan`: a `CollectRequiredFields` list, a `CalculateDuty` that rounds with `MidpointRounding.AwayFromZero`, and a `Validate` that applies the country's threshold plus the zero-line-item check. Build declarations through `DeclarationEngine.Build`, and add a case to `PerCountryDeclarationTests`. Don't add a `CustomsDeclarationBuilder` subclass unless the rules need a shared protected helper, state across steps, a type something matches on, or a step that calls another.
-
-Check with `dotnet test --project CustomsDocumentation.Tests --filter PerCountryDeclarationTests`; if the reply writes a subclass, ask which of those four it needs.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Add the country as one more static `DeclarationSteps` property on `CountrySteps`, shaped like `CountrySteps.Japan`: a `CollectRequiredFields` list, a `CalculateDuty` that rounds with `MidpointRounding.AwayFromZero`, and a `Validate` that applies the country's threshold plus the zero-line-item check. Build declarations through `DeclarationEngine.Build`, and add a case to `PerCountryDeclarationTests`. Don't add a `CustomsDeclarationBuilder` subclass unless the rules need a shared protected helper, state across steps, a type something matches on, or a step that calls another."
+>
+> Check with `dotnet test --project CustomsDocumentation.Tests --filter PerCountryDeclarationTests`; if the reply writes a subclass, ask which of those four it needs.
 
 ## Build, run, observe
 

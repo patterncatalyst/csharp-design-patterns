@@ -128,13 +128,11 @@ All 15 tests pass, and `scripts/verify.sh` runs them with every other example. T
 - **Mixed mutable graphs.** `with` is shallow. A record that holds an ordinary mutable class shares that object between original and copy, and a later mutation leaks into both. Keep every member that takes part in `with` immutable, or don't rely on the copy being independent.
 - **Hot amendment loops.** Each `with` allocates a new `Consignment`. Replaying ten thousand weight corrections in a tight loop allocates ten thousand objects, nearly all garbage at once. For a value amended a few times in its life that's immaterial; for one reprocessed many times a second, an encapsulated mutable type with private setters and invariant-preserving methods can be the better trade.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying construction rules.** "Fix the nullable warning" leaves open whether the member is optional or must always be set, and a `?` or `= null!` silences the warning without answering it.
-
-> In `Consignment`, mark `ConsignmentId`, `Route` and `Weight` as `required` with `init` accessors, make `ReferenceNumber` a `string?` and default `DeclaredValue` to `Money.Zero`. Don't add `null!`, a `?` on a required member, or a `None` or `Empty` sentinel. Write `ReRouteTo`, `WithCorrectedWeight` and `WithReferenceNumber` as `with` expressions that return a new `Consignment` and leave the original unchanged; `ReRouteTo` amends the nested `Route` with its own `with`.
-
-Check with `dotnet test --project ConsignmentAmendments.Tests --filter WithAmendmentTests`, and search the diff for `null!`.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `Consignment`, mark `ConsignmentId`, `Route` and `Weight` as `required` with `init` accessors, make `ReferenceNumber` a `string?` and default `DeclaredValue` to `Money.Zero`. Don't add `null!`, a `?` on a required member, or a `None` or `Empty` sentinel. Write `ReRouteTo`, `WithCorrectedWeight` and `WithReferenceNumber` as `with` expressions that return a new `Consignment` and leave the original unchanged; `ReRouteTo` amends the nested `Route` with its own `with`."
+>
+> Check with `dotnet test --project ConsignmentAmendments.Tests --filter WithAmendmentTests`, and search the diff for `null!`.
 
 ## For deeper coverage
 

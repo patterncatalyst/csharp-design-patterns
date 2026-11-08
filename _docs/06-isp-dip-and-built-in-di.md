@@ -281,13 +281,11 @@ Use the interface and registration when a swap is real, a test needs a double,
 or a capability varies by consumer. The built-in container itself is cheap: no
 extra package and no framework decision, just a few `AddSingleton` calls.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying the wiring.** "Add dependency injection" leaves open the container, the lifetime and how much of the gateway each consumer sees.
-
-> Wire the gateway with `Microsoft.Extensions.DependencyInjection` only, in `ServiceCollectionExtensions.AddCarrierGateway<TGateway>`; add no third-party container. Register `TGateway` once with `AddSingleton` and forward `ICarrierGateway`, `ICarrierRates` and `ICarrierTracking` to that one instance. This library has no request boundary, so nothing is scoped. `ShipmentRateAdvisor` takes only `ICarrierRates`; `ShipmentBookingService` takes `ICarrierGateway`. Both receive dependencies through primary constructors, never from `IServiceProvider`. Tests swap in `FakeCarrierGateway` with `AddCarrierGateway<FakeCarrierGateway>()`.
-
-Check with `dotnet test --project CarrierGateways.Tests --filter CarrierGatewayRegistrationTests`; `Narrow_interfaces_resolve_to_the_same_registered_gateway_instance` must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Wire the gateway with `Microsoft.Extensions.DependencyInjection` only, in `ServiceCollectionExtensions.AddCarrierGateway<TGateway>`; add no third-party container. Register `TGateway` once with `AddSingleton` and forward `ICarrierGateway`, `ICarrierRates` and `ICarrierTracking` to that one instance. This library has no request boundary, so nothing is scoped. `ShipmentRateAdvisor` takes only `ICarrierRates`; `ShipmentBookingService` takes `ICarrierGateway`. Both receive dependencies through primary constructors, never from `IServiceProvider`. Tests swap in `FakeCarrierGateway` with `AddCarrierGateway<FakeCarrierGateway>()`."
+>
+> Check with `dotnet test --project CarrierGateways.Tests --filter CarrierGatewayRegistrationTests`; `Narrow_interfaces_resolve_to_the_same_registered_gateway_instance` must pass.
 
 ## Build, run, observe
 

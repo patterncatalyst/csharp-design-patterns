@@ -200,13 +200,11 @@ All 13 tests pass; `scripts/verify.sh` at the repo root runs them with every oth
 
 Once a table must carry something a delegate can't express, or has nothing left to route between, an interface with a constructor behind it, or no abstraction at all, fits better.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a new document kind.** "Add a dangerous-goods note" doesn't say whether it's a table entry or a new class hierarchy. State it:
-
-> Add `DangerousGoodsNote` to `DocumentKind`. Write `RenderDangerousGoodsNote(DocumentRequest request)` as a static method in `DocumentRenderers` that reads its fields through `Field` and returns a `RenderedDocument`. Add one entry for it to the `Dictionary` literal in `DocumentDispatcher.Handlers`, which ends in `ToFrozenDictionary()`. Don't add an `IDocumentRenderer` interface, a class per kind or a factory. `Render` must still throw `UnknownDocumentKindException` for a kind with no entry.
-
-Run `dotnet test --project DocumentDispatch.Tests --filter "FrozenTableTests|DispatchTests"`; `Dispatch_table_has_a_handler_for_every_defined_document_kind` fails if the entry is missing.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Add `DangerousGoodsNote` to `DocumentKind`. Write `RenderDangerousGoodsNote(DocumentRequest request)` as a static method in `DocumentRenderers` that reads its fields through `Field` and returns a `RenderedDocument`. Add one entry for it to the `Dictionary` literal in `DocumentDispatcher.Handlers`, which ends in `ToFrozenDictionary()`. Don't add an `IDocumentRenderer` interface, a class per kind or a factory. `Render` must still throw `UnknownDocumentKindException` for a kind with no entry."
+>
+> Run `dotnet test --project DocumentDispatch.Tests --filter "FrozenTableTests|DispatchTests"`; `Dispatch_table_has_a_handler_for_every_defined_document_kind` fails if the entry is missing.
 
 ## For deeper coverage
 

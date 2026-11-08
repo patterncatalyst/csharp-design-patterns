@@ -196,13 +196,11 @@ All 9 tests pass. They cover distinct connection identities, suspension on an ex
 - **Return can be skipped.** An exception, an early return or a forgotten `Dispose` shrinks `Available` permanently, and the failure surfaces later as unrelated-looking timeouts once every connection is out. A lease helps only where callers use `using`; a bare `RentAsync` without `try`/`finally` around `Return` leaks the same way a `lock` without a `finally` would.
 - **`clearArray` is forgotten.** Output stays correct, so nothing that checks the trimmed result notices, and stale bytes wait for the next renter. For credentials, consignment contents or anything that shouldn't outlive its call, clearing is required.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a pool.** "Pool the gateway connections" leaves open what an empty pool does, how a connection gets back and whether a reused buffer is cleared. State them:
-
-> In `GatewayConnectionPool`, hold connections in a `Channel<IGatewayConnection>` so `RentAsync` waits on an exhausted pool and honors its token. `RentLeaseAsync` returns a `GatewayLease` whose `Dispose` calls `Return`, and callers take it with `using`. In `ManifestWriter.Serialize`, rent `UpperBoundBytes(lines)` bytes from the injected `ArrayPool<byte>`, copy the written span out with `ToArray()`, and call `_pool.Return(scratch, clearArray: true)` in a `finally`. Don't pool `ManifestLine` or any other small record.
-
-Run `dotnet test --project GatewayPooling.Tests --filter "ConnectionPoolTests|ManifestBufferTests"`; all 9 must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `GatewayConnectionPool`, hold connections in a `Channel<IGatewayConnection>` so `RentAsync` waits on an exhausted pool and honors its token. `RentLeaseAsync` returns a `GatewayLease` whose `Dispose` calls `Return`, and callers take it with `using`. In `ManifestWriter.Serialize`, rent `UpperBoundBytes(lines)` bytes from the injected `ArrayPool<byte>`, copy the written span out with `ToArray()`, and call `_pool.Return(scratch, clearArray: true)` in a `finally`. Don't pool `ManifestLine` or any other small record."
+>
+> Run `dotnet test --project GatewayPooling.Tests --filter "ConnectionPoolTests|ManifestBufferTests"`; all 9 must pass.
 
 ## For deeper coverage
 

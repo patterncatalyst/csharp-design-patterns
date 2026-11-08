@@ -143,13 +143,11 @@ One analyzer gap: CA1708, "identifiers should differ by more than case", can fir
 - **A wide surface on an unowned type.** Extension members show up only when their namespace is imported, so a caller without `using CarrierParcels;` sees none of them. Several static classes each adding members to the same receiver leave no single place to look. For a wide, cohesive surface, a wrapper type around the vendor type keeps everything in one place, at the cost of a construction step at each boundary; an interface over the wrapper helps when the vendor type is one of several substitutes.
 - **An operator whose meaning isn't obvious.** `shipment1 + shipment2` reads like built-in arithmetic, with nothing marking it as a locally written rule. The named alternate gives readers a name to search for; if the rule needs explaining, a named method alone may be the better choice.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying members on a vendor type.** "Add a method to this SDK type" doesn't say whether to wrap it, extend it or reach in with reflection, or where a factory lives. State it:
-
-> `CarrierShipment` in `CarrierParcels.Vendor` is a sealed vendor type with get-only properties. In `CarrierShipmentExtensions.cs`, add `WeightKilograms`, `IsHeavy` and `WithAddedWeight(int grams)`, which returns a new instance, in an `extension(CarrierShipment shipment)` block. Put `Empty` and `FromKilograms` in an `extension(CarrierShipment)` block. Pair `operator +` with a static `Add`, the named alternate CA2225 asks for. Add no wrapper type, no factory class and no reflection.
-
-Run `dotnet test --project CarrierParcels.Tests --filter ExtensionMemberTests`; a new type wrapping `CarrierShipment` in the reply is the defect.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "`CarrierShipment` in `CarrierParcels.Vendor` is a sealed vendor type with get-only properties. In `CarrierShipmentExtensions.cs`, add `WeightKilograms`, `IsHeavy` and `WithAddedWeight(int grams)`, which returns a new instance, in an `extension(CarrierShipment shipment)` block. Put `Empty` and `FromKilograms` in an `extension(CarrierShipment)` block. Pair `operator +` with a static `Add`, the named alternate CA2225 asks for. Add no wrapper type, no factory class and no reflection."
+>
+> Run `dotnet test --project CarrierParcels.Tests --filter ExtensionMemberTests`; a new type wrapping `CarrierShipment` in the reply is the defect.
 
 ## Build, run, observe
 

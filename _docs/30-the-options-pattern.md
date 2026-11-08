@@ -156,13 +156,11 @@ A registered validator still runs only when something resolves the options. `Val
 - **Change tracking nothing uses.** A consumer that wants its configuration fixed for its lifetime should take `IOptions<T>`. Subscribing to `OnChange` for a value no source ever reloads leaves a subscription to dispose for a callback that never fires.
 - **Options outside the startup path.** Here `ValidateOnStart()` runs the validator while the host starts. Bind and validate a type with plain `.Validate(...)` and no `ValidateOnStart()`, behind a rarely used feature, and validation waits until the first resolve, after the host is already taking traffic. Chain `ValidateOnStart()` on every options type whose failure should stop a deployment.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a configuration setting.** "Add a retry budget setting" doesn't say whether to read a key inline or bind a type, when to validate, or what reacts to a change. State it:
-
-> Add `RetryBudget` as an `int` property on `CarrierGatewayOptions` and bind the `CarrierGatewayOptions.SectionName` section in `AddCarrierGateway` with `AddOptions<CarrierGatewayOptions>().Bind(...).ValidateOnStart()`. Reject a negative value in `CarrierGatewayOptionsValidator`, registered as `IValidateOptions<CarrierGatewayOptions>`. Inject `IOptionsMonitor<CarrierGatewayOptions>` only in `RetryBudgetWatcher`, the singleton that reacts to a reload through `OnChange`, and dispose that subscription. Use `IOptions<T>` elsewhere, and never read `configuration["CarrierGateway:RetryBudget"]` inline.
-
-Run `dotnet test --project CarrierConfiguration.Tests --filter OptionsChangeAndValidationTests`; `ValidateOnStart_throws_for_invalid_configuration_at_startup` checks that a bad value fails at startup.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Add `RetryBudget` as an `int` property on `CarrierGatewayOptions` and bind the `CarrierGatewayOptions.SectionName` section in `AddCarrierGateway` with `AddOptions<CarrierGatewayOptions>().Bind(...).ValidateOnStart()`. Reject a negative value in `CarrierGatewayOptionsValidator`, registered as `IValidateOptions<CarrierGatewayOptions>`. Inject `IOptionsMonitor<CarrierGatewayOptions>` only in `RetryBudgetWatcher`, the singleton that reacts to a reload through `OnChange`, and dispose that subscription. Use `IOptions<T>` elsewhere, and never read `configuration["CarrierGateway:RetryBudget"]` inline."
+>
+> Run `dotnet test --project CarrierConfiguration.Tests --filter OptionsChangeAndValidationTests`; `ValidateOnStart_throws_for_invalid_configuration_at_startup` checks that a bad value fails at startup.
 
 ## Build, run, observe
 

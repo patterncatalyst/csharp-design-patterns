@@ -275,13 +275,11 @@ Command pays for itself when something needs undo, queued or batched application
 - **A direct call is cheaper.** `booking.ServiceLevel = "Express"` or `carrier.Confirm(bookingId)` is easier to write, read and debug. A settings toggle applied at once, with no undo and no batch, is one assignment.
 - **The machinery is overhead.** Each reversible command carries a snapshot field, a constructor taking receiver and value, and an `Undo` with its own guard. A queue whose commands are never undone or replayed is a `Queue<T>` and a `Stack<T>` doing what a `foreach` over a list of actions does.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying undo.** "Make these operations support undo" leaves open which operations need it and what each command captures.
-
-> Implement undo for service-level and weight changes as `ChangeServiceLevelCommand` and `ChangeWeightCommand`, both `IBookingCommand`. Each `Execute` copies the prior `Booking.ServiceLevel` or `Booking.WeightKilograms` into a private nullable field before overwriting it, and `Undo` throws `InvalidOperationException` if `Execute` never ran. `AmendmentQueue` keeps executed commands on a stack for `Undo` and `Redo`. The gateway call goes in `ConfirmAmendmentCommand` behind `IAsyncBookingCommand`, run by `AsyncAmendmentQueue.RunAsync` with the caller's `CancellationToken`. Don't snapshot a reference to a mutable list or object; copy the value.
-
-Check with `dotnet test --project BookingAmendments.Tests --filter AmendmentQueueTests`; `Undo_restores_the_exact_snapshot_even_after_later_commands_changed_the_value` must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Implement undo for service-level and weight changes as `ChangeServiceLevelCommand` and `ChangeWeightCommand`, both `IBookingCommand`. Each `Execute` copies the prior `Booking.ServiceLevel` or `Booking.WeightKilograms` into a private nullable field before overwriting it, and `Undo` throws `InvalidOperationException` if `Execute` never ran. `AmendmentQueue` keeps executed commands on a stack for `Undo` and `Redo`. The gateway call goes in `ConfirmAmendmentCommand` behind `IAsyncBookingCommand`, run by `AsyncAmendmentQueue.RunAsync` with the caller's `CancellationToken`. Don't snapshot a reference to a mutable list or object; copy the value."
+>
+> Check with `dotnet test --project BookingAmendments.Tests --filter AmendmentQueueTests`; `Undo_restores_the_exact_snapshot_even_after_later_commands_changed_the_value` must pass.
 
 ## Build, run, observe
 

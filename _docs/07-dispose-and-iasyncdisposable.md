@@ -243,13 +243,11 @@ Implement the one interface that matches whether release needs an `await`,
 guard it with one boolean field, and add more only when an unmanaged handle or a
 subclassing requirement appears.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying disposal.** "Make this class disposable" leaves open whether release must be awaited and whether the type needs a finalizer.
-
-> `ManifestWriter` is sealed and owns one `FileStream`: implement `IDisposable` with a single `Dispose()` that disposes the stream and sets `_disposed`, with no finalizer, no `Dispose(bool)` and no `GC.SuppressFinalize`. `LedgerAppender` writes through a `StreamWriter` asynchronously: implement `IAsyncDisposable` with a `DisposeAsync()` that returns `ValueTask` and awaits `_writer.DisposeAsync()`, never `.GetAwaiter().GetResult()`. In both, a second dispose is a no-op, and `WriteLine` or `AppendAsync` after disposal throws through `ObjectDisposedException.ThrowIf`.
-
-Check with `dotnet test --project ManifestWriting.Tests --filter Dispos`; a `~ManifestWriter` finalizer in the reply is the pattern this class doesn't need.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "`ManifestWriter` is sealed and owns one `FileStream`: implement `IDisposable` with a single `Dispose()` that disposes the stream and sets `_disposed`, with no finalizer, no `Dispose(bool)` and no `GC.SuppressFinalize`. `LedgerAppender` writes through a `StreamWriter` asynchronously: implement `IAsyncDisposable` with a `DisposeAsync()` that returns `ValueTask` and awaits `_writer.DisposeAsync()`, never `.GetAwaiter().GetResult()`. In both, a second dispose is a no-op, and `WriteLine` or `AppendAsync` after disposal throws through `ObjectDisposedException.ThrowIf`."
+>
+> Check with `dotnet test --project ManifestWriting.Tests --filter Dispos`; a `~ManifestWriter` finalizer in the reply is the pattern this class doesn't need.
 
 ## For deeper coverage
 
