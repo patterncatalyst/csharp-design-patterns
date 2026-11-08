@@ -286,7 +286,7 @@ A caller-owned `CancellationTokenSource` lets both checks require that exact tok
 
 Moq is the other common library, and a team with a working Moq suite has no reason to migrate it. Moq wraps the type in a `Mock<T>`, configures it through `.Setup(...)` and hands the code under test `.Object`: `var mock = new Mock<ITaxPolicy>(); mock.Setup(t => t.ApplyTax(It.IsAny<Money>())).Returns(...); var taxPolicy = mock.Object;`. NSubstitute returns the `ITaxPolicy` directly and attaches `.Returns(...)` to the call expression.
 
-The other reason is supply chain. Moq 4.20 shipped SponsorLink, a closed-source component that collected a hashed form of the developer's email address at build time, with limited notice. After community pushback the maintainers reverted the default; the mechanism remains available as an opt-in. NSubstitute has no comparable telemetry dependency to evaluate. For a new project with no investment either way, that makes NSubstitute the default.
+The other reason is supply chain. Moq 4.20.0 bundled SponsorLink, a closed-source component that read the developer's email address at build time and sent a hashed form of it. Version 4.20.2 removed it, and the [Moq changelog](https://github.com/devlooped/moq/blob/main/changelog.md) records it as no longer bundled from 4.20.70. NSubstitute has no comparable telemetry dependency to evaluate. For a new project with no investment either way, that makes NSubstitute the default.
 
 <blockquote class="ai-sidebar" markdown="1">
 **Specifying a test.** "Write a mocking example in C#" leaves open the library, the token and how async calls are stubbed and verified. State them:
