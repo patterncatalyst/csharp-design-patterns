@@ -238,7 +238,11 @@ The question in every case is whether more than one thread touches the structure
 | Records copied with `with` | A hot path stays on one thread; each copy is an allocation that mutating a field avoids |
 
 <blockquote class="ai-sidebar" markdown="1">
-Once the decision to make a pattern thread-safe is made, an assistant drafts the pieces well: a correct `ImmutableInterlocked.Update` call, `[EnumeratorCancellation]` on an async iterator's token, `Interlocked.Increment` on a decorator's counter. Whether the code runs under concurrency at all, and which strategy fits (an immutable snapshot, a channel, an interlocked counter, or nothing), stays a human judgment. Asked to "make this observer thread-safe," an assistant often adds synchronization unconditionally, because a lock or an immutable collection looks safe whether or not two threads will ever meet there.
+**Specifying a thread-safe observer.** "Make the hub thread-safe" leaves open what guards the observer list and what happens to an observer that unsubscribes during a raise. State them:
+
+> In `HandlingEventHub`, keep `_observers` as an `ImmutableArray<IHandlingObserver>`. `Subscribe`, and the `Subscription.Dispose` it returns, change it only through `ImmutableInterlocked.Update`. `Raise` copies `_observers` into a local snapshot and loops over that, so an unsubscribe mid-raise doesn't affect the loop in flight. Don't add a `lock`, a `ConcurrentBag` or a per-call `List` copy. In `CountingValidatorDecorator`, count with `Interlocked.Increment` and read `Calls` with `Volatile.Read`.
+
+Run `dotnet test --project ConcurrentHandling.Tests --filter "ObserverTests|DecoratorTests"`; all 4 must pass.
 </blockquote>
 
 ## For deeper coverage

@@ -226,7 +226,11 @@ Nothing is cached between enumerations. Calling `Paginate(2)` and enumerating th
 - **`IAsyncEnumerable<T>` over in-memory data.** Wrapping data already in memory adds a state machine and an `await` per element for nothing. `CarrierEventFeed` uses it because a live feed is an asynchronous source over time; a method over in-memory data stays synchronous.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to "stream" or "page" a result, an assistant will sometimes return `IAsyncEnumerable<T>` and `await foreach` when every element is already in memory and a `List<T>` would do. A related mistake puts an argument check at the top of a method that also contains `yield return`, which defers the check to first enumeration; `Paginate` avoids that by delegating the lazy part to `PaginateIterator`. A generated answer may also call `.ToList()` straight after a LINQ query "to be safe," making a lazy pipeline like `StagesReached` eager for no reason. Check a generated answer with three rules: use `IAsyncEnumerable<T>` only when production is asynchronous and ongoing, keep eager checks out of any method containing `yield return`, and leave a query lazy unless the caller needs a materialized list.
+**Specifying an iterator.** "Page the tracking history" doesn't say when the argument is checked, when the work runs or whether the source is already in memory. State those in the prompt:
+
+> In `ConsignmentHistory`, make `Paginate(int pageSize)` a plain method that throws `ArgumentOutOfRangeException` for a size below 1 and returns `PaginateIterator(pageSize)`, which holds the `yield return` and emits `TrackingPage` records with no trailing empty page. Leave `StagesReached` a lazy `Select` and `Distinct` with no `ToList`. Use `IAsyncEnumerable<TrackingEvent>` only for `ICarrierFeed.StreamAsync`, mark its token `[EnumeratorCancellation]`, and let `LiveTrackingReader.CollectUntilAsync` `break` out of `await foreach` at the stop stage.
+
+Run `dotnet test --project TrackingHistory.Tests --filter PaginationTests`; `Paginate_validates_page_size_eagerly_before_enumeration` fails if the check moves into the iterator.
 </blockquote>
 
 ## Build, run, observe

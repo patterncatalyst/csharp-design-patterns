@@ -183,7 +183,11 @@ Use `Get` where an unknown port is a data fault to stop on, and `TryGet` when va
 - **Flyweight, for per-use state.** If a port's live congestion, or a commodity's duty rate on one shipment, must vary independently, one shared instance can't hold both values; mutating it changes every parcel's view. Put that value on `ShipmentParcel` or beside it, not on the interned instance.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to model a shipment's parcels, an assistant will sometimes produce a full Composite (node interface, leaf, branch) for data the request never described as nesting. It works, since a one-item `Consolidation` recurses once, but every call walks an interface and a `SelectMany` chain to answer what a `Sum` over a list answers. A second failure comes later: a correct registry is widened with a `SetCongestionLevel` method on `PortCode` once a feature needs a port value to change. Mutating the one Rotterdam instance changes what every parcel pointing at it sees. Check a generated registry with one question: does the interned value ever need to change per use? If it does, it doesn't belong on the shared instance.
+**Specifying a flyweight.** "Cache the port codes" doesn't say whether two lookups return the same object, what an unknown code does or whether a shared port can change. State those in the prompt:
+
+> Keep `PortCode` a `sealed class` with get-only `Code` and `Name`, not a record, so reference equality shows that every parcel bound for `NLRTM` shares one instance. Seed `PortCodeRegistry` once with `ToFrozenDictionary`, make `Get` throw `UnknownPortCodeException` and make `TryGet` return `false` for an unknown code. Put nothing that varies per use, such as congestion, on `PortCode`. Keep `IConsignmentNode`, `Consolidation` and `ShipmentParcel` only because consolidations nest; a flat parcel list is a `Sum`.
+
+Run `dotnet test --project ConsignmentRouting.Tests --filter FlyweightRegistryTests`; its `Assert.Same` checks fail if `Get` builds a new `PortCode`.
 </blockquote>
 
 ## Build, run, observe

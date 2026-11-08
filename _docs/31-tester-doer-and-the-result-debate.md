@@ -231,11 +231,11 @@ None is a better version of the others:
 - **Any of the three for a broken contract.** A `null` argument, an unreachable customs database, a corrupted byte stream: these aren't outcomes a caller branches on, and `ThrowIfNull` in every method here reports them by throwing. Wrapping them in `Result<T>` trades a stack trace at the fault for a `Value` that reads as `null` or `default` wherever `IsSuccess` went unchecked.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying error handling.** "Add error handling to the declaration parser" leaves open which shape reports an expected failure and what still throws. State it:
+**Specifying error handling.** "Add error handling to the declaration parser" doesn't say which shape reports an expected failure or what still throws. State it:
 
-> Keep `ArgumentNullException.ThrowIfNull` for null arguments. Report a malformed EDI message from `EdiResultParser.Parse` as `Result<EdiMessage>.Failure` with a message naming the broken rule, and validate declarations with `DeclarationValidator.Validate` returning the first failing field. Use `TryParse` with a `bool` and `out` only where the caller logs and stops.
+> Keep `ArgumentNullException.ThrowIfNull` for null arguments. Report a malformed EDI message from `EdiResultParser.Parse` as `Result<EdiMessage>.Failure` with a message naming the broken rule, and have `DeclarationValidator.Validate` return the first failing field as `Result<CustomsDeclaration>.Failure`. Use `EdiTryParser.TryParse`, with its `bool` and `out EdiMessage?`, only where the caller logs and stops. Pair `DeclarationProcessor.Process`, which throws on invalid input, with `CanProcess` as its tester. Use the existing `Result<T>` and its `Map`; add no `Either` type.
 
-If the reply wraps null-argument checks in a `Result<T>` or invents an `Either` type, ask which caller branches on that case.
+Run `dotnet test --project DeclarationParsing.Tests --filter ResultTests`; a `Result<T>` returned for a null argument is the defect.
 </blockquote>
 
 ## Build, run, observe

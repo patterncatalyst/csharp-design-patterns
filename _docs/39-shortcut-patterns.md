@@ -201,7 +201,11 @@ All 13 tests pass; `scripts/verify.sh` at the repo root runs them with every oth
 Once a table must carry something a delegate can't express, or has nothing left to route between, an interface with a constructor behind it, or no abstraction at all, fits better.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to add a sixth document kind, an assistant will sometimes propose retiring the table for an `IDocumentRenderer` interface, a class per kind and a factory, treating the hierarchy as the more extensible answer whatever the new kind needs. If the sixth kind differs only in which fields it reads and which words surround them, that rewrite trades one dictionary entry and one static method for a sixth class and a sixth factory branch, with no behavior the table lacked. Check the answer against what varies: a hierarchy earns its weight when a case needs its own state, injected dependency or lifecycle, not when the case count passes a round number. A new pure-data kind belongs in the `Dictionary` literal feeding `ToFrozenDictionary`, beside the other five.
+**Specifying a new document kind.** "Add a dangerous-goods note" doesn't say whether it's a table entry or a new class hierarchy. State it:
+
+> Add `DangerousGoodsNote` to `DocumentKind`. Write `RenderDangerousGoodsNote(DocumentRequest request)` as a static method in `DocumentRenderers` that reads its fields through `Field` and returns a `RenderedDocument`. Add one entry for it to the `Dictionary` literal in `DocumentDispatcher.Handlers`, which ends in `ToFrozenDictionary()`. Don't add an `IDocumentRenderer` interface, a class per kind or a factory. `Render` must still throw `UnknownDocumentKindException` for a kind with no entry.
+
+Run `dotnet test --project DocumentDispatch.Tests --filter "FrozenTableTests|DispatchTests"`; `Dispatch_table_has_a_handler_for_every_defined_document_kind` fails if the entry is missing.
 </blockquote>
 
 ## For deeper coverage

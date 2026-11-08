@@ -305,7 +305,11 @@ Checking the sender's inbox matters: a mediator that delivered to both desks wou
 - **Mediator, too much.** A `Send` that branches on message content to compute duty or validate a declaration has stopped routing. It centralizes every rule in one class, the concentration the pattern exists to prevent.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to make two conditions "more flexible" or "ready for growth," an assistant will sometimes produce `ClearanceStage` subclasses, `Process` overrides and `SetNext` wiring for a pair of checks that will always be that pair. A related suggestion routes a single direct call between two classes through an `IClearanceMediator` and a `Send` dispatch. A generated mediator can also drift the other way, with `Send` branching on message content to make decisions the colleagues should own. Check a generated answer against two tests: can the sequence plausibly change shape or be reused (a chain), and are there enough participants, or volatile enough relationships, that direct references would be harder to read than one router (a mediator)? A fixed pair of conditions or collaborators usually reads better as a plain `if` or a plain method call.
+**Specifying a chain.** "Make clearance extensible" doesn't say which steps run in what order, where a failure stops the run or who decides. State those in the prompt:
+
+> Subclass `ClearanceStage` and override only `Process`; leave `Handle` to record the stage, stop on a `ClearanceResult` whose `Cleared` is false and pass the `ClearanceContext` on. Wire `DocumentCheckStage`, `DutyCalculationStage`, `InspectionStage` and `ReleaseStage` in that order with `SetNext` in `CustomsClearancePipeline.Standard`. Keep `CustomsMediator.Send` a router that forwards between `DeclarationDesk` and `DutyDesk` by sender and never branches on the message text. For two checks that will always be those two, write an `if` instead.
+
+Run `dotnet test --project CustomsClearance.Tests --filter ClearanceChainTests`; a `Send` that inspects `message` is the defect.
 </blockquote>
 
 ## Build, run, observe

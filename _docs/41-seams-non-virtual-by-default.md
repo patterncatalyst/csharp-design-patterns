@@ -242,9 +242,11 @@ All 13 tests pass: one reflection check on the legacy engine's shape, and twelve
 A seam has a cost. The case for opening seams in a closed legacy class isn't a case for opening them on a new class before anything needs them. Ten `protected virtual` methods nobody overrides, or ten constructor parameters for collaborators nobody varies, cost a reader indirection for variation that doesn't exist. The four seams in the refactored `RateEngine` each have a caller that varies them. A new class gets a seam under the same condition as any design choice: a collaborator a test or a real caller has to vary now, not a guess about someday. The legacy engine is the opposite extreme, and its fix isn't to open every point on every new class from the first line.
 
 <blockquote class="ai-sidebar" markdown="1">
-An AI assistant is useful for spotting missing seams. Pointed at `RateEngineSeams.Legacy.RateEngine`, a capable assistant flags `new LegacyTariffTable()` and the `DateTime.Now` read as the places a test can't reach, and drafts the interface extraction or clock wrapper for each. The match is mechanical: a `new` inside a method body or a static call to an ambient API, replaced by a parameter or a wrapper. It's a reasonable first pass over an unfamiliar class.
+**Specifying a seam.** "Make the rate engine testable" leaves open which dependencies get a seam and which members open to subclasses. State it:
 
-Deciding where a seam belongs is a separate question. Asked to make a class testable, an assistant tends to open every closed point it finds: methods made `virtual`, fields widened to `protected`, constructor parameters for collaborators nobody varies. Opening a point costs it nothing, and leaving one closed risks looking incomplete. The reviewer still has to ask, for each suggested seam, whether a test or production caller needs it, and decline the rest.
+> Starting from `Legacy.RateEngine`, write `RateEngineSeams.RateEngine`. Replace `new LegacyTariffTable()` and the `DateTime.Now` read with constructor parameters `ITariffSource tariffs` and `IClock clock`, and read the time once from `clock.UtcNow`. Make only `PeakSurcharge` `protected virtual`; leave `Quote` non-virtual, and add no other virtual members, `protected` fields or constructor parameters. Keep `PeakWindow` `internal` and reach it from tests through the `InternalsVisibleTo` item in `RateEngineSeams.csproj`.
+
+Run `dotnet test --project RateEngineSeams.Tests --filter "SeamTests|LegacyContrastTests"`; all 13 must pass.
 </blockquote>
 
 ## For deeper coverage

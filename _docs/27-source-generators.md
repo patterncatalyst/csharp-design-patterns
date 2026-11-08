@@ -225,11 +225,11 @@ A trimmer removes code nothing visibly calls, and a type reached only by an asse
 - **Without a caching check.** A model holding a plain `ImmutableArray<CarrierEntry>` still compiles and emits correct adapters. The only symptom is every stage rerunning whenever the manifest is re-read. Track the pipeline steps across a re-read with the same content and assert `Unchanged` or `Cached`.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying a source generator.** "Add a source generator for the carrier registry" leaves open the generator interface and how the pipeline's model compares. State it:
+**Specifying a source generator.** "Add a source generator for the carrier registry" doesn't say which generator interface to use or how the pipeline's model compares. State it:
 
-> Implement `IIncrementalGenerator`, not `ISourceGenerator`, which reruns all of `Execute` on every compilation. Read `carriers.manifest` through `AdditionalTextsProvider`, name the parse and combine stages with `WithTrackingName`, and hold entries in an `EquatableArray<T>` so the model compares by value. Add a test with `trackIncrementalGeneratorSteps: true` that replaces the manifest with an equal-content copy and expects `Unchanged` or `Cached` on the second run.
+> In `CarrierGatewayGenerator`, implement `IIncrementalGenerator`, not `ISourceGenerator`, which reruns all of `Execute` on every compilation. Read `carriers.manifest` through `AdditionalTextsProvider`, filtered on the `.manifest` extension, and name the parse and combine stages with `WithTrackingName` using `TrackingNames.Parse` and `TrackingNames.Combine`. Hold the entries of `CarrierManifestModel` in an `EquatableArray<CarrierEntry>` so the model compares by value. Emit one `ICarrierGateway` per entry plus `GeneratedCarrierRegistry`.
 
-If the model holds a plain `ImmutableArray<T>`, ask for the caching test.
+Run `dotnet test --project CarrierManifest.Tests --filter GeneratorCachingTests`; `Equal_content_manifest_reread_leaves_the_model_unchanged` is the test that catches a model holding a plain `ImmutableArray<T>`.
 </blockquote>
 
 ## Build, run, observe

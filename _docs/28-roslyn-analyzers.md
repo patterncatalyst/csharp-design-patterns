@@ -193,11 +193,11 @@ All 6 tests pass. They drive the analyzer through the Roslyn API directly: parse
 - **Matching by naming convention.** Treating types named `*Contract` or `*Dto` as wire types misses renamed contracts and flags types that never cross a boundary. An explicit attribute, resolved by its metadata name, survives renames.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying a wire contract.** "Add a contract for rate quotes" leaves the money type open, and `decimal` is the default most C# code uses for money. State it:
+**Specifying a wire contract.** "Add a contract for rate quotes" doesn't say which type carries money, and `decimal` is what most C# code uses. State it:
 
-> Add a `[WireContract]` sealed record for rate quotes. Represent money as a `long` count of minor units named `AmountMinorUnits`, never `decimal`. The build runs the `SHIP0001` analyzer with warnings as errors.
+> In `Contracts.cs`, add the quote as a `[WireContract]` `sealed record` shaped like `RateQuoteContract(string CarrierCode, long AmountMinorUnits, string Currency)`. Carry money as a `long` count of minor units, never `decimal`. Leave `decimal` only in types without `[WireContract]`, such as `InternalRateCalculation`, where `MoneyAsDecimalAnalyzer` stays quiet. Don't silence `SHIP0001` with a `#pragma` or `[SuppressMessage]`; the build treats its warning as an error.
 
-If the reply uses `decimal`, the build fails with `SHIP0001` before review.
+Run `dotnet build` in the example: a `decimal` property on a `[WireContract]` type fails with `SHIP0001`. `dotnet test --project WireContracts.Tests --filter MoneyAsDecimalAnalyzerTests` covers the analyzer itself.
 </blockquote>
 
 ## For deeper coverage

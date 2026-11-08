@@ -194,9 +194,11 @@ The mistake runs both ways:
 "Keeping it simple" and "building it right from the start" are both labels. What decides is whether a second occurrence exists, or is planned firmly enough to act on now. For `FreightRating` there's one scheme and none planned, so `RateCalculator.Quote` is the shape to reach for, and `RateEngine` is what a second scheme would plug into.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to compute a freight rate quote, an AI assistant will sometimes return this tower: an `IRateComponent` interface, a class per charge, an `IRateComponentFactory` and a `RateEngine`, for a calculation with one rating scheme. Every type compiles and a generated test suite can pass against it. What's missing is the second occupant the request never mentioned and the assistant never asked about. A model that reads "compute a value from several factors" as Strategy-shaped reaches for Strategy whether or not a second strategy exists.
+**Specifying a rate calculation.** "Compute a freight quote" doesn't say how many rating schemes exist, which leaves room for an interface, a class per charge and a factory. State it:
 
-Review it the way the equivalence theory does: write the single-method version, then check whether the interfaces and factories support anything that method doesn't. If the answer is one scheme, one list and one order, fold the tower back into the method, and keep the interface split for the day a second scheme needs it.
+> There's one rating scheme. Write `RateCalculator.Quote(RateRequest request)` as a single public static method: `DeclaredValue * 0.015m`, plus `WeightKilograms * 2.50m`, plus 8% of that subtotal when `FuelLevyApplies`. Don't add `IRateComponent`, `IRateComponentFactory` or a `RateEngine`, and don't add a parameter for a second scheme. Before deleting `OverAbstracted.RateEngine`, add a theory that runs both forms on the same `RateRequest` values and asserts equal quotes.
+
+Run `dotnet test --project FreightRating.Tests --filter "RateCalculatorTests|EquivalenceTests"`; `Collapsed_calculator_exposes_a_single_public_quote_method` fails if the reply adds a public member.
 </blockquote>
 
 ## For deeper coverage

@@ -257,7 +257,11 @@ All four combinations render the right title, carrier code and address (destinat
 - **Conversion operator.** Use a named method when the conversion does more than change units or representation. Converting a `ShipmentRequest` into a `CarrierQuote` by defaulting a price would hide that behind a cast, or behind no syntax at all if implicit. A conversion that needs a sentence of explanation belongs in a method whose name carries it.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to add a conversion between weight or money types, an assistant sometimes marks a lossy conversion implicit so it fires without a cast. `FromDecimal` and the `Kilograms`-`Pounds` conversions are explicit because each can discard a fraction of a cent or a pound; an implicit version lets that loss happen on an ordinary assignment. Asked to make a single carrier client "pluggable," it may build a Bridge with one renderer and one label kind. Check a generated answer with two questions: is the conversion lossless (implicit) or can it discard something (explicit, with a named alternate)? And does a second label kind or renderer exist or have a concrete plan? If not, the Bridge is two hierarchies standing in for one class.
+**Specifying a conversion.** "Add a conversion between the weight types" doesn't say whether it can lose precision or whether a caller has to cast. State that in the prompt:
+
+> In `Kilograms.cs` and `Pounds.cs`, keep `ToPounds` and `ToKilograms` as the named methods and add each conversion as an `explicit operator` that calls them, since either can drop a fraction of a pound. Keep `Money`'s lossless `implicit operator decimal` and make `explicit operator Money` call `FromDecimal`, which rounds with `MidpointRounding.ToEven`. Don't add a Bridge for one label kind: `ShipmentLabel` takes an `ILabelRenderer` only because `StandardShipmentLabel` and `ReturnShipmentLabel` each render through both `PdfLabelRenderer` and `ZplLabelRenderer`.
+
+Run `dotnet test --project CarrierIntegration.Tests --filter ConversionOperatorTests`, and treat an `implicit operator Pounds` in the reply as the defect.
 </blockquote>
 
 ## Build, run, observe

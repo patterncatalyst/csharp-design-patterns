@@ -210,11 +210,11 @@ The composed lambda's single parameter is `left`'s own object, and its body is a
 - **Debugging composed trees.** A delegate built from several rewrites has no source line to step into. Check it by rendering the result with `RateDescriber.Describe` instead.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying a configurable pricing rule.** "Let users configure a pricing rule" leaves open whether to parse a formula string or build a tree from known parts, and when to compile. State it:
+**Specifying a configurable pricing rule.** "Let users configure a pricing rule" doesn't say whether to parse a formula string or build a tree from known parts, or when to compile. State it:
 
-> Represent each rule as an `Expression<Func<RateRequest, decimal>>` or `Expression<Func<RateRequest, bool>>`. Combine predicates with `Expression.AndAlso` after rebinding parameters with an `ExpressionVisitor`. Compile each distinct rule once and cache the delegate. Use a plain `Func` for any rule nothing inspects or rewrites.
+> Keep each rule in `TariffExpressionLibrary` as an `Expression<Func<RateRequest, decimal>>` or `Expression<Func<RateRequest, bool>>` written as a lambda, never parsed from a string. In `PredicateComposer.And`, rebind the right lambda onto the left one's parameter with `ParameterReplacer` before `Expression.AndAlso`. Rewrite constants in an `ExpressionVisitor` such as `RateInflator`, and read the properties a rule touches with `ReferencedPropertyCollector` without running it. Call `Compile()` once per distinct rule and keep the delegate. Use a plain `Func` for any rule nothing inspects or rewrites.
 
-If the reply writes a tokenizer and recursive-descent evaluator, ask which input the factory methods can't build.
+Run `dotnet test --project TariffExpressions.Tests --filter RewriteAndComposeTests`; a tokenizer in the reply is the defect.
 </blockquote>
 
 ## Build, run, observe
