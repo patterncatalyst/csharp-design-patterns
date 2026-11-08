@@ -237,7 +237,11 @@ Both catalogues cost effort, so both deserve restraint. If `LegacyRateEngine.Quo
 Order matters as much as restraint. Extract Method or Replace Conditional with Polymorphism on a method still shaped like `LegacyRateEngine`, sealed, non-virtual, with a hard-coded collaborator, edits production logic with nothing to catch a mistake. The seam comes first, green, before any Fowler technique touches the method.
 
 <blockquote class="ai-sidebar" markdown="1">
-An AI assistant names a Feathers seam or a Fowler refactoring about as fast as it reads the method: extract `ITariffSource`, replace the `switch` with a surcharge hierarchy, pull the literals into `RateRules`. That helps most on a method like `LegacyRateEngine.Quote`, where the problems are structural and easy to name. What a suggestion can't settle is the order: whether the method already has a seam worth trusting before any refactoring runs, and whether the refactoring proposed is the one the current change needs or just the most thorough one available. Getting the code under test first, and judging which refactoring earns its cost against today's change, stays with you; drafting the seam or the refactoring after that is what the assistant does well.
+**Specifying a legacy change.** "Clean up `LegacyRateEngine`" doesn't say whether the method gets a seam before it's refactored, or which refactoring the change needs. State the order:
+
+> First, the Feathers step: copy `LegacyRateEngine.Quote` into `SeamedRateEngine` with the body unchanged, replacing only `new LegacyTariffTable()` with an `ITariffSource` and `DateTime.Now` with an `IClock`, both through the constructor. Second, add an equivalence theory that runs `SeamedRateEngine` and `RateEngine` on the same `RateRequest` and `FakeClock` instant for every `ServiceLevel`, at peak and off peak. Third, the Fowler step: in `RateEngine`, replace the service-level `switch` with `ServiceSurcharges.For` and move the literals into `RateRules`. Don't start the third step until the second passes.
+
+Run `dotnet test --project RateEngineCatalogues.Tests --filter "EquivalenceTests|FowlerFeathersTests"`; all must pass.
 </blockquote>
 
 ## For deeper coverage

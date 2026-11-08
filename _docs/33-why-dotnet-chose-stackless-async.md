@@ -120,7 +120,11 @@ All 6 tests pass, and `scripts/verify.sh` at the repo root runs them with every 
 - **Fire-and-forget.** An unawaited task drops the one guarantee `Task` provides: knowing when the work finished and whether it threw. A desk that discarded `ConfirmAsync`'s task would lose ledger failures, or see them later as unobserved task exceptions with no link to the booking. `AcceptAsync` always awaits and propagates success, cancellation or failure to its caller.
 
 <blockquote class="ai-sidebar" markdown="1">
-An assistant handles two narrow jobs well: converting a synchronous method to `async`/`await` through a call chain without missing a caller, and scanning a body for blocking calls (a synchronous file read, `.Result`, `.Wait()`, `Thread.Sleep`) that stall the resuming thread. Neither answers whether a method should be `async` at all: that depends on whether the work is I/O-bound, with an idle period worth releasing the thread for, or CPU-bound. Check `HasCapacityAsync`-style methods by hand. Asked to "make it async," an assistant may wrap one in `Task.Run` or `Task.FromResult` when `ValueTask<bool>` already serves it with no allocation.
+**Specifying an async method.** "Make the desk async" doesn't say which members suspend on real work and which finish before they return. State it:
+
+> In `SailingBookingDesk`, make `AcceptAsync` `async` and await `ledger.ConfirmAsync(request.ConsignmentId, ct)` directly, passing the token. `AcceptAllAsync` starts one `AcceptAsync` per request and awaits `Task.WhenAll`. Leave `HasCapacityAsync` without `async`: return `new ValueTask<bool>(...)` built from `Volatile.Read(ref _accepted) < sailingCapacity`. Don't use `Task.Run`, `Task.FromResult`, `.Result`, `.Wait()` or `Thread.Sleep`, and don't discard a task.
+
+Run `dotnet test --project SailingBookings.Tests --filter "BookingDeskTests|StacklessModelTests"`; all 6 must pass.
 </blockquote>
 
 ## For deeper coverage

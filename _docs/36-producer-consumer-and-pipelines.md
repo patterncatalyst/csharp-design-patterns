@@ -123,7 +123,11 @@ Producer-Consumer pays when the two sides run at different paces or in different
 - **An unbounded queue instead of a bounded one.** It hides a slow consumer as memory growth until an out-of-memory failure turns it into an outage. `BoundedChannelFullMode.Wait` turns the same problem into a visibly waiting producer while it's still a performance issue.
 
 <blockquote class="ai-sidebar" markdown="1">
-An assistant can scaffold a Producer-Consumer pipeline well: a bounded channel, a fixed set of consumer tasks, and the completion and drain plumbing are mechanical enough that a first draft is often close. The decisions that shape behavior under load stay with the team: bounded or unbounded, how many consumers each stage needs, and what happens to in-flight work on cancellation or shutdown. A generated pipeline compiles and passes the happy path without asking whether an unbounded channel is hiding a backpressure problem that only production traffic will show.
+**Specifying a pipeline.** "Add a queue between ingest and processing" leaves open its bound, how many consumers read it and how shutdown drains it. State them:
+
+> In `HandlingEventPipeline`, create the channel with `Channel.CreateBounded<HandlingEvent>` and `BoundedChannelFullMode.Wait`, never `CreateUnbounded`. Start `consumerCount` `ConsumeAsync` tasks in the constructor, each reading with `ReadAllAsync`. `SubmitAsync` returns the writer's `WriteAsync(e, ct)`, so a full channel makes the producer wait and a cancelled token throws. `CompleteAndDrainAsync` calls `Writer.Complete()`, awaits `Task.WhenAll` over the consumers, and only then builds the `IngestReport`. Don't add sleeps or timeouts.
+
+Run `dotnet test --project HandlingEventIngest.Tests --filter "PipelineTests|BackpressureTests"`; all 5 must pass.
 </blockquote>
 
 ## For deeper coverage

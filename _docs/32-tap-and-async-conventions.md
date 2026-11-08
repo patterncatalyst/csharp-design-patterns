@@ -154,7 +154,11 @@ All 10 tests pass; `scripts/verify.sh` at the repo root runs them with every oth
 - **A progress parameter nothing calls.** An `IProgress<T>` that never receives `Report` leaves a progress bar at zero until the batch ends. Remove plumbing that implies a capability the method lacks.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to make a slow method "async," an assistant will sometimes wrap a synchronous computation in `Task.Run`, burning a thread-pool thread to produce a result that needed no awaiting. Another common suggestion adds a `CancellationToken` to satisfy the TAP shape and never calls `ThrowIfCancellationRequested` or forwards the token, which passes every case that never cancels. Ask two questions of a generated async method: does the work need to be asynchronous at all, or would `ValueTask<TResult>` or a plain method serve better; and is every `CancellationToken` and `IProgress<T>` parameter checked or called in the body.
+**Specifying an async member.** "Make the gateway async" doesn't say where cancellation is checked, when progress is reported or which members await real work. State them:
+
+> In `FakeCarrierGateway`, implement `DispatchBatchAsync(IReadOnlyList<DispatchRequest>, IProgress<DispatchProgress>?, CancellationToken)`. Call `cancellationToken.ThrowIfCancellationRequested()` before each request, pass the token to every await and end each await with `ConfigureAwait(false)`. After each receipt, call `progress?.Report(new DispatchProgress(i + 1, requests.Count))`. Implement `IsReachableAsync` without `async`, returning a completed `ValueTask<bool>`. Don't wrap anything in `Task.Run`, and keep the `Async` suffix and a trailing `CancellationToken` on every member of `ICarrierGateway`.
+
+Run `dotnet test --project CarrierDispatch.Tests --filter "BatchProgressTests|AsyncConventionTests"`; all 8 must pass.
 </blockquote>
 
 ## For deeper coverage

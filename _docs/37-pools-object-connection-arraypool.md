@@ -197,7 +197,11 @@ All 9 tests pass. They cover distinct connection identities, suspension on an ex
 - **`clearArray` is forgotten.** Output stays correct, so nothing that checks the trimmed result notices, and stale bytes wait for the next renter. For credentials, consignment contents or anything that shouldn't outlive its call, clearing is required.
 
 <blockquote class="ai-sidebar" markdown="1">
-An assistant can scaffold a pool or a buffer-reuse routine: a channel-backed rent/return pair, the `IAsyncDisposable` cleanup loop, the `UpperBoundBytes` calculation and the `try`/`finally` around a rented array. Two calls stay human: whether the resource is scarce enough to justify pooling at all, and whether every exit path releases it, every `ArrayPool<T>.Return` clears when the data warrants, and every lease disposes into the right pool. Asked to "pool this," an assistant will pool something that didn't need it, and a confident `_pool.Return(scratch)` with `clearArray` left at `false` compiles and produces correct output while leaving the risk for a reviewer to catch.
+**Specifying a pool.** "Pool the gateway connections" leaves open what an empty pool does, how a connection gets back and whether a reused buffer is cleared. State them:
+
+> In `GatewayConnectionPool`, hold connections in a `Channel<IGatewayConnection>` so `RentAsync` waits on an exhausted pool and honors its token. `RentLeaseAsync` returns a `GatewayLease` whose `Dispose` calls `Return`, and callers take it with `using`. In `ManifestWriter.Serialize`, rent `UpperBoundBytes(lines)` bytes from the injected `ArrayPool<byte>`, copy the written span out with `ToArray()`, and call `_pool.Return(scratch, clearArray: true)` in a `finally`. Don't pool `ManifestLine` or any other small record.
+
+Run `dotnet test --project GatewayPooling.Tests --filter "ConnectionPoolTests|ManifestBufferTests"`; all 9 must pass.
 </blockquote>
 
 ## For deeper coverage

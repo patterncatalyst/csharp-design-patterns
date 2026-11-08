@@ -221,7 +221,11 @@ These techniques get code under test before a change. They don't turn every seam
 | Extract Interface | A second implementation of the rule becomes plausible |
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to break a legacy method's dependencies, an AI assistant drafts an interface for a static lookup, parameterizes a constructor and extracts an overridable call about as fast as it reads the method. On a type like the legacy `RateEngine`, with five dependencies a few lines each to wrap, that's useful. What a draft can't settle is the smallest seam that gets today's change under test. An assistant asked to make a method testable tends to make all of it testable, every dependency broken, whether or not the change touches more than one. Whatever it proposes is safe only once the refactored engine returns the same quote as the legacy form for the same request, checked against both forms rather than assumed from how the new code reads. Scoping the seam and verifying behavior stay with you; drafting the seam is what the assistant does well.
+**Specifying dependency breaking.** "Make the legacy rate engine testable" doesn't say which of its five dependencies to break, or with which technique. State each:
+
+> Starting from `Legacy.RateEngine.Quote`, write `RateEngineDependencies.RateEngine`. Extract `ITariffBook` from the static `LegacyTariffBook` and `IAuditLog` from `LegacyAuditLog`, and take them with `IClock` and `IReferenceGenerator` through the primary constructor. Replace `Environment.UserName` with a `quotedBy` parameter on `Quote`. Route the reference through a `protected virtual NewReference()`. Keep `LaneValidation.IsKnownLane` `internal`. Don't change the amount or the audit message text. If today's change touches only the tariff, extract only `ITariffBook` and stop.
+
+Run `dotnet test --project RateEngineDependencies.Tests --filter "DependencyBreakingTests|LegacyContrastTests"`; all must pass.
 </blockquote>
 
 ## For deeper coverage

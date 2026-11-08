@@ -191,7 +191,11 @@ A seam like `IRateEngine` isn't free either. An interface, a second implementati
 Use the criteria and the seam while the question is open. Skip both when the answer is to leave the code alone.
 
 <blockquote class="ai-sidebar" markdown="1">
-An AI assistant can score code against coverage, change frequency, blast radius and domain stability as fast as it reads it, and can draft a rewrite behind a named interface faster than most engineers type the signature. Weighing four criteria consistently across a backlog of files is tedious work an assistant does well, and a drafted rewrite gives a team something concrete to react to. What the draft can't settle is whether it computes what the original did. A rewrite that reads cleanly can still drop a rounding rule, an edge case or a boundary condition. An equivalence theory closes that gap: run the draft and the existing implementation against the same scenarios and assert equal results, instead of trusting that a clean reading means a correct one. Weighing the criteria and deciding to proceed stay with you; the equivalence check runs before either answer ships.
+**Specifying a rewrite.** "Rewrite the rate engine" leaves open what the rewrite sits behind and how anyone knows it still computes the same quote. State both:
+
+> Write `RewrittenRateEngine` as an `IRateEngine` that takes `ITariffSource` and `IClock` through its constructor, so `QuoteService` can hold either it or `RefactoredRateEngine` unchanged. Use `RateRules.DeclaredValueRate`, `RateRules.PeakMultiplier` and `PeakWindow.IsPeak` as the only rules; don't add or drop a rounding step, a lane default or a boundary hour. In `EquivalenceTests`, write a theory that quotes the same `RateRequest` and `FakeClock` instant through both engines, peak and off peak, and asserts the two `RateQuote` records are equal.
+
+Run `dotnet test --project RateEngineReplacement.Tests --filter EquivalenceTests`; every scenario must pass.
 </blockquote>
 
 ## For deeper coverage
