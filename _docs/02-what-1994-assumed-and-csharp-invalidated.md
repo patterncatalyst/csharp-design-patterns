@@ -11,91 +11,51 @@ description: "The object-orientation assumptions the Gang of Four wrote under, a
 
 By the end of this chapter you can:
 
-- Name two capabilities the 1994 catalogue's C++ and Smalltalk examples
-  didn't have, and explain which pieces of catalogue ceremony exist mainly to
-  work around their absence.
-- Cite the Microsoft Learn source for the `event` keyword and explain, with a
-  short example, how it implements the publish-and-subscribe relationship
-  Observer names.
-- Cite the Microsoft Learn source for `Func<>` delegates and explain how a
-  delegate value lets a caller supply interchangeable behavior without a
-  Strategy interface and its concrete implementations.
-- Cite the Microsoft Learn source for nullable reference types and explain
-  why they remove most of the reason to write an explicit Null Object.
-- State the test this book applies to each classic pattern to decide whether
-  it has dissolved into a language feature or still needs its original
+- Name the two capabilities the 1994 catalog's C++ and Smalltalk examples
+  lacked, and the ceremony that works around them.
+- Replace an Observer subject's subscriber list with an `event`.
+- Replace a Strategy interface and its classes with a `Func<>` parameter.
+- Replace most Null Objects with a nullable reference type.
+- Decide whether a pattern dissolves into a language feature or keeps its
   structure.
 
 ## Why this matters
 
-A C# engineer who learned design patterns from the 1994 catalogue carries
-habits suited to the constraints of its era, not C#'s. Faced with "this
-rate quote needs to vary by customer," that training reaches for an
-interface, a concrete class per variation, and a factory to wire them
-together. That was the only type-safe way to parameterize behavior in the
-languages the catalogue was written against. In C#, the same requirement is
-a parameter typed `Func<Consignment, Money>`. Writing the interface-and-factory
-version anyway isn't more correct. It's four extra types that a reviewer has
-to read, a test suite has to cover, and an AI coding assistant has to load
-into context before it can reason about a one-line change. All of it
-resolves a force the compiler already resolves on its own.
+Asked to make a rate quote vary by customer, an engineer trained on the 1994
+catalog writes an interface, one class per variation and a factory to pick one,
+because that was the only type-safe way to parameterize behavior in the
+languages the catalog used. In C# the requirement is a parameter typed
+`Func<Consignment, Money>`. The interface-and-factory version adds four types
+that a reviewer reads, tests cover and an AI coding assistant loads into context
+before it can reason about a one-line change.
 
-This chapter makes a narrow, checkable claim. Specific entries in the 1994
-catalogue, and in the object-oriented design-patterns literature that
-followed it closely, exist to compensate for things their host languages
-couldn't do. C# can now do several of them directly. Every language-feature
-claim below cites Microsoft Learn or a compilable example, the same
-discipline this book asks of every original-research chapter it writes.
+Some catalog entries, and some of the 1990s literature that followed, exist to
+compensate for what their host languages couldn't do. C# does several of those
+things directly. Each language claim below cites Microsoft Learn.
 
 {% include excalidraw.html name="02-what-1994-assumed-and-csharp-invalidated" caption="Figure 2.1: Three gaps the 1994 object model left open, no first-class functions, no compiler-checked nullability, and hand-rolled subscriber lists, each now closed by a C# language feature." %}
 
-## The object model the catalogue assumed
+## The object model the catalog assumed
 
-The Gang of Four catalogue's examples run overwhelmingly in C++ and
-Smalltalk, the two languages its authors used daily in 1994. Both left gaps
-that a design pattern was a reasonable way to paper over.
+The catalog's examples are C++ and Smalltalk. Both left two gaps.
 
-Neither language gave a convenient, type-safe way to pass a piece of
-behavior around as an ordinary value. C++ in 1994 had member function
-pointers, which are notoriously awkward to bind to a specific instance and
-carry no useful type information about what they do. Lambda expressions
-didn't arrive in C++ until the 2011 standard, seventeen years later.
-Smalltalk had blocks, which are closures. But the catalogue's own diagrams
-favor an explicit object graph (an abstract `Strategy` class, one concrete
-subclass per algorithm, a `Context` that holds a reference to one) over a
-block passed directly to a method. Whichever language a team was using, the
-safe, portable way to let a caller supply interchangeable behavior was to
-wrap that behavior in an object and pass the object. The language gave you
-no cheaper way to say "here is some code, call it later."
+| Gap | C++ and Smalltalk in 1994 | Workaround the catalog uses | C# feature |
+|---|---|---|---|
+| Behavior as a value | C++ had member function pointers, awkward to bind to an instance; lambdas arrived in C++11. Smalltalk had blocks, but the catalog's diagrams favor an explicit object graph. | Wrap the behavior in an object and pass the object. | Delegates, lambdas, `event` |
+| Present versus possibly absent | Any C++ reference or Smalltalk variable could hold null or nil, and nothing told a caller which needed a check. | Return null and trust every caller, or return a do-nothing stand-in. | Nullable reference types |
 
-Neither language's type system distinguished a reference that is always
-present from one that might be absent. Every object reference in C++ and
-every variable in Smalltalk could silently hold a null or nil value. Nothing
-in the compiler or the type checker told a caller which references needed a
-null check and which didn't. A method that sometimes had nothing useful to
-return had exactly two options. It could return null and trust every caller
-to check for it. Or it could return a stand-in object that implements the
-same interface but does nothing, so every caller treats the absent case
-exactly like the present one without a conditional.
-
-Those two gaps, no cheap way to pass behavior as data and no type-level way
-to say a reference cannot be null, explain a disproportionate share of the
-catalogue's structural ceremony. C# closes both. What follows walks through
-three patterns whose core forces are resolved by a language feature built
-for exactly that gap.
+Those two gaps account for a large share of the catalog's structural ceremony.
+Three patterns show it.
 
 ## Observer: the event keyword absorbs the subscriber list
 
-Observer's job is to let one object broadcast that something happened
-without knowing, at compile time, who is listening. In the catalogue's
-shape, a `Subject` base class hand-rolls a list of observers and `Attach`,
-`Detach`, and `Notify` methods to manage it. Each listener implements an
-`Observer` interface so the subject can call it generically.
+Observer lets one object announce that something happened without knowing who
+listens. The catalog's `Subject` keeps a list of observers with `Attach`,
+`Detach` and `Notify`, and each listener implements an `Observer` interface.
 
-C# builds that exact shape into the language. The `event` keyword declares a
-member backed by a delegate type. The compiler generates the subscription
-list, the `+=` and `-=` operators to join and leave it, and the null-safe
-invocation pattern to broadcast to every current subscriber:
+The `event` keyword declares a member backed by a delegate type. The compiler
+generates the subscription list, the `+=` and `-=` operators, and the
+invocation that reaches every current subscriber:
 
 ```csharp
 public sealed class Consignment
@@ -111,36 +71,25 @@ consignment.Delayed += (sender, args) =>
     Console.WriteLine($"Consignment delayed by {args.By}");
 ```
 
-Microsoft Learn's own framing of this feature could be describing Observer's
-intent directly: events are "a way for an object to broadcast ... that
-something happened," and any other component "can subscribe to the event,
-and be notified when an event is raised" (Microsoft Learn, [Introduction to
-events](https://learn.microsoft.com/en-us/dotnet/csharp/events-overview)).
-The design goals Microsoft Learn lists for the feature, minimal coupling
-between the source and the listener, simple subscription and
-unsubscription, and support for any number of subscribers including zero,
-are the same three properties Observer's Consequences section claims. The
-pattern and the language feature are solving the same problem; C# just
-solves it once, in the compiler, instead of asking every team to re-solve it
-with a hand-written subscriber list.
+Microsoft Learn's design goals for events are minimal coupling between source and
+listener, simple subscription and unsubscription, and any number of subscribers
+including zero ([Introduction to
+events](https://learn.microsoft.com/en-us/dotnet/csharp/events-overview)). Those
+are the properties Observer's Consequences section claims, delivered once by the
+compiler.
 
-What C# doesn't remove is the discipline Observer always required: a
-subscriber still has to unsubscribe when it's no longer interested, or the
-subject keeps a live reference to it and the listener can't be collected.
-The same Microsoft Learn page names that cost directly, alongside the
-feature it describes.
+The obligation Observer always carried remains: a subscriber that doesn't
+unsubscribe stays referenced by the subject and can't be collected. The same
+Microsoft Learn page names that cost.
 
 ## Strategy: a delegate variable replaces the interface hierarchy
 
-Strategy's job is to let a caller supply one algorithm out of a family,
-selected at runtime, without the code that uses the algorithm knowing which
-one it got. The catalogue's shape is an abstract `Strategy` interface, one
-concrete class per algorithm, and a `Context` that holds a reference to
-whichever concrete strategy it was given.
+Strategy lets a caller pick one algorithm from a family at runtime, without the
+using code knowing which one it got. The catalog's shape is a `Strategy`
+interface, one class per algorithm and a `Context` holding one.
 
-In C#, a method that varies by the algorithm its caller wants can just take
-that algorithm as a value, typed `Func<TArgument, TResult>` or
-`Action<TArgument>`:
+In C# the method takes the algorithm as a value, typed `Func<TArgument, TResult>`
+or `Action<TArgument>`:
 
 ```csharp
 public static Money QuoteRate(Consignment consignment, Func<Consignment, Money> pricing) =>
@@ -150,51 +99,36 @@ Money standard  = QuoteRate(consignment, c => c.Weight.Kilograms * StandardRateP
 Money expedited = QuoteRate(consignment, c => c.Weight.Kilograms * ExpeditedRatePerKilogram + ExpeditedSurcharge);
 ```
 
-`Func<T,TResult>` is a built-in generic delegate type that, per its
-Microsoft Learn reference entry, "encapsulates a method that has one
-parameter and returns a value of the type specified by the `TResult`
-parameter," specifically so a caller "[does] not have to explicitly define a
-delegate that encapsulates a method" ([`Func<T,TResult>`
-Delegate](https://learn.microsoft.com/en-us/dotnet/api/system.func-2),
-Microsoft Learn). `Action<T>` is its void-returning counterpart, for the
-same shape of problem when the algorithm doesn't produce a value
+`Func<T,TResult>` encapsulates a method with one parameter that returns a
+`TResult`, so a caller doesn't have to define its own delegate type
+([`Func<T,TResult>` Delegate](https://learn.microsoft.com/en-us/dotnet/api/system.func-2),
+Microsoft Learn). `Action<T>` is the void-returning counterpart
 ([`Action<T>` Delegate](https://learn.microsoft.com/en-us/dotnet/api/system.action-1),
-Microsoft Learn). Microsoft Learn's overview of delegates traces the same
-design goal the catalogue states for Strategy almost verbatim: a "common
-language construct" for "late binding," so the caller can supply "at least
-one method that implements part of the algorithm" (Microsoft Learn,
-[Introduction to delegates and
+Microsoft Learn). Microsoft Learn describes delegates as a language construct for
+late binding, where the caller supplies a method that implements part of the
+algorithm ([Introduction to delegates and
 events](https://learn.microsoft.com/en-us/dotnet/csharp/delegates-overview)).
 
-`QuoteRate` above has no `IRateStrategy` interface, no `StandardRateStrategy`
-or `ExpeditedRateStrategy` class, and no factory to choose between them. The
-caller passing a lambda at the call site is Strategy's force, substitutable
-behavior chosen by the caller, resolved with a value instead of an object
-graph. An interface-based Strategy is still the better choice when the
-"algorithm" needs to carry its own state across calls, implement several
-related operations instead of one, or be resolved by a DI container under a
-key rather than chosen inline. Those are different forces, and Strategy's
-interface form is what resolves them: carrying state, exposing several
-related operations, or giving a DI container a type to key on. When the sole
-requirement is "the caller picks the behavior," a delegate value is the
-whole solution.
+`QuoteRate` needs no `IRateStrategy`, no `StandardRateStrategy` or
+`ExpeditedRateStrategy`, and no factory. Keep an interface-based Strategy when
+the algorithm:
+
+- carries its own state across calls;
+- implements several related operations, not one;
+- is resolved from a DI container under a key instead of chosen inline.
+
+When the only requirement is that the caller picks the behavior, a delegate
+value is the whole solution.
 
 ## Null Object: nullable reference types make the stand-in redundant
 
-Null Object's job is to avoid an "if this is null" check at every call site.
-It hands back an object that implements the expected interface but does
-nothing, so the absent case and the present case run through the same code
-path. Bobby Woolf documented the pattern a few years after the Gang of Four
-catalogue, in the same wave of 1990s object-oriented design-patterns
-literature, answering the same underlying gap. Neither C++ nor Smalltalk let
-the type system distinguish "this reference is always present" from "this
-reference might be absent." Every reference was a potential null, so every
-call site that didn't control the object's creation had to guess whether a
-check was needed.
+Null Object removes the null check at every call site by returning an object
+that implements the interface and does nothing. Bobby Woolf documented it a few
+years after the catalog, answering the same gap: no reference in C++ or
+Smalltalk said whether it could be absent.
 
-C#'s nullable reference types put that distinction directly in the type
-signature. A method that sometimes has nothing to return says so in its
-return type, and the compiler, not convention, enforces the check:
+Nullable reference types put that in the signature, and the compiler enforces
+the check:
 
 ```csharp
 public interface ICarrierGateway
@@ -209,100 +143,58 @@ if (quote is not null)
 }
 ```
 
-Microsoft Learn describes nullable reference types as "a group of features
-that minimize the chance your code throws
-[`NullReferenceException`](https://learn.microsoft.com/en-us/dotnet/api/system.nullreferenceexception)."
-A non-nullable type like `Quote` means "every person must have both"
-properties filled in by design. A nullable type like `Quote?` means the
-compiler "warns if you dereference the variable without first checking it"
-(Microsoft Learn, [Nullable reference
+Nullable reference types are a group of features that minimize the chance of a
+[`NullReferenceException`](https://learn.microsoft.com/en-us/dotnet/api/system.nullreferenceexception).
+For a variable of type `Quote?`, the compiler warns on a dereference that isn't
+preceded by a check (Microsoft Learn, [Nullable reference
 types](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/null-safety/nullable-reference-types)).
-That warning is the mechanism Null Object existed to make unnecessary, by a
-different route. Instead of guaranteeing every call site behaves safely by
-handing it a safe do-nothing object, the compiler now tells a call site
-directly when it's handling a possibly-absent value unsafely, before the
-program runs.
+Null Object made every call site safe by handing it a harmless object. The
+compiler now flags the unsafe call site before the program runs.
 
-This doesn't retire every use of Null Object. A collaborator that wants a
-no-op implementation it can call unconditionally, say, a
-`NullAuditLog` used in a test double or a default configuration, still
-benefits from a real object that satisfies the interface and does nothing.
-The goal there is eliminating a branch, not expressing possible absence.
-What nullable reference types remove is the far more common case: a Null
-Object written only because the language gave no better way to say "this
-might not be here, check before you use it."
+A no-op collaborator called unconditionally, such as a `NullAuditLog` in a test
+double or a default configuration, still earns a real object, because the goal
+there is removing a branch, not expressing absence. Nullable types remove the
+common case: a Null Object written only because the language couldn't say "this
+might be missing; check first."
 
-## The test: did the force move, or did it stay?
+## Did the force move, or did it stay?
 
-Observer, Strategy, and Null Object dissolve under this reading. In each
-case, the force the pattern resolved, broadcasting an event to unknown
-listeners, substituting behavior at a call site, representing an absent
-value safely, is now resolved by a construct built into the language and
-checked by the compiler. None of the three disappear because they were
-wrong in 1994. They disappear because the gap they were invented to fill
-isn't there anymore in C#.
+Observer, Strategy and Null Object dissolve because the force each resolved is
+now handled by a compiler-checked construct:
 
-That's a narrow kind of invalidation. It doesn't claim the catalogue's
-structural patterns, the ones that organize relationships among several
-collaborating objects rather than substitute a single piece of behavior, are
-obsolete. Composing a tree of consignments and shipments, managing the
-lifetime of an expensive shared resource, or coordinating a multi-step
-clearance process across several independent handlers are forces about the
-shape of a domain. They don't depend on whether the host language has
-first-class functions or nullable annotations. A language feature doesn't
-resolve a force it was never built to address.
+| Pattern | Force | Resolved by |
+|---|---|---|
+| Observer | Broadcast to unknown listeners | `event` |
+| Strategy | Caller substitutes behavior | `Func<>`, `Action<>` |
+| Null Object | Represent an absent value safely | `T?` with compiler warnings |
 
-The test, then, is specific. For a given classic pattern, ask what force it
-names in its Consequences section. Then ask whether that force is a gap in
-what the language itself can express, or a gap in how several collaborating
-objects in your domain relate to each other. The first kind is a candidate
-to dissolve into the feature that closes the gap. The second kind keeps
-earning its original shape, written in idiomatic modern C#, for as long as
-the domain keeps presenting that shape of problem.
+They weren't wrong in 1994. The gap they filled is gone.
 
-Composite is a useful check on the test, because it fails it in the opposite
-direction from Observer and Strategy. Composite's force is letting a client
-treat a single `Shipment` and a `ConsolidatedShipment` made of several
-smaller ones through the same interface. Code that totals weight or counts
-line items doesn't need to know which one it has. That's a statement about
-how consignments and consolidations relate to each other in a shipping
-company's domain. No delegate type, no nullable annotation, and no other C#
-14 feature changes what a consolidated shipment is or how its parts compose.
-Composite keeps its original shape in this book, in modern C# syntax. The
-test gives a different answer for Composite than it gave for Observer and
-Strategy.
+That says nothing about patterns that organize several collaborating objects.
+Composing a tree of consignments and shipments, managing the lifetime of an
+expensive shared resource, or coordinating a multi-step clearance across
+independent handlers are forces about the domain's shape, which no language
+feature addresses.
 
-## Where this leaves you
+For each classic pattern, read the force in its Consequences section and ask:
 
-You can now:
+1. Is it a gap in what the language can express? Then it's a candidate to
+   dissolve into the feature that closes the gap.
+2. Is it about how collaborating objects in the domain relate? Then it keeps its
+   shape, written in modern C#.
 
-- Name the two gaps the 1994 catalogue's C++ and Smalltalk examples left
-  open, no cheap way to pass behavior as a value and no type-level way to
-  mark a reference as never-null, and point to the ceremony each gap forced:
-  a hand-rolled subscriber list, a `Strategy` class per algorithm, a
-  do-nothing stand-in object.
-- Write the `event`-keyword form of Observer: a member backed by a delegate
-  type, with `+=` subscription and a null-safe `?.Invoke` broadcast standing
-  in for a hand-rolled `Attach`/`Detach`/`Notify` subject, and cite Microsoft
-  Learn's design goals for the feature against Observer's own.
-- Write the `Func<>` form of Strategy: a method parameter typed
-  `Func<Consignment, Money>` standing in for an `IRateStrategy` interface and
-  its concrete classes, and cite the `Func<T,TResult>` reference entry for
-  why the type exists.
-- Explain why a nullable return type like `Quote?` on `TryGetQuote` removes
-  the reason to hand back a do-nothing stand-in object, and cite Microsoft
-  Learn's nullable reference types page for the compiler check that replaces
-  it.
-- Apply the test, whether a pattern's force is a language gap or a domain
-  fact, to a pattern not covered here. Composite is the worked
-  counter-example: its client-facing interface over `Shipment` and
-  `ConsolidatedShipment` fails the test and keeps its original shape.
+Composite answers the second way. Its force is letting a client treat a single
+`Shipment` and a `ConsolidatedShipment` of several smaller ones through one
+interface, so code that totals weight or counts line items doesn't care which it
+has. That describes how consolidations relate to consignments. No delegate,
+nullable annotation or other C# feature changes it, so Composite keeps its
+original shape.
 
 ## For deeper coverage
 
 - Gamma, Helm, Johnson, and Vlissides, *Design Patterns: Elements of
   Reusable Object-Oriented Software* (Addison-Wesley, 1994), is the source
-  for the Observer and Strategy descriptions this chapter measures against
-  the language. Null Object followed a few years later, from the same
+  for the Observer and Strategy descriptions measured here against the
+  language. Null Object followed a few years later, from the same
   object-oriented design-patterns community, and is held to the same test.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

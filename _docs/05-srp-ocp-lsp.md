@@ -11,83 +11,56 @@ description: "The first three SOLID principles in idiomatic C#, taught by splitt
 
 ## Learning objectives
 
-- State the Single Responsibility, Open/Closed, and Liskov Substitution
-  principles in terms of a reason to change, an extension point, and a
-  behavioral contract, rather than as abstract slogans.
-- Split a method that prices, taxes, and audits a shipment into collaborators
-  that can each be constructed, tested, and changed on their own.
-- Add a new charge to a pricing pipeline by writing a new type instead of
-  editing an existing one, and explain what change that closes off.
-- Write a Liskov substitution test that calls two differently implemented
-  collaborators through the same interface and asserts on their actual
-  results, not merely on whether they compile against that interface.
-- Recognize the specific symptom, an unrelated change breaking a method that
-  looks untouched, that signals a responsibility boundary was never drawn.
+By the end of this chapter you can:
+
+- State SRP, OCP and LSP as a reason to change, an extension point and a
+  behavioral contract.
+- Split a method that prices, taxes and audits a shipment into collaborators
+  you can construct, test and change separately.
+- Add a charge to a pricing pipeline by writing a new type instead of editing
+  one.
+- Check substitutability by calling each implementation of an interface and
+  checking its results, not its signature.
+- Recognize the symptom of a missing responsibility boundary: an unrelated
+  change breaks a method that looks untouched.
 
 ## Why this matters
 
-A rate quote for a shipment looks like a single calculation: take a weight,
-apply a rate, done. In a production carrier system, it's never only that. The
-same method that prices the shipment usually also applies a jurisdiction's
-tax, because the tax has to land on the same subtotal the price produced. It
-often writes an audit record too, because a quote that later changes without
-a trail is a billing dispute waiting to happen.
+A rate quote looks like one calculation: weight times rate. In a carrier system
+the same method usually also applies a jurisdiction's tax, because the tax lands
+on the subtotal the price produced, and writes an audit record, because a quote
+that changes without a trail becomes a billing dispute. That's three jobs with
+three reasons to change: a new pricing tier, a tax rate update from finance, a
+new compliance field. The three share local variables, a call order and one set
+of tests, so a change to one risks the other two.
 
-One method, three jobs, and three different reasons for someone to come back
-and change it: a new pricing tier, a tax rate update from finance, a new
-compliance field the audit record has to carry. None of those three changes
-has anything to do with the other two. But in a method that mixes all three,
-each one risks breaking the other two anyway: they share local variables, a
-call order, and a single set of tests that has to keep passing for all three
-jobs at once.
+Robert C. Martin's SOLID principles, from *Agile Software Development:
+Principles, Patterns, and Practices*, name the shape of code that resists this.
+The first three:
 
-Robert C. Martin's SOLID principles, laid out in *Agile Software Development:
-Principles, Patterns, and Practices*, name the forces that make this growth
-expensive and describe the shape of code that resists it. This chapter works
-through the first three against exactly the rate-quote problem just
-described. Single Responsibility Principle (SRP) says a class should have one
-reason to change. Open/Closed Principle (OCP) says new behavior should be
-addable without editing proven code. Liskov Substitution Principle (LSP)
-says any implementation of a shared contract has to honor the same
-guarantees, not merely the same method signatures.
-
-None of the three is a style preference; each one names a specific category
-of unplanned work a design either invites or closes off. The example in this
-chapter makes all three visible: a pricing collaborator that owes nothing to
-tax or audit, a surcharge pipeline that grows by addition, and two pricing
-strategies that substitute for each other because a test proves it.
+| Principle | Statement | In the rate quote |
+|---|---|---|
+| Single Responsibility (SRP) | A class has one reason to change. | Pricing owes nothing to tax or audit. |
+| Open/Closed (OCP) | New behavior is added without editing proven code. | A surcharge pipeline grows by adding types. |
+| Liskov Substitution (LSP) | Every implementation of a contract honors the same guarantees, not just the same signatures. | Two pricing strategies are interchangeable, and their results show it. |
 
 {% include excalidraw.html name="05-srp-ocp-lsp" caption="Figure 5.1: A single overloaded rate calculator splits into focused collaborators for pricing, tax, and audit; a surcharge decorator adds charges without editing existing code; two pricing strategies substitute for each other safely." %}
 
 ## One overloaded calculator, three reasons to break
 
-Picture the rate quote as a single method, before any of this chapter's
-splitting happens. It takes a consignment, multiplies its weight by a rate,
-applies a tax policy's percentage to the result, and writes a record of the
-final number somewhere for compliance, all three steps inline in one method
-body. The method works, and it stays working right up until one of its three
-jobs needs to change independently of the other two.
+Start from one method that multiplies a consignment's weight by a rate, applies
+a tax percentage and writes a compliance record, all inline. Each routine change
+costs more than it should:
 
-Finance announces a new tax calculation for a jurisdiction. Whoever fixes it
-has to read the pricing math first to find the line that needs editing, then
-re-run every test that exercises pricing even though pricing itself never
-changed. Compliance asks for an additional field on the audit record, and the
-fix sits inside the same method: a reviewer approving an audit change is also
-implicitly re-approving the pricing and tax logic sitting in the same diff. A
-new pricing tier shows up, and testing it means standing up a tax policy and
-an audit destination just to get a price out of the method, even though
-neither one has anything to do with the tier logic under test.
-
-None of these three changes is unusual. Each one is routine, and each one is
-harder than it needs to be only because the method never decided which of the
-three jobs it owns.
+| Change | Cost in the one-method version |
+|---|---|
+| Finance changes a jurisdiction's tax | Read the pricing math to find the line; rerun every pricing test though pricing didn't change. |
+| Compliance adds an audit field | The reviewer approving the audit change also re-approves pricing and tax in the same diff. |
+| A new pricing tier | Testing it needs a tax policy and an audit destination to get a price out. |
 
 ## Single Responsibility: one reason to change per collaborator
 
-The fix isn't to make the method smarter. It's to decide that pricing,
-taxation, and auditing are three different reasons to change, and to give
-each one its own type. The shipping example in this chapter does exactly
-that with three small interfaces:
+Give pricing, taxation and auditing one type each:
 
 ```csharp
 public interface IRateQuote
@@ -106,42 +79,26 @@ public interface IAuditSink
 }
 ```
 
-Each interface states one job. `WeightBasedRateCalculator` implements
-`IRateQuote`, multiplying weight by a rate per kilogram, and needs neither a
-tax policy nor an audit sink. `PercentageTaxPolicy` implements `ITaxPolicy`
-against a `Money` subtotal, never a `Consignment`, so a tax-rate change from
-finance touches one file and reruns one focused test. `IAuditSink` records a
-finished quote against a real destination; the tests substitute it with
-NSubstitute rather than stand up a live sink.
+| Type | Does | Depends on |
+|---|---|---|
+| `WeightBasedRateCalculator : IRateQuote` | Weight times a configured rate per kilogram | The rate only; it's constructed and quoted with no tax or audit collaborator. |
+| `PercentageTaxPolicy : ITaxPolicy` | Adds a configured percentage to a subtotal | A `Money` value; it never sees a `Consignment`. |
+| `IAuditSink` | Records the final quote | A real destination in production; NSubstitute stands in for it in tests. |
 
-Each collaborator takes one constructor dependency, does one job, and has one
-test class that exercises it without standing up either of the other two. A
-reviewer approving a change to `PercentageTaxPolicy` is reviewing a tax
-change, not a tax change bundled with whatever pricing or auditing code
-happened to share its method body.
+A tax-rate change now touches one file and one focused test class. A reviewer
+approving a change to `PercentageTaxPolicy` reviews a tax change and nothing
+else.
 
-SRP doesn't say a class should be small. It says a class should have one
-reason to change, and the size follows from that, not the other way around.
-`WeightBasedRateCalculator` is nine lines including its guard clause, but the
-nine lines aren't the point: every one of them changes only when the pricing
-formula changes, for no other reason. A class twice that size with the same
-property, one axis of change and nothing else, would satisfy SRP just as
-well.
-
-The overloaded method this chapter opened with wasn't too long because it
-had too many lines. It was too long because it had three unrelated reasons
-to be edited. Splitting it along those reasons, not an arbitrary line count,
-is what SRP asks for.
+SRP isn't about size. A class twice as long with one axis of change satisfies
+it; the original method failed because it had three unrelated reasons to be
+edited, not because of its line count. Split along reasons to change.
 
 ## Open/Closed: a surcharge pipeline that grows without edits
 
-Pricing, tax, and audit cover the quote's core shape. But a real rate quote
-usually carries additional charges on top: a fuel surcharge tracking current
-fuel costs, an insurance surcharge proportional to declared value, and
-whatever charge a new regulation or a new service tier introduces next. The
-Open/Closed Principle asks whether adding the next charge requires editing
-any of the proven types above, or only adding a new one next to them. This
-example answers with a fourth interface and a decorator:
+A quote also carries charges on top: a fuel surcharge on the running subtotal,
+an insurance surcharge on declared value, and whatever the next regulation or
+service tier adds. OCP asks whether the next charge means editing a proven type
+or adding a new one. A fourth interface and a decorator answer it:
 
 ```csharp
 public interface ISurcharge
@@ -159,101 +116,52 @@ public sealed class SurchargedRateQuote(IRateQuote basePricing, IReadOnlyList<IS
 }
 ```
 
-`SurchargedRateQuote` implements the same `IRateQuote` it wraps, so a caller
-can't tell a bare calculator from one wrapped in a stack of surcharges. Each
-surcharge is its own `ISurcharge`: `FuelSurcharge` scales the running subtotal
-by a configured rate, while `InsuranceSurcharge` scales the consignment's
-declared value instead, proportional to what's insured rather than what it
-costs to ship.
+`SurchargedRateQuote` implements `IRateQuote`, the interface it wraps, so a
+caller can't tell a bare calculator from one wrapped in any number of
+surcharges. `FuelSurcharge` scales the running subtotal; `InsuranceSurcharge`
+scales the declared value. Neither knows the other exists, and the fold applies
+them in order however many there are.
 
-Neither surcharge type knows the other exists; `SurchargedRateQuote` folds
-them over the subtotal one at a time, indifferent to how many there are or
-what any one does internally.
+A new flat 15.00 hazmat handling fee, defined outside the library and composed
+with the shipped 10 percent fuel surcharge on a 25.00 base, quotes 42.50. No
+edit to `WeightBasedRateCalculator`, `TieredRateCalculator`,
+`SurchargedRateQuote` or `FuelSurcharge` was needed.
 
-`SurchargeOcpTests` proves the pipeline is open for extension. The test file
-defines a brand-new charge, `HazmatHandlingSurcharge`, a flat fee that
-implements `ISurcharge` and exists nowhere in the shipped library, only in
-the test. `A_newly_added_surcharge_type_composes_without_editing_any_pricing_type`
-composes it alongside the shipped `FuelSurcharge` and asserts on the combined
-total: 25.00 in base pricing, plus a 10 percent fuel surcharge, plus a flat
-15.00 hazmat fee, landing at 42.50. Getting that number right requires zero
-changes to `WeightBasedRateCalculator`, `TieredRateCalculator`,
-`SurchargedRateQuote`, or `FuelSurcharge`, the four types that existed before
-the test was written. The extension is a type the test introduced after the
-fact, and the pipeline absorbed it with no edit to anything already shipped:
-that's what "closed for modification, open for extension" means.
-
-OCP isn't free. An `ISurcharge` abstraction costs a constructor parameter, an
-interface, and a small amount of indirection that a single fixed fuel
-surcharge wouldn't need. That cost buys something specific: a new surcharge
-type ships as a new file with its own focused test, reviewed on its own,
-without reopening `SurchargedRateQuote` or re-running every existing
-surcharge's tests to confirm the new one didn't change their behavior.
-
-Where a codebase has one surcharge and no second one coming, paying that
-cost ahead of the need is speculation, not Open/Closed design. The principle
-describes a response to real variation, not a license to wrap every value in
-an interface on the chance it might vary someday.
+The abstraction costs an interface, a constructor parameter and some
+indirection. It buys a new surcharge that ships as a new file with its own
+test, reviewed alone, without reopening `SurchargedRateQuote`. With one
+surcharge and no second coming, that cost is speculation. OCP responds to
+variation you have, not variation you imagine.
 
 ## Liskov Substitution: a contract both calculators honor
 
-The example ships two pricing strategies, `WeightBasedRateCalculator` and
-`TieredRateCalculator`. OCP's story about extension only works if a caller
-holding an `IRateQuote` can swap one for the other without checking which
-concrete type it has. `TieredRateCalculator` prices a bulk-discount tier,
-billing a first stretch of kilograms at one rate and the remainder at a
-lower one: a different formula from `WeightBasedRateCalculator`'s flat
-per-kilogram multiplication.
+`TieredRateCalculator` bills a first band of kilograms at one rate and the rest
+at a lower one, a different formula from `WeightBasedRateCalculator`'s flat
+multiplication. LSP asks whether the formula is the only difference. A caller
+holding an `IRateQuote` can't see these from the signature:
 
-Liskov Substitution asks whether that difference in formula is the only
-difference, or whether it comes bundled with a difference in behavior a
-caller can't see from the method signature. Does one implementation return a
-negative number under some input where the other never would? Does it
-silently convert currency, mutate the consignment it was handed, or charge
-less for a heavier shipment than a lighter one? Any of those would make the
-two types compile-time compatible and runtime incompatible, the failure LSP
-exists to catch.
+- a negative amount for some input;
+- a silent currency conversion;
+- a mutated consignment;
+- a lower price for a heavier shipment.
 
-`LspInvariantTests` checks for exactly that failure. It calls each
-implementation and asserts on its actual output, not its type. A
-`TheoryData` table lists both `IRateQuote` implementations as factory
-functions, and four `[Theory]` methods run over that table:
-
-- every quote returns a non-negative amount
-- every quote preserves the consignment's currency rather than converting it
-- every quote leaves the consignment unmutated
-- every quote charges at least as much for a fifty-kilogram shipment as a
-  ten-kilogram one
-
-The same four checks run again over a second table listing both `ISurcharge`
-implementations, `FuelSurcharge` and `InsuranceSurcharge`: a surcharge is
-exactly as substitutable through `ISurcharge` as a pricing strategy is
-through `IRateQuote`, and it deserves the same proof. None of these eight
-test methods type-checks a result or confirms a method exists. Each one
-calls the implementation with a real `Consignment` and a real `Money` value
-and asserts on the number that comes back: the compiler confirms
-`TieredRateCalculator` has a `Quote` method shaped like `IRateQuote`
-requires, the test confirms calling it produces the behavior every caller is
+Any of them makes the two types compatible at compile time and incompatible at
+runtime. All four run as `[Theory]` cases over a `TheoryData`
+table of both `IRateQuote` implementations, and again over both `ISurcharge`
+implementations, calling each with a real `Consignment` and `Money` and checking
+the number returned. The compiler confirms `TieredRateCalculator` has a `Quote`
+method of the right shape; only calling it confirms the behavior every caller is
 entitled to assume.
 
-Writing those four invariants down as doc comments on `IRateQuote` itself,
-not just as test assertions, matters as much as the test suite does. An
-interface that specifies only a method signature tells an implementer what
-to compile against. An interface whose doc comment states that a quote
-"must return a non-negative amount," "leave the consignment untouched," and
-"never charge less for a heavier consignment" tells an implementer what to
-honor.
+`IRateQuote`'s doc comment states the contract: a quote returns a non-negative
+amount in the consignment's own currency, leaves the consignment untouched, and
+never charges less for a heavier consignment. A third strategy written later has
+those sentences to satisfy, and the `[Theory]` cases catch one that violates
+them.
 
-A third pricing strategy added later, without ever looking at
-`LspInvariantTests`, still has those three sentences to satisfy. The
-`[Theory]` cases catch a strategy that quietly violates one of them, the
-same way they already cover the two that ship today.
+## Wiring it back together
 
-## Wiring it back together without losing any of the three principles
-
-Splitting pricing, tax, audit, and surcharges into separate types only pays
-off if composing them back into a single quote stays simple. `RateCalculator`
-is the orchestrator that does that:
+`RateCalculator` composes the pieces into one quote:
 
 ```csharp
 public sealed class RateCalculator(IRateQuote pricing, ITaxPolicy? taxPolicy = null, IAuditSink? auditSink = null)
@@ -273,117 +181,45 @@ public sealed class RateCalculator(IRateQuote pricing, ITaxPolicy? taxPolicy = n
 }
 ```
 
-`pricing` is required, because a rate quote with no price isn't a rate
-quote. `taxPolicy` and `auditSink` are optional:
-`RateCalculatorOrchestrationTests.Quotes_with_pricing_only_when_no_tax_or_audit_is_wired_in`
-proves pricing alone is a complete, usable configuration with neither of the
-other two collaborators present. That optionality is SRP's payoff at the
-orchestration level. Because tax and audit were never baked into pricing in
-the first place, `RateCalculator` treats them as independently addable steps
-rather than a package deal.
+| Principle | What it gives the orchestrator |
+|---|---|
+| SRP | `pricing` is required; `taxPolicy` and `auditSink` are optional, because tax and audit were never part of pricing. Pricing alone is a complete configuration. |
+| OCP | A new surcharge or pricing strategy slots in without `RateCalculator` changing. |
+| LSP | The constructor accepts any `IRateQuote`: either calculator, bare or wrapped in a `SurchargedRateQuote`. |
 
-The constructor accepts any `IRateQuote`: a bare `WeightBasedRateCalculator`,
-a bare `TieredRateCalculator`, or either one wrapped in a `SurchargedRateQuote`
-carrying any number of surcharges. LSP guarantees all of them honor the same
-contract. OCP guarantees a new surcharge or a new pricing strategy slots in
-without `RateCalculator` itself ever changing. SRP draws the boundaries, OCP
-describes how each boundary grows, and LSP makes it safe for `RateCalculator`
-to depend on the boundary rather than a specific implementation behind it.
+SRP draws the boundaries, OCP says how each grows, and LSP makes it safe to
+depend on the boundary instead of the implementation behind it.
 
 <blockquote class="ai-sidebar" markdown="1">
-Ask an AI to "apply SOLID" to a working rate calculator and it adds an
-interface for every class, whether or not a second implementation exists.
-Put the chapter's three decision rules in the prompt instead:
-
-> Apply SOLID to this rate calculator. Split by SRP only where two different
-> people, for two different reasons, would edit the same method (pricing,
-> tax, audit). Add an `ISurcharge`-style abstraction under OCP only if a
-> second implementation already exists or is clearly coming; one
-> implementation with nothing else planned is OCP's cost with no benefit.
-> For any new `IRateQuote` or `ISurcharge` implementation, write a
-> `[Theory]` case asserting its output against the others', not just that it
-> compiles against the interface.
-
-If the reply adds an interface with one implementation and no second one
-named, ask which force it answers.
+Ask an AI pairing partner to "apply SOLID" to a working rate calculator and a
+common result is an interface for every class, whether or not a second
+implementation exists. Check the result against each principle. SRP: does the
+split follow a real difference in who changes the code and why, or does it only
+add files? OCP: is a second pricing strategy or surcharge in hand or clearly
+coming? An `ISurcharge` with one implementation and nothing planned is OCP's cost
+with none of its benefit. LSP: does a generated implementation honor the
+contract, not only the signature? A model asked for a new pricing strategy will
+write one that returns a negative adjustment for a promotional rate, which no
+other `IRateQuote` does, unless substitution checks catch it.
 </blockquote>
 
 ## Build, run, observe
-
-The chapter makes three claims: each collaborator, pricing, tax, audit, can
-be constructed and tested on its own; a test-only `HazmatHandlingSurcharge`,
-written nowhere in the shipped library, composes into the pipeline with no
-edit to any shipped type; and the two pricing strategies and the two
-surcharges behave identically under the same four invariants, so either one
-substitutes for the other safely. Run the suite to watch those hold:
 
 ```sh
 cd examples/05-srp-ocp-lsp
 dotnet test
 ```
 
-This also runs as part of the repo-wide `./scripts/verify.sh`. Observed
-locally on Fedora with .NET SDK 10.0.113:
-
-```
-Running tests from examples/05-srp-ocp-lsp/RateCalculation.Tests/bin/Debug/net10.0/RateCalculation.Tests.dll (net10.0|x64)
-examples/05-srp-ocp-lsp/RateCalculation.Tests/bin/Debug/net10.0/RateCalculation.Tests.dll (net10.0|x64) passed (1s 038ms)
-
-Test run summary: Passed!
-  total: 29
-  failed: 0
-  succeeded: 29
-  skipped: 0
-  duration: 1s 357ms
-```
-
-The 29 cases split across five files, one claim per group:
-
-- **SRP, constructed alone.** `RateQuoteTests` and `PercentageTaxPolicyTests`
-  construct `WeightBasedRateCalculator`, `TieredRateCalculator`, and
-  `PercentageTaxPolicy` each on its own, with no other collaborator in
-  sight.
-- **SRP, at the orchestration level.** `RateCalculatorOrchestrationTests`
-  substitutes `IAuditSink` with NSubstitute to confirm `RateCalculator`
-  calls it exactly once with the final total, and never calls it at all
-  when no audit sink is wired in.
-- **OCP.** `SurchargeOcpTests` composes the test-only
-  `HazmatHandlingSurcharge` alongside the shipped `FuelSurcharge`, with no
-  edit to any pricing or surcharge type already in the library.
-- **LSP, the chapter's core guarantee.** `LspInvariantTests` runs four
-  behavioral checks, non-negative result, preserved currency, an untouched
-  consignment, and a non-decreasing price as weight increases, as `[Theory]`
-  cases over both `IRateQuote` implementations and both `ISurcharge`
-  implementations, so a substitution failure in either direction fails the
-  build.
-
-## Where this leaves you
-
-You can now:
-
-- State SRP, OCP, and LSP as a reason to change, an extension point, and a
-  behavioral contract: the split between `IRateQuote`, `ITaxPolicy`, and
-  `IAuditSink` is what each principle names, not an abstract slogan.
-- Split a method that prices, taxes, and audits a shipment into
-  `WeightBasedRateCalculator`, `PercentageTaxPolicy`, and an `IAuditSink`
-  implementation, each constructed, tested, and changed without the other
-  two.
-- Add a new charge to the pricing pipeline, the way `SurchargeOcpTests` adds
-  `HazmatHandlingSurcharge`, by writing a new `ISurcharge` type instead of
-  editing `SurchargedRateQuote`, and say what that closes off: no reopening
-  a proven pipeline to add the next one.
-- Write a Liskov substitution test like `LspInvariantTests`, calling
-  `WeightBasedRateCalculator` and `TieredRateCalculator` through the same
-  `IRateQuote` interface and asserting on the number each returns, not just
-  that both compile against it.
-- Recognize an unrelated change breaking a method that looks untouched as
-  the symptom of a responsibility boundary that was never drawn, the failure
-  mode the rate calculator in this chapter's opening had before it was
-  split.
+All 29 tests pass; `./scripts/verify.sh` runs the same suite. Each calculator
+and the tax policy are quoted on their own with no other collaborator. With a
+substituted `IAuditSink`, `RateCalculator` records the final total exactly once,
+and with no sink wired in it still quotes. A new surcharge composes with no
+edit to existing types. The four substitution checks pass for both calculators
+and both surcharges.
 
 ## For deeper coverage
 
 - Martin's *Agile Software Development: Principles, Patterns, and Practices*
-  is the source of the SOLID principles this chapter builds its examples on,
-  SRP, OCP, and LSP among them.
+  is the source of the SOLID principles applied here, SRP, OCP, and LSP among
+  them.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

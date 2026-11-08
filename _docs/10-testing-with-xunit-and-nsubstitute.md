@@ -4,7 +4,7 @@ order: 10
 layout: tutorial
 sectionid: docs
 part: "dotnet-substrate"
-description: "The testing baseline every later chapter uses, with xUnit for the suite and NSubstitute for collaborator substitution."
+description: "The testing baseline every later chapter uses, with xUnit for test structure and NSubstitute for collaborator substitution."
 ---
 
 <!-- EXAMPLE (shipping domain): The rating engine under xUnit and NSubstitute. -->
@@ -13,65 +13,26 @@ description: "The testing baseline every later chapter uses, with xUnit for the 
 
 By the end of this chapter you can:
 
-- Write a four-phase `[Fact]` test, Arrange, Act, Assert, against a class whose
-  behavior depends on asynchronous collaborators.
-- Parametrize a test with `[Theory]` and `[InlineData]`, and explain why a
-  `decimal` test case has to arrive as a `double` literal rather than a
-  `decimal` literal in the attribute itself.
-- Build a `TheoryData<T1, T2>`-typed `[MemberData]` source and say why a typed
-  source satisfies analyzer rules a bare `IEnumerable<object[]>` trips.
-- Create an NSubstitute double with `Substitute.For<T>()`, stub a call with
-  `.Returns(...)`, including per-argument stubs, and state what an unstubbed
-  call on that same double returns.
-- Verify interactions on an async substitute with `await ...Received(1)...`
-  and `DidNotReceive()`, narrow those checks with `Arg.Any<T>()` and
-  `Arg.Is<T>(predicate)`, and thread a cancellation token through every call
-  the way the xUnit1051 analyzer requires.
+- Write a four-phase `[Fact]`, Arrange, Act, Assert, against a class with asynchronous collaborators.
+- Parametrize with `[Theory]` and `[InlineData]`, and say why a `decimal` case arrives as a `double` literal.
+- Build a `TheoryData<T1, T2>` source for `[MemberData]` and say which analyzer rules an `IEnumerable<object[]>` trips.
+- Create a double with `Substitute.For<T>()`, stub it with `.Returns(...)` per argument, and say what an unstubbed call returns.
+- Verify async calls with `await ...Received(1)...` and `DidNotReceive()`, narrow them with `Arg.Any<T>()` and `Arg.Is<T>(predicate)`, and thread a cancellation token the way xUnit1051 requires.
 
 ## Why this matters
 
-Every chapter after this one hands a class to a test and trusts the result.
-This chapter builds the suite that result rests on.
+A `ShipmentRatingEngine` quotes a consignment by calling a carrier's rate API, applying a jurisdiction's tax rules and writing a compliance record. A unit test can't touch any of the three: the carrier may be down or rate limited, the tax data may not be loaded, and an audit log must never be written by a test run. What's under test is the wiring: a base rate goes through the tax policy and into an audit record.
 
-A `ShipmentRatingEngine` quotes a consignment by calling a carrier's rate API,
-applying a jurisdiction's tax rules, and writing a compliance record. A test
-can't afford to touch any of those three collaborators directly. The carrier
-API might be down, rate limited, or slow. The tax policy might depend on data
-the test environment doesn't have loaded. The audit log shouldn't receive a
-real write from a test run. None of those three concerns is what the test is
-checking. The test checks one thing: that `ShipmentRatingEngine` wires a base
-rate through a tax policy and into an audit record correctly. Everything
-else has to get out of the way without weakening that check.
-
-xUnit and NSubstitute solve two different halves of that problem. xUnit
-supplies the structure a test runs inside. A `[Fact]` checks a single
-invariant, a `[Theory]` checks the same invariant against several inputs, and
-a runner reports pass or fail per case with no ceremony around starting or
-tearing down a test host. NSubstitute supplies the collaborators. A
-`Substitute.For<ICarrierRates>()` stands in for the carrier integration,
-answers instantly with whatever value the test tells it to return, and lets a
-test ask whether `ShipmentRatingEngine` called it, with what arguments, and
-how many times. Neither tool needs a container, a running service, or a
-shared fixture that one test's failure leaves dirty for the next.
-
-A full run of this chapter's sixteen tests finishes in under a second on a
-laptop, with no setup beyond `dotnet test`. That speed matters. It's what
-makes running the suite on every keystroke of a refactor a realistic habit,
-rather than a once-a-day chore. Every pattern example from here forward that
-claims "verified by a test" means a test built on this foundation: xUnit for
-the four-phase shape and the parametrization, NSubstitute for a trustworthy,
-instant stand-in for whatever the pattern talks to.
+xUnit supplies the structure: `[Fact]` for one invariant, `[Theory]` for one invariant over several inputs, and a runner that reports each case. NSubstitute supplies the collaborators: `Substitute.For<ICarrierRates>()` answers instantly with what it's told to and remembers every call, so a test can ask what it received. No container, service or shared fixture is involved, and sixteen tests run in under a second with `dotnet test`. That speed is what makes running them on every refactoring step practical.
 
 {% include excalidraw.html name="10-testing-with-xunit-and-nsubstitute" caption="Figure 10.1: A four-phase test arranges substitute doubles for three collaborators, acts by calling the method once, then asserts both the result and which doubles were called." %}
 
 ## The four-phase test: Arrange, Act, Assert
 
-The `ShipmentRatingEngine` class is the library this whole chapter tests.
-It's small by design: three constructor-injected collaborators,
-`ICarrierRates`, `ITaxPolicy`, and `IAuditSink`, combined by one method.
+`ShipmentRatingEngine` takes three constructor-injected collaborators and combines them in one method:
 
 ```csharp
-public sealed class ShipmentRatingEngine(ICarrierRates carrierRates, ITaxPolicy taxPolicy, IAuditSink auditSink) // #A
+public sealed class ShipmentRatingEngine(ICarrierRates carrierRates, ITaxPolicy taxPolicy, IAuditSink auditSink)
 {
     public async Task<Money> QuoteAsync(Consignment consignment, CancellationToken cancellationToken)
     {
@@ -90,12 +51,7 @@ public sealed class ShipmentRatingEngine(ICarrierRates carrierRates, ITaxPolicy 
 }
 ```
 
-`#A` A primary constructor injects all three collaborators; nothing else backs
-this class, and every test builds it by passing the same three in order.
-
-The test `FactTests.Quotes_the_base_rate_with_tax_applied` is the canonical
-shape every other test in the project follows. Its three phases get their own
-commented blocks, rather than left for a reader to infer from spacing:
+The canonical shape, with each phase marked:
 
 ```csharp
 [Fact]
@@ -107,53 +63,25 @@ public async Task Quotes_the_base_rate_with_tax_applied()
         .Returns(new Money(100.00m));
     var taxPolicy = Substitute.For<ITaxPolicy>();
     taxPolicy.ApplyTax(new Money(100.00m)).Returns(new Money(110.00m));
-    var auditSink = Substitute.For<IAuditSink>(); // #A
+    var auditSink = Substitute.For<IAuditSink>();
     var engine = new ShipmentRatingEngine(carrierRates, taxPolicy, auditSink);
     var consignment = new Consignment("C-0001", "Rotterdam", 820m);
 
     // Act
-    var quote = await engine.QuoteAsync(consignment, TestContext.Current.CancellationToken); // #B
+    var quote = await engine.QuoteAsync(consignment, TestContext.Current.CancellationToken);
 
     // Assert
-    Assert.Equal(new Money(110.00m), quote); // #C
+    Assert.Equal(new Money(110.00m), quote);
 }
 ```
 
-`#A` `auditSink` gets no `.Returns(...)` stub: `QuoteAsync` never reads a
-return value from it, only calls it.
-`#B` `TestContext.Current.CancellationToken`, a real token rather than a
-default or `CancellationToken.None`, detailed below.
-`#C` Checks the taxed amount, `110.00`, not the raw `100.00` base rate the
-carrier substitute returned.
+Arrange builds every collaborator and stubs what each returns. The audit sink gets no stub, because `QuoteAsync` reads nothing from it. Act is one call. Assert checks one outcome: the quote is the taxed `110.00`, not the carrier's `100.00`. Microsoft's [unit-testing best practices](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices) name the same Arrange, Act, Assert shape, so "a reader can clearly separate what is being tested from the Arrange and Assert tasks," and advise against several Act phases in one test, because a failure then doesn't say which action broke.
 
-The [.NET unit-testing best-practices guidance on
-structure](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices)
-names this shape "Arrange, Act, Assert" and recommends keeping each phase
-visibly separate, which is what the comments in `FactTests` make explicit.
-The same guidance also recommends one Act per test: two independent actions
-with two independent assertions leaves a failure ambiguous about which action
-broke. Every test in this project calls `QuoteAsync`, or a single substitute
-member, exactly once.
-
-One detail in this test matters beyond itself: `TestContext.Current` is
-xUnit v3's per-test execution context, and its `CancellationToken` property is
-already wired to the test's own cancellation, including a test timeout if one
-is configured. Passing it through a token-accepting call costs nothing and
-lets the test framework tear down cleanly if the test runs too long. Every
-test in this project threads a token this way. The pattern repeats often
-enough that it becomes invisible by the fourth or fifth test, which is the
-point: cancellation isn't an afterthought bolted onto a test after it already
-fails a review. It's part of the Arrange-Act shape from the first line.
+`TestContext.Current` is xUnit v3's per-test context. Its `CancellationToken` is wired to each test's own cancellation, including a configured timeout, so passing it to every token-accepting call costs nothing and lets the runner stop a test that runs too long.
 
 ## [Theory] and [InlineData]: parametrizing with literal cases
 
-A `[Fact]` proves one scenario. But `ShipmentRatingEngine` needs the same
-assertion checked against several destinations and weights. Rewriting the
-whole Arrange-Act-Assert block for each one would multiply the test file
-without adding any new behavior under test. So reach for `[Theory]` instead:
-it runs one test method once per row of supplied data, and `[InlineData]` is
-the simplest way to supply that data, as literal values written directly on
-the attribute:
+`[Theory]` runs one method once per row of data, and `[InlineData]` supplies literal rows on the attribute:
 
 ```csharp
 [Theory]
@@ -177,39 +105,13 @@ public async Task Passes_the_destination_and_weight_through_to_the_carrier_rate_
 }
 ```
 
-Three cases, one method body, three separately reported results. The xUnit v3
-[getting-started
-guide](https://xunit.net/docs/getting-started/v3/getting-started) describes
-exactly this shape: "theories are tests which are only true for a particular
-set of data." The test runner reports each `[InlineData]` row as its own
-named result, rather than collapsing three cases into one pass or fail.
+The [xUnit v3 getting-started guide](https://xunit.net/docs/getting-started/v3/getting-started) says "theories are tests which are only true for a particular set of data," and the runner reports each row as its own result.
 
-`[InlineData("Rotterdam", 100.0m)]` does not compile. The literal `100.0`,
-`250.0`, and `900.0` in the attribute above aren't `decimal` values, even
-though the method parameter they bind to is `decimal kilograms`: C# requires
-every attribute argument to be a compile-time constant of a type the
-attribute system supports directly, and `decimal` isn't one of them. A
-`decimal` value isn't a primitive the runtime can bake into metadata the way
-an `int`, a `string`, or a `double` is. The fix is a `double` literal,
-`100.0`, which the attribute accepts; the compiler then applies an implicit
-conversion from `double` to `decimal` at the point the parameter binds,
-lossless here because every `double` this chapter's test cases use converts
-to `decimal` exactly.
-
-This isn't a quirk of this one chapter. Any `[Theory]` taking a `decimal`
-parameter and driven by `[InlineData]` hits the same constraint. The fix is
-always the same `double`-literal substitution, never a cast or a helper
-method, because the attribute constructor call resolves entirely at compile
-time, before any method body could run.
+`100.0`, `250.0` and `900.0` are `double` literals bound to a `decimal` parameter. Attribute arguments must be compile-time constants of a type metadata can hold, and `decimal` isn't one, so `[InlineData("Rotterdam", 100.0m)]` doesn't compile. The `double` value converts to `decimal` when the parameter binds, without loss for these values. Every `[InlineData]`-driven theory with a `decimal` parameter hits the same constraint.
 
 ## Typed TheoryData: member data that satisfies the analyzers
 
-`[InlineData]` covers a handful of short, literal cases well, but it runs out
-of room once a case needs a name worth reading rather than an unlabeled
-position in an argument list, or once the values involved are more than a
-couple of scalars. `[MemberData]` points a `[Theory]` at a static member that
-produces the data instead, and the member itself can be given a name that
-describes what each row represents:
+Once a case needs a readable name or more than a couple of scalars, `[MemberData]` points the theory at a static member:
 
 ```csharp
 public static TheoryData<decimal, decimal> WeightTierBaseRates() => new()
@@ -238,61 +140,20 @@ public async Task Returns_the_carriers_quoted_base_rate_for_each_weight_tier(
 }
 ```
 
-`WeightTierBaseRates` sidesteps the `[InlineData]` attribute-argument
-constraint entirely. A static method body is ordinary C# executed at
-test-discovery time, not an attribute constructor resolved at compile time,
-so a `decimal` literal here is just a `decimal` literal, no `double`
-substitution needed.
+The member body is ordinary C# run at discovery, so a `decimal` literal is just a `decimal`. The return type matters more. Under warnings as errors, the xUnit analyzers reject the untyped shape:
 
-More important than that convenience is the declared return type,
-`TheoryData<decimal, decimal>`, rather than the older, more general
-`IEnumerable<object[]>` shape a `[MemberData]` source could technically also
-return. The xUnit analyzers that ship with the project run under this book's
-warnings-as-errors build, and they flag two different problems with the
-untyped shape.
+| Rule | Catches |
+| --- | --- |
+| [xUnit1019](https://xunit.net/xunit.analyzers/rules/xUnit1019), "MemberData must reference a member providing a valid data type" | A member the runner can't enumerate into rows, which would otherwise fail only at run time. |
+| [xUnit1042](https://xunit.net/xunit.analyzers/rules/xUnit1042), "The member referenced by the MemberData attribute returns untyped data rows" | An `IEnumerable<object[]>` source, where a row with the wrong count or order compiles and fails on invocation. |
 
-Two rules cover it. First, [xUnit1019, "MemberData must reference a member
-providing a valid data
-type"](https://xunit.net/xunit.analyzers/rules/xUnit1019) catches a member
-whose return type the runner can't enumerate into theory rows at all, a
-mismatch that would otherwise surface only when the suite runs, not when it
-builds. Second, [xUnit1042, "The member referenced by the MemberData
-attribute returns untyped data
-rows"](https://xunit.net/xunit.analyzers/rules/xUnit1042) catches a
-`MemberData` source built on `IEnumerable<object[]>` specifically,
-recommending `TheoryData<>` because the untyped shape defeats compile-time
-checking of each row against the test method's own parameter types.
-
-A row with the wrong number of elements, or elements in the wrong order,
-compiles cleanly against `object[]`. It only fails at runtime, when the test
-tries to invoke the method with mismatched arguments. The typed
-`TheoryData<decimal, decimal>` makes that mistake a compile error instead:
-the generic type parameters pin every row in the collection initializer to
-exactly two `decimal` values, in that order, checked the moment the file
-compiles.
+`TheoryData<decimal, decimal>` pins every row to two `decimal` values in that order, so a malformed row is a compile error.
 
 ## NSubstitute basics: Substitute.For and .Returns
 
-Every test up to this point has already used `Substitute.For<T>()` without
-pausing to explain it; the idiom reads correctly on first sight. Call
-`Substitute.For<ITaxPolicy>()` and get back an object that implements
-`ITaxPolicy`, answers every call with a default value until told otherwise,
-and remembers every call it receives so a test can ask about it later. The
-[NSubstitute getting-started
-guide](https://nsubstitute.github.io/help/getting-started/) frames the whole
-library around that one factory method: no base class to inherit, no mock
-repository to construct first, no `.Object` property standing between the
-substitute and the interface it implements.
+`Substitute.For<ITaxPolicy>()` returns an object that implements `ITaxPolicy`, answers every call with a default until told otherwise and records every call. The [NSubstitute getting-started guide](https://nsubstitute.github.io/help/getting-started/) builds the library around that one factory: no base class, no mock repository and no `.Object` property between the substitute and its interface.
 
-`SubstituteBasicsTests` proves three distinct behaviors of that one factory
-method and its paired `.Returns(...)` extension. It works entirely against
-the synchronous `ITaxPolicy.ApplyTax(Money)` member, so the async machinery
-covered later in this chapter doesn't muddy what `.Returns` itself does.
-
-The first behavior is the one every other test already relies on: a stubbed
-call answers with exactly the value the test told it to. The second is less
-obvious and more useful once a class's logic branches on its collaborator's
-input:
+Stubs are scoped to arguments, so one substitute can answer different inputs differently:
 
 ```csharp
 [Fact]
@@ -307,20 +168,9 @@ public void A_substituted_tax_policy_can_stub_different_returns_for_different_ar
 }
 ```
 
-Each `.Returns(...)` call is scoped to the exact argument the preceding call
-expression specified: `new Money(100.00m)` in the first line, `new
-Money(200.00m)` in the second. The same substitute answers two different
-inputs with two different, independently configured outputs. The [NSubstitute
-return-value documentation](https://nsubstitute.github.io/help/set-return-value/)
-explains the mechanism directly: the call `taxPolicy.ApplyTax(...)` first
-runs against the substitute, which records the arguments and returns a
-placeholder, and the `.Returns(...)` extension that follows attaches the stub
-to that specific recorded call. Nothing here needs a conditional or a
-hand-written lookup table; recording two separately stubbed calls is enough
-for NSubstitute to match future calls against whichever stub's arguments fit.
+Per the [return-value documentation](https://nsubstitute.github.io/help/set-return-value/), the call `taxPolicy.ApplyTax(...)` runs against the substitute, which records the arguments, and `.Returns(...)` attaches the stub to that recorded call. Later calls match whichever stub's arguments match, with no hand-written lookup.
 
-The third behavior answers the question the first two tests raise: what
-happens when a test calls a substitute member nobody stubbed?
+A member nobody stubbed returns its type's default:
 
 ```csharp
 [Fact]
@@ -334,27 +184,11 @@ public void An_unstubbed_call_on_a_substitute_returns_the_types_default_value()
 }
 ```
 
-`Money` is a `readonly record struct`, so `default(Money)` is zero-initialized:
-`Amount == 0m`. An unstubbed substitute doesn't throw for lacking a stub, the
-way a strict mock in some other frameworks might. It quietly returns the
-member's type default and lets the test continue. A test that forgets to
-stub a collaborator the code under test actually calls fails on its assertion
-instead, with a `0m` result that's easy to trace back to the missing stub,
-rather than an unrelated exception from deep inside the substitute's own
-machinery. Knowing this in advance turns a confusing `Assert.Equal` failure
-into a recognizable signature: a zero, an empty string, or a `null` coming
-out of a test that expected something else almost always means a missing
-stub, not a bug in the substitute.
+`Money` is a `readonly record struct`, so `default` is `Amount == 0m`. An unstubbed substitute doesn't throw the way a strict mock does. A forgotten stub fails on the assertion with a `0m`, an empty string or a `null`, and that signature almost always means a missing stub, not a substitute bug.
 
 ## Verifying interactions: Received, DidNotReceive, and Arg matchers
 
-Stubbing a return value answers "what does the collaborator hand back." A
-behavior-verifying test needs the other half answered too: "did the class
-under test actually call its collaborator, with what, and how many times."
-`ReceivedTests` answers that half. `IAuditSink` is the right collaborator to
-check this against, because `ShipmentRatingEngine` never reads a return value
-from it. The entire contract that matters is that `RecordAsync` gets called,
-once, with the right consignment ID and the right quoted amount.
+Stubbing answers what a collaborator hands back; verification answers whether the class called it, with what and how often. `IAuditSink` is where that matters, because the engine reads nothing from it: the contract is one `RecordAsync` call with the right ID and amount.
 
 ```csharp
 [Fact]
@@ -369,34 +203,9 @@ public async Task Records_exactly_one_audit_entry_for_the_quoted_consignment()
 }
 ```
 
-`auditSink.Received(1)` reads almost like English: assert that the substitute
-received exactly one call matching the arguments on the member invocation
-that follows. The [NSubstitute received-calls
-documentation](https://nsubstitute.github.io/help/received-calls/) describes
-`Received()` and its argument-taking overload as checking "that a specific
-call has been received by a substitute," with the count argument narrowing
-the check from "at least once" to an exact number. Say a `ShipmentRatingEngine`
-accidentally recorded the same quote twice, from a retry loop that didn't
-account for the audit requirement. This assertion would fail even though the
-quote itself still came back correct. Correctness here includes not auditing
-the same shipment twice.
+The [received-calls documentation](https://nsubstitute.github.io/help/received-calls/) describes `Received()` as checking "that a specific call has been received by a substitute," and the count narrows "at least once" to an exact number. An engine that recorded the same quote twice, say from a retry loop, fails even though its quote is correct.
 
-`Arg.Any<CancellationToken>()` on the same line is an argument matcher, not a
-literal value: it tells the verification to accept any token at that
-position rather than requiring the exact `CancellationToken` instance the
-test happened to pass in. The [NSubstitute argument-matchers
-documentation](https://nsubstitute.github.io/help/argument-matchers/)
-describes `Arg.Any<T>()` as the way to "ignore the actual argument" at a
-position a test doesn't care about. The token
-`TestContext.Current.CancellationToken` supplies isn't something the test
-wants to hardcode into its own assertion. What the test cares about is the
-consignment ID and the quoted amount, not which exact token object flowed
-through.
-
-`DidNotReceive()` is the negative counterpart: it proves an interaction never
-happened, rather than happened a specific number of times. It pairs
-naturally with a predicate matcher, rather than a fixed value, when the thing
-being ruled out is a category of call rather than one exact one:
+`Arg.Any<CancellationToken>()` is a matcher that, per the [argument-matchers documentation](https://nsubstitute.github.io/help/argument-matchers/), ignores "the actual argument" at that position. `DidNotReceive()` is the negative form, and with `Arg.Is<T>(predicate)` it rules out a category of calls:
 
 ```csharp
 [Fact]
@@ -412,63 +221,21 @@ public async Task Never_records_any_quote_other_than_the_one_it_returned()
 }
 ```
 
-`Arg.Is<Money>(quoted => quoted != new Money(110.00m))` is the predicate form
-of the same matcher family. Instead of ignoring the argument entirely, it
-accepts a lambda that decides, call by call, whether a given argument
-matches. The assertion reads as "the audit sink never recorded any amount
-other than the correct quote," a check `Arg.Any<Money>()` alone can't
-express, since that matcher would match the correct quote too and the
-assertion would prove nothing.
+The predicate says the sink never recorded any amount other than the correct quote. `Arg.Any<Money>()` couldn't express that, because it would match the correct quote too. The same predicate form can check that a recorded consignment ID starts with an expected prefix without pinning one literal.
 
-A sibling test,
-`Records_against_a_consignment_id_that_matches_a_predicate`, uses the same
-predicate matcher on the other parameter position. It confirms the recorded
-consignment ID starts with the expected prefix without pinning the assertion
-to one exact literal string. Between `Arg.Any<T>()` for "this position
-doesn't matter" and `Arg.Is<T>(predicate)` for "this position matters, but
-only this property of it," a verification expresses exactly the claim a test
-needs and nothing broader.
+| Matcher | Use it when |
+| --- | --- |
+| `Arg.Any<T>()` | The position doesn't matter to this check. |
+| `Arg.Is<T>(predicate)` | One property of the argument matters. |
+| A literal value | The exact value matters. |
 
 {% include excalidraw.html name="10-nsubstitute-stub-vs-verify" caption="Figure 10.2: A substitute's two jobs, stubbing a return value on Arrange and verifying a call on Assert, with Arg matchers working on both sides." %}
 
 ## Async substitutes and cancellation tokens
 
-Both `ICarrierRates.GetBaseRateAsync` and `IAuditSink.RecordAsync` are
-`Task`-returning members, and every example so far has already stubbed and
-verified them without any special async syntax. NSubstitute treats a
-`Task<T>`-returning member's `.Returns(...)` call the same way it treats a
-synchronous one: supply the value the caller should eventually observe, and
-the substitute wraps it appropriately.
+`GetBaseRateAsync` and `RecordAsync` return `Task`s, and `.Returns(new Money(76.00m))` takes the plain value: the substitute wraps it in a completed `Task<Money>`, and the caller awaits it as it would the real integration.
 
-```csharp
-[Fact]
-public async Task An_async_substitute_method_returns_a_completed_task_wrapping_the_stubbed_value()
-{
-    var carrierRates = Substitute.For<ICarrierRates>();
-    carrierRates.GetBaseRateAsync("Rotterdam", 820m, Arg.Any<CancellationToken>())
-        .Returns(new Money(76.00m));
-
-    var baseRate = await carrierRates.GetBaseRateAsync(
-        "Rotterdam", 820m, TestContext.Current.CancellationToken);
-
-    Assert.Equal(new Money(76.00m), baseRate);
-}
-```
-
-Here, `.Returns(new Money(76.00m))` takes the plain `Money` value, not a
-`Task<Money>`, and the call site awaits `GetBaseRateAsync` exactly as it
-would await the real carrier integration. `GetBaseRateAsync`'s declared
-return type is `Task<Money>`, so the substitute wraps the stubbed value in an
-already-completed task behind the scenes. The test never constructs that task
-itself, and nothing about the calling code has to know or care whether the
-value arrived synchronously or asynchronously. A real `await` over a network
-call would exhibit the same behavior from the caller's perspective once the
-call finishes.
-
-Verifying an awaited call needs one detail the earlier synchronous `ApplyTax`
-verifications didn't: `Received(...)` returns an object whose member
-invocation needs its own `await`, because that invocation is just as
-asynchronous as the original call it's checking.
+Verifying an awaited call needs an `await` of its own:
 
 ```csharp
 [Fact]
@@ -488,17 +255,9 @@ public async Task Verifying_an_awaited_call_needs_an_await_in_front_of_received(
 }
 ```
 
-Dropping the `await` in front of `carrierRates.Received(1)...` still compiles,
-because the expression's static type is itself a `Task`. But it stops
-verifying anything meaningful: the verification task starts, the test method
-moves on without observing its result, and a mismatch that should fail the
-test can slip past silently, or surface only as an unobserved-task warning
-instead of a clear assertion failure. The fix is mechanical once named: every
-`Received(...)` or `DidNotReceive()` check against a `Task`-returning member
-needs its own `await`, exactly like the original call it's re-checking.
+Without the `await` in front of `Received(1)`, the line still compiles, because its type is a `Task`. The method moves on without observing the result, and a mismatch slips past or shows up as an unobserved-task warning instead of a failure. Every `Received(...)` or `DidNotReceive()` on a `Task`-returning member needs its `await`.
 
-The last piece ties cancellation through the whole call chain, rather than
-treating it as an afterthought at one layer.
+Cancellation has to reach every downstream call:
 
 ```csharp
 [Fact]
@@ -521,149 +280,31 @@ public async Task Passes_the_callers_cancellation_token_through_every_await()
 }
 ```
 
-This test passes a caller-owned `CancellationTokenSource`'s token into
-`QuoteAsync` instead of `TestContext.Current.CancellationToken`, so the two
-`Received(1)` checks afterward can verify that exact token instance arrived
-unchanged at both `GetBaseRateAsync` and `RecordAsync`. The method under test,
-`ShipmentRatingEngine.QuoteAsync`, never constructs its own token, substitutes
-`CancellationToken.None` partway through, or drops the token before the
-second collaborator call; the same token flows end to end.
-
-That matters operationally, not just as a style preference. A consumer
-cancelling a batch of in-flight quotes expects cancellation to reach every
-downstream call a quote triggers, not just the first one. A
-`ShipmentRatingEngine` that dropped the token before the audit call would
-leave an audit write running after the caller asked everything to stop. The
-[xUnit1051 analyzer rule](https://xunit.net/xunit.analyzers/rules/xUnit1051),
-"calls to methods which accept CancellationToken should use
-TestContext.Current.CancellationToken," enforces the test-side half of this
-discipline directly. Under this book's warnings-as-errors build, any
-token-accepting call in a test body that skips a real token, neither
-`TestContext.Current.CancellationToken` nor an explicit one like
-`cancellationSource.Token` here, fails the build before the test ever runs.
-That's the forcing function that keeps every test in this project threading
-a token, rather than letting one slip through on `CancellationToken.None` by
-habit.
+A caller-owned `CancellationTokenSource` lets both checks require that exact token at `GetBaseRateAsync` and at `RecordAsync`. `QuoteAsync` never creates its own token, swaps in `CancellationToken.None` or drops the token before the audit call. A consumer cancelling a batch of quotes expects every downstream call to stop, and an engine that dropped the token would leave an audit write running. [xUnit1051](https://xunit.net/xunit.analyzers/rules/xUnit1051), "calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken," enforces this in test code: under warnings as errors, a token-accepting call in a test body without a real token, `TestContext.Current.CancellationToken` or an explicit one, fails the build.
 
 ## NSubstitute versus Moq
 
-Moq is the other mocking library most C# developers have already used.
-Nothing about this book's choice of NSubstitute argues that a team already
-standardized on Moq should migrate a working suite. The syntax differs in a
-way that matters here. Moq wraps the substituted type behind a `Mock<T>`
-instance, and the test calls through a `.Setup(...)` expression and an
-`.Object` property to reach the actual interface instance the code under
-test receives: `var mock = new Mock<ITaxPolicy>(); mock.Setup(t =>
-t.ApplyTax(It.IsAny<Money>())).Returns(...); var taxPolicy = mock.Object;`.
-NSubstitute collapses that indirection. `Substitute.For<ITaxPolicy>()`
-returns the `ITaxPolicy` instance directly, and `.Returns(...)` attaches to
-the call expression itself rather than to a `.Setup(...)` wrapper, the
-pattern every test in this chapter already leans on.
+Moq is the other common library, and a team with a working Moq suite has no reason to migrate it. Moq wraps the type in a `Mock<T>`, configures it through `.Setup(...)` and hands the code under test `.Object`: `var mock = new Mock<ITaxPolicy>(); mock.Setup(t => t.ApplyTax(It.IsAny<Money>())).Returns(...); var taxPolicy = mock.Object;`. NSubstitute returns the `ITaxPolicy` directly and attaches `.Returns(...)` to the call expression.
 
-The other reason a new project reaches for NSubstitute over Moq isn't syntax.
-Moq 4.20 shipped a component called SponsorLink that collected a hashed form
-of the developer's email address at build time, bundled as a closed-source
-binary with limited notice to consumers of the package. The resulting
-community pushback was substantial enough that the maintainers reverted the
-default behavior; the underlying mechanism remains available as an opt-in
-rather than removed outright. NSubstitute has no comparable telemetry
-dependency to evaluate, which removes one more thing a team adopting a
-mocking library for a new project has to research before trusting it in a
-build pipeline.
-
-None of this argues for ripping Moq out of an existing, working test suite; a
-migration like that carries its own risk and buys a team nothing a passing
-suite wasn't already providing. It's a reason a new project, with no existing
-investment either way, can reach for NSubstitute by default.
+The other reason is supply chain. Moq 4.20.0 bundled SponsorLink, a closed-source component that read the developer's email address at build time and sent a hashed form of it. Version 4.20.2 removed it, and the [Moq changelog](https://github.com/devlooped/moq/blob/main/changelog.md) records it as no longer bundled from 4.20.70. NSubstitute has no comparable telemetry dependency to evaluate. For a new project with no investment either way, that makes NSubstitute the default.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked for a mocking example in C# without naming a library, a generated
-answer usually reaches for Moq's `.Setup(...)`/`.Object` shape, or wraps an
-async stub in `Task.FromResult(value)` where a plain `.Returns(value)` already
-handles a `Task<T>`-returning member. Put this chapter's conventions in the
-prompt:
+**Specifying a test.** "Write a mocking example in C#" leaves open the library, the token and how async calls are stubbed and verified. State them:
 
-> Write this test with `Substitute.For<T>()`, not `Mock<T>` and `.Object`.
-> Thread a real cancellation token, `TestContext.Current.CancellationToken` or
-> an explicit one, never `CancellationToken.None`. Await every
-> `Received(...)` or `DidNotReceive()` check. For a `Task<T>`-returning
-> member, stub it with plain `.Returns(value)`, not
-> `.Returns(Task.FromResult(value))`.
+> Write an xUnit v3 test for `ShipmentRatingEngine.QuoteAsync` with NSubstitute: `Substitute.For<T>()` for `ICarrierRates`, `ITaxPolicy` and `IAuditSink`, `.Returns(value)` on async members with no `Task.FromResult`, `TestContext.Current.CancellationToken` on every token-accepting call, and `await auditSink.Received(1).RecordAsync(...)` for the audit check. Use `TheoryData<,>` for member data.
 
-If the reply uses `Mock<T>`, skips the `await` on a `Received(...)` check, or
-wraps a stub in `Task.FromResult`, ask for the NSubstitute form.
+Reject a reply that uses `Mock<T>` and `.Object` or passes `CancellationToken.None`.
 </blockquote>
 
 ## Build, run, observe
-
-This chapter makes five claims: the four-phase shape holds for a class with
-async collaborators, `[Theory]`/`[InlineData]` and typed `TheoryData` both
-parametrize correctly, a substitute's stubs and its unstubbed default behave
-as described, `Received`/`DidNotReceive` and `Arg` matchers verify the right
-interactions, and a cancellation token threads through every async call. The
-suite lets you watch those hold rather than trust the prose. Run it from the
-example's own directory, no container in the loop:
 
 ```sh
 cd examples/10-testing-with-xunit-and-nsubstitute
 dotnet test
 ```
 
-The repo-level `scripts/verify.sh` picks up the same suite alongside every
-other example. Observed locally on Fedora with the .NET 10 SDK:
+All 16 tests pass in under a second, and `scripts/verify.sh` runs them with every other example. They cover one four-phase fact, six theory rows, three stubbing behaviors, three verifications and three async cases.
 
-```
-Test run summary: Passed!
-  total: 16
-  failed: 0
-  succeeded: 16
-  skipped: 0
-  duration: 914ms
-```
-
-The sixteen cases split across five files, each tied to a claim above:
-
-- **The four-phase shape holds.** `FactTests` supplies the one canonical
-  `[Fact]`, Arrange/Act/Assert against three async collaborators.
-- **Parametrization works both ways.** `TheoryTests` supplies six cases:
-  three `[InlineData]` rows proving the destination and weight reach the
-  carrier lookup unchanged, and three `TheoryData<decimal, decimal>` rows
-  proving the carrier's quoted base rate flows through for each named weight
-  tier.
-- **Substitute basics behave as described.** `SubstituteBasicsTests` supplies
-  three: a single stubbed return, two independently stubbed arguments on the
-  same member, and the type-default fallback for a call nobody stubbed.
-- **Interaction verification catches the right thing.** `ReceivedTests`
-  supplies three: an exact audit count, a predicate ruling out every amount
-  but the correct one, and a predicate matching a consignment ID prefix.
-- **Async and cancellation thread correctly.** `AsyncSubstituteTests`
-  supplies the remaining three: the completed-task wrapping behavior, the
-  `await` requirement on an async `Received(...)` check, and the
-  cancellation token's end-to-end path through both downstream calls.
-
-## Where this leaves you
-
-You can now:
-
-- Write a four-phase `[Fact]` test, Arrange, Act, Assert, against a class
-  whose behavior depends on asynchronous collaborators, the shape
-  `FactTests.Quotes_the_base_rate_with_tax_applied` sets for every test in
-  the project.
-- Parametrize a test with `[Theory]` and `[InlineData]`, and explain why a
-  `decimal` test case has to arrive as a `double` literal in the attribute,
-  because `decimal` isn't a type the attribute system accepts as a
-  compile-time constant.
-- Build a `TheoryData<T1, T2>`-typed `[MemberData]` source like
-  `WeightTierBaseRates`, and say why the typed return satisfies xUnit1019 and
-  xUnit1042 where a bare `IEnumerable<object[]>` trips them.
-- Create a substitute with `Substitute.For<T>()`, stub a call with
-  `.Returns(...)` including per-argument stubs, and state what an unstubbed
-  call on that same substitute returns: the member's type default, not an
-  exception.
-- Verify interactions on an async substitute with `await ...Received(1)...`
-  and `DidNotReceive()`, narrow those checks with `Arg.Any<T>()` and
-  `Arg.Is<T>(predicate)`, and thread a cancellation token through every call
-  the way xUnit1051 requires.
 
 ## For deeper coverage
 
@@ -672,8 +313,8 @@ You can now:
   `[Fact]` and `[Theory]`, and the analyzer rule pages
   [xUnit1019](https://xunit.net/xunit.analyzers/rules/xUnit1019),
   [xUnit1042](https://xunit.net/xunit.analyzers/rules/xUnit1042), and
-  [xUnit1051](https://xunit.net/xunit.analyzers/rules/xUnit1051) behind this
-  chapter's typed-`TheoryData` and cancellation-token guidance.
+  [xUnit1051](https://xunit.net/xunit.analyzers/rules/xUnit1051) behind the
+  typed-`TheoryData` and cancellation-token guidance.
 - The official NSubstitute documentation: [Getting
   started](https://nsubstitute.github.io/help/getting-started/), [Setting a
   return value](https://nsubstitute.github.io/help/set-return-value/),
@@ -684,10 +325,9 @@ You can now:
   tests](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices)
   for the Arrange-Act-Assert structure and test-double terminology, and the
   [`dotnet test`
-  command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test)
-  this chapter's build step runs.
+  command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test).
 - Gerard Meszaros, [*xUnit Test Patterns: Refactoring Test
   Code*](https://www.informit.com/store/xunit-test-patterns-refactoring-test-code-9780132800051)
-  (Addison-Wesley): the source of the four-phase test and the test-double
-  taxonomy, stub versus mock, this chapter builds on.
+  (Addison-Wesley): the source of the four-phase test and the
+  taxonomy of test doubles, stub versus mock.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

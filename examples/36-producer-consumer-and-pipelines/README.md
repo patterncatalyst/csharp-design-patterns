@@ -36,7 +36,7 @@ invented. `A_single_producer_order_is_preserved_by_a_single_consumer` drops to
 one producer and one consumer and asserts the observed sequence numbers come
 back in the exact order they were submitted, which a channel only guarantees
 when a single consumer is draining it. `A_full_bounded_channel_applies_
-backpressure_to_the_producer` proves a full capacity-1 channel genuinely
+backpressure_to_the_producer` proves a full capacity-1 channel
 blocks a writer: a pending submission's `Task.IsCompleted` is asserted false
 while the single consumer is parked, then found to complete only after the
 gate is released. `Completion_is_signalled_so_consumers_stop_after_the_last_

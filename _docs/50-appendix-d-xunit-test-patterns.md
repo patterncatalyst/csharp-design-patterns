@@ -5,58 +5,43 @@ layout: tutorial
 sectionid: docs
 part: appendices
 appendix: "D"
-description: "The four-phase test and test-double taxonomy from Meszaros, applied to the book's xUnit suites."
+description: "The four-phase test and test-double taxonomy from Meszaros, applied to xUnit and NSubstitute."
 ---
 
 ## Learning objectives
 
-- Name the four phases of a test, setup, exercise, verify, teardown, and map
-  them onto the Arrange/Act/Assert shape this book's tests write.
-- Define the five members of Meszaros's test-double taxonomy: dummy, stub,
-  spy, mock, and fake.
-- Tell which role a given NSubstitute substitute is playing in a specific
-  test, since the same substitute can be a stub in one assertion and a mock
-  in the next.
-- Recognize this book's hand-written in-memory collaborators as fakes, and
-  explain why a fake earns its own suite of tests separate from the code that
-  consumes it.
+By the end of this appendix you can:
+
+- Name the four phases of a test (setup, exercise, verify, teardown) and map
+  them onto Arrange/Act/Assert.
+- Define the five test doubles in Meszaros's taxonomy: dummy, stub, spy, mock
+  and fake.
+- Tell which role an NSubstitute substitute plays, since one substitute can
+  be a stub in one line and a mock in the next.
+- Recognize a hand-written in-memory collaborator as a fake, and say why it
+  needs tests of its own.
 
 ## Why this matters
 
-Every xUnit test in this book's examples has the same shape, and every
-collaborator it isolates is one of a small number of kinds. Gerard Meszaros's
-*xUnit Test Patterns* named both of those things a long time before this book
-existed: the four-phase test, and the test-double taxonomy of dummy, stub,
-spy, mock, and fake. Without that vocabulary, a reader is left calling
-everything that is not the real collaborator "a mock," which collapses five
-distinct design decisions into one word. A stub that hands back a
-canned tax rate is doing something different from a mock that asserts an
-audit entry was recorded exactly once, and a hand-written in-memory ledger
-that accumulates real state across a test is doing something different again
-from either. Naming the difference is not pedantry. It changes what a test
-failure tells you: a failed stub assertion says "the collaborator's output
-drove the wrong behavior," a failed mock assertion says "the system under
-test didn't call its collaborator the way it was supposed to," and a failed
-fake-backed assertion says "the state the system under test accumulated is
-wrong." This appendix gives that vocabulary a fixed meaning and ties each
-term to a real test already in `examples/`.
+Gerard Meszaros's *xUnit Test Patterns* named the four-phase test and the
+test-double taxonomy of dummy, stub, spy, mock and fake. Without that
+vocabulary everything that isn't the real collaborator gets called "a mock",
+and the name stops telling you what a failure means:
+
+| Double that failed | What the failure says |
+| --- | --- |
+| Stub | The collaborator's output drove the wrong behavior. |
+| Mock | The system under test didn't call its collaborator as required. |
+| Fake | The state the system under test accumulated is wrong. |
 
 ## The four-phase test
 
-Meszaros describes every good test as four phases, whether or not the test's
-author wrote them as four separate blocks:
-
-- **Setup.** Build the system under test and its collaborators, and put them
-  into the state the test needs before anything is exercised.
-- **Exercise.** Call the one behavior the test is about.
-- **Verify.** Check the outcome: a return value, a thrown exception, or an
-  interaction with a collaborator.
-- **Teardown.** Release anything setup acquired that would otherwise leak
-  into the next test.
-
-This book's tests write the first three phases as the familiar
-Arrange/Act/Assert comment structure, and the canonical example makes the
-mapping explicit:
+| Meszaros phase | Comment in the code | What happens |
+| --- | --- | --- |
+| Setup | `// Arrange` | Build the system under test and its collaborators in the state you need. |
+| Exercise | `// Act` | Call the one behavior under test. |
+| Verify | `// Assert` | Check a return value, a thrown exception or an interaction. |
+| Teardown | usually none | Release anything setup acquired that would leak into the next test. |
 
 ```csharp
 [Fact]
@@ -80,71 +65,65 @@ public async Task Quotes_the_base_rate_with_tax_applied()
 }
 ```
 
-Arrange is setup: it builds three substitutes, stubs the two that return
-values, and constructs the engine under test. Act is exercise: one call,
-`QuoteAsync`. Assert is verify: one assertion against the returned quote.
-Teardown is the phase most of this book's tests never need to write, because
-xUnit creates a fresh instance of the test class for every test method and
-disposes it afterward; a test only writes an explicit teardown when it
-acquires something the test class's own disposal would not reach, a
-`CancellationTokenSource` a test creates directly, for instance, which this
-book's suites wrap in a `using` declaration rather than a dedicated teardown
-block:
+Arrange builds three substitutes, stubs the two that return values and
+constructs the engine. Act is one call. Assert is one check on the quote.
+
+Teardown is rarely written, because xUnit creates a fresh test-class instance
+for every test method and disposes it afterward. A resource a test creates
+itself, such as a `CancellationTokenSource`, takes a `using` declaration
+instead of a teardown block:
 
 ```csharp
 using var cancellationSource = new CancellationTokenSource();
 ```
 
-A `using` declaration is teardown with the ceremony compiled away: the
-`CancellationTokenSource` disposes at the end of the method regardless of how
-the method exits, which is what an explicit teardown phase is for.
+The source is disposed at the end of the method however it exits, which is
+the job of a teardown phase.
 
 ## The test-double taxonomy
 
-Meszaros's taxonomy gives five names to the ways a test can replace a real
-collaborator with something easier to control, in increasing order of how
-much the double does.
+| Double | What it does | NSubstitute or C# form |
+| --- | --- | --- |
+| Dummy | Fills a parameter; never configured or checked | An unconfigured `Substitute.For<T>()`, or `out _` |
+| Stub | Returns canned answers to feed the system under test | `.Returns(...)` |
+| Spy | Records calls or state for inspection afterward | Call history behind `Received()`; a read-only `Entries` view on a fake |
+| Mock | Is verified for how it was called | `Received(n)`, `DidNotReceive()`, `Arg.Is<T>(...)` |
+| Fake | A working implementation with a shortcut, usually in-memory storage | A hand-written class implementing the interface |
 
-**Dummy.** An object passed in only because a signature requires it, never
-configured and never asked about. A test that constructs
-`ShipmentRatingEngine` but only cares about the computed quote still has to
-supply an `IAuditSink`, since the constructor requires one. Passing an
-unconfigured substitute for it is a dummy:
+The role belongs to what a test does with the object, not to the object.
+`Substitute.For<IAuditSink>()` builds the same proxy whether a test ignores
+it, stubs it or verifies it.
+
+### Dummy
+
+A constructor needs an `IAuditSink`, but a test may care only about the quote.
+An unconfigured substitute fills the slot:
 
 ```csharp
 var engine = new ShipmentRatingEngine(carrierRates, taxPolicy, Substitute.For<IAuditSink>());
 ```
 
-The `DependencyBreakingTests` suite makes the same role explicit with
-`out _`, discarding a collaborator the test does not need to inspect:
+`out _` discards a collaborator a helper builds that a test never inspects:
 
 ```csharp
 var engine = BuildEngine(out var tariffs, out _, out var clock, out var references);
 ```
 
-Neither test stubs the audit sink's behavior nor verifies a call against it.
-It exists purely to satisfy the constructor.
+### Stub
 
-**Stub.** An object that hands back a canned answer when called, so the
-system under test has something to compute with. `ITaxPolicy`, stubbed with
-`.Returns(...)`, is a stub:
+A stubbed `ITaxPolicy` feeds the engine a value. Nothing verifies that
+`ApplyTax` was called; the return value only shapes the quote:
 
 ```csharp
 taxPolicy.ApplyTax(new Money(100.00m)).Returns(new Money(110.00m));
 ```
 
-The test above never verifies that `ApplyTax` was called. It only uses the
-return value to check that the engine's final quote reflects the tax
-applied. That is the defining trait of a stub: its job is to feed the system
-under test, not to be interrogated afterward.
+### Spy
 
-**Spy.** An object that records how it was called, so a test can inspect that
-record after the fact rather than asserting through the double's own
-verification API. NSubstitute does not expose a separate spy type, since
-`Received()` already reads every substitute's call history on demand, but the
-same recorded-history idea shows up directly in this book's hand-written
-`InMemoryHandlingLedger`. Its `Entries` property is a spy-style window onto
-every append a test drove through it:
+NSubstitute has no spy type, because `Received()` reads any substitute's call
+history on demand. A hand-written fake can expose the same record directly.
+`InMemoryHandlingLedger.Entries` returns everything appended, so you exercise
+through `AppendAsync` and check what accumulated afterward:
 
 ```csharp
 public IReadOnlyList<HandlingEvent> Entries
@@ -159,38 +138,22 @@ public IReadOnlyList<HandlingEvent> Entries
 }
 ```
 
-A test exercises the ledger through `AppendAsync`, then reads `Entries`
-afterward to check what accumulated, the spy pattern of recording first and
-asking questions later, rather than asserting a specific call happened as
-the exercise phase runs.
+### Mock
 
-**Mock.** An object whose calls are verified: not what it returns, but
-whether, and how many times, and with what arguments, it was called. The same
-`IAuditSink` substitute that was a dummy a moment ago becomes a mock the
-instant a test verifies against it:
+Verify a call on the audit sink and it's a mock:
 
 ```csharp
 await auditSink.Received(1).RecordAsync("C-1001", new Money(110.00m), Arg.Any<CancellationToken>());
 ```
 
-This is the clearest illustration that the taxonomy describes a role in a
-specific test, not a fixed property of an object. `Substitute.For<IAuditSink>()`
-produces the same object regardless of whether a test ignores it, stubs it, or
-verifies against it; what changes is what the test does with it afterward.
-A substitute configured with `.Returns(...)` and read for its return value is
-a stub. That same substitute, checked afterward with `Received(...)`,
-is a mock. `ReceivedTests` in the testing-baseline example exercises exactly
-this distinction: `ICarrierRates` and `ITaxPolicy` are stubbed for their
-return values, while `IAuditSink` is verified for how it was called, inside
-the same test.
+A typical setup stubs `ICarrierRates` and `ITaxPolicy` for their return values
+and verifies `IAuditSink` for how it was called, all in one test.
 
-**Fake.** A hand-written, working implementation that takes a shortcut
-disqualifying it from production use, almost always trading a durable store
-for an in-memory one. This book writes several. `InMemoryHandlingLedger`
-appends to a list and hands out sequence numbers with
-`Interlocked.Increment`, the concurrency-safe behavior a production ledger would
-also need, but it keeps everything in a `List<HandlingEvent>` that vanishes
-when the test process exits:
+### Fake
+
+`InMemoryHandlingLedger` appends to a list and assigns sequence numbers with
+`Interlocked.Increment`, the concurrency-safe behavior a production ledger
+also needs, but its `List<HandlingEvent>` vanishes when the process exits:
 
 ```csharp
 public sealed class InMemoryHandlingLedger : IHandlingLedger
@@ -214,22 +177,15 @@ public sealed class InMemoryHandlingLedger : IHandlingLedger
 }
 ```
 
-`InMemoryBookingLedger` in the async-conventions example and
-`FakeCarrierGateway` in the dependency-inversion example are the same idea
-applied twice more: a working implementation of the interface, good
-enough to drive a test or a sandbox environment through its actual behavior,
-unsuitable for production because it never touches a database or a carrier's
-network API. `FakeCarrierGateway`'s own documentation comment says as much:
-it is "a deterministic stand-in for a real carrier, used in a sandbox or
-demo environment where no production carrier contract exists yet," which is
-exactly the shortcut-plus-real-behavior combination that separates a fake
-from a stub.
+`InMemoryBookingLedger` and `FakeCarrierGateway` follow the same idea: a
+working implementation, good enough to drive a test or a sandbox through real
+behavior, unfit for production because it never touches a database or a
+carrier's network API. `FakeCarrierGateway`'s documentation comment calls it
+"a deterministic stand-in for a real carrier, used in a sandbox or demo
+environment where no production carrier contract exists yet."
 
-Worth being precise about: not everything this book's code names `Fake` is a
-fake by Meszaros's definition. The hand-written `FakeClock` used across the
-seams, dependency-breaking, and Fowler-versus-Feathers examples has no real
-behavior to speak of, it answers every call with the single value its
-constructor was given:
+A class named `Fake` isn't always a fake. `FakeClock` returns the single value
+its constructor was given:
 
 ```csharp
 public sealed class FakeClock(DateTimeOffset utcNow) : IClock
@@ -238,21 +194,17 @@ public sealed class FakeClock(DateTimeOffset utcNow) : IClock
 }
 ```
 
-That is a canned-answer provider with no logic, which by the taxonomy is a
-hand-written stub wearing a `Fake` name. The distinction is not a flaw in the
-book's naming, it reflects how the word "fake" is used colloquially for any
-hand-rolled double. The difference still matters: a stub answers,
-a fake works. `InMemoryHandlingLedger` keeps state and enforces
-invariants (unique, monotonically increasing sequence numbers under
-concurrent access); `FakeClock` has no invariant to enforce beyond returning
-the value it was given.
+With no logic, it's a hand-written stub; "fake" is commonly used for any
+hand-rolled double. A stub answers, a fake works. `InMemoryHandlingLedger`
+keeps state and enforces an invariant: unique, monotonically increasing
+sequence numbers under concurrent access. `FakeClock` has no invariant
+beyond returning its value. Because a fake has behavior, it needs tests of
+its own, separate from the code that consumes it.
 
 ## Reading a test for its doubles
 
-Putting the taxonomy together, a single suite can use three or four kinds of
-double across its tests, and the same substitute can switch roles inside one
-test. `ReceivedTests` isolates `ShipmentRatingEngine` behind three
-collaborators:
+One setup can hold several roles. Here `ShipmentRatingEngine` is isolated
+behind three collaborators:
 
 ```csharp
 var carrierRates = Substitute.For<ICarrierRates>();
@@ -264,15 +216,13 @@ auditSink = Substitute.For<IAuditSink>();
 return new ShipmentRatingEngine(carrierRates, taxPolicy, auditSink);
 ```
 
-`carrierRates` and `taxPolicy` are stubs here, feeding the engine the numbers
-the test needs to predict a result. `auditSink` starts out looking like a
-dummy, built but not yet configured, and becomes a mock the moment a test
-verifies against it with `Received(1)` or `DidNotReceive()`. None of the
-three is a fake, because none of them has working logic behind it; they are
-dynamic proxies that answer exactly what they were told to. Contrast that
-with `DependencyBreakingTests`, which stubs `ITariffBook`, `IClock`, and
-`IReferenceGenerator` the same way, then verifies `IAuditLog` as a mock with
-an argument predicate:
+`carrierRates` and `taxPolicy` are stubs that feed the engine numbers the
+test can predict. `auditSink` is a dummy until a test verifies it with
+`Received(1)` or `DidNotReceive()`, and then it's a mock. None is a fake,
+since none has working logic.
+
+A mock can also take an argument predicate. Here `ITariffBook`, `IClock` and
+`IReferenceGenerator` are stubs and `IAuditLog` is the mock:
 
 ```csharp
 audit.Received(1).Record(Arg.Is<string>(message =>
@@ -280,13 +230,10 @@ audit.Received(1).Record(Arg.Is<string>(message =>
     message.Contains("C-9002", StringComparison.Ordinal)));
 ```
 
-And contrast both with the concurrency examples, where a real
-`InMemoryHandlingLedger` or `InMemoryBookingLedger` replaces the substitute
-entirely, because the behavior under test, correct sequence assignment under
-concurrent, overlapping calls, is exactly the behavior a dynamically
-generated stub cannot provide. A substitute has no logic to race against. A
-fake does, which is why the concurrency chapters reach for a hand-written one
-instead.
+Concurrent code needs a fake. When the behavior under test is correct
+sequence assignment under overlapping calls, a real `InMemoryHandlingLedger`
+or `InMemoryBookingLedger` replaces the substitute: a dynamic proxy has no
+logic to race against.
 
 ## For deeper coverage
 

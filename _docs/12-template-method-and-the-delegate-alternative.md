@@ -13,126 +13,75 @@ description: "Where an inheritance-based skeleton still fits, and where a delega
 
 By the end of this chapter you can:
 
-- Name what Template Method fixes and what it leaves open: the order of an
-  algorithm's steps is set in one place, and each step's content varies on its
-  own.
-- Write the inheritance form: a protected constructor, a non-virtual public
-  template method, and protected abstract steps a subclass overrides without
-  touching the skeleton.
-- Write the delegate-record alternative: a record of `Func<>` values as a
-  swappable step set, run by a static method in the same fixed order the
-  inheritance form uses.
-- Pass a country's rules as a value at the call site instead of writing a new
-  subclass, and say what that trades away and what it buys.
-- Explain why a record with an interface-typed collection member can't rely on
-  compiler-generated equality for a whole-object comparison, and write an
-  assertion that checks the fields that matter.
+- State Template Method's intent: fix the order of an algorithm's steps in one place and let each step's content vary.
+- Write the inheritance form: a protected constructor, a non-virtual public template method and protected abstract steps.
+- Write the delegate alternative: a record of `Func<>` values run in the same fixed order by a static method.
+- Pass a country's rules as a value instead of writing a subclass, and say what that costs and buys.
+- Say why a record with an interface-typed collection member can't rely on generated equality, and compare the fields that matter instead.
 
 ## Why this matters
 
-Template Method fixes the order of an algorithm's steps in one place and lets
-the content of each step vary on its own. Reach for it when a sequence has to
-stay the same across every variation while the work inside each step changes
-from one case to the next. The pattern puts the sequence where no variation can
-reach it, so each variation only supplies the steps.
+A customs declaration always takes three moves: collect the fields the destination's authority requires, calculate the duty, and validate the shipment against that country's rules. The content changes by country; the order doesn't.
 
-The value is in what that prevents. When every variation carries its own copy
-of the sequence, nothing stops one of them from running the steps out of order
-or dropping a step. That bug is hard to catch in review, because the reviewer
-is reading the part that changes, the step content, not the part that should
-never change, the order.
+| Country | Required fields | Duty | Flag when |
+| --- | --- | --- | --- |
+| United States | Importer of Record, HTS code, country of origin | 2.5% of declared value, USD | Declared value over 2500.00 USD (formal entry) |
+| Germany | EORI number, commodity code, Incoterms | 19% of declared value, EUR | Weight over 1000 kg (licensed broker) |
+| Japan | Importer tax ID, HS code, certificate of origin | 5% of declared value plus 2000 JPY handling | Declared value over 200000 JPY (inspection) |
 
-Customs declarations have this shape. Every international shipment goes through
-the same three moves, whatever its destination. Collect the fields the
-destination's customs authority requires. Calculate the duty owed. Validate the
-shipment against that country's rules to flag anything that needs a human before
-it crosses a border.
+All three round duty with `Math.Round(amount, 2, MidpointRounding.AwayFromZero)` and flag a shipment with zero line items.
 
-The content of each move changes from country to country; the order never does.
-The United States wants an Importer of Record and an HTS code. Germany wants an
-EORI number and a commodity code. Japan wants a tax ID and a certificate of
-origin. Duty is a flat percentage in two countries and a percentage plus a
-handling fee in the third. The scrutiny flag trips on a declared-value
-threshold in two countries and a weight threshold in the third. Through all of
-it, every country collects its fields, then calculates its duty, then validates.
-
-Let each country carry its own copy of that sequence and sooner or later one of
-them calculates duty before confirming the fields, or skips validation
-entirely. Template Method moves the sequence out of reach. Each country writes
-only its content for three fixed steps, and that content is all a reviewer has
-to check.
-
-The example for this chapter builds that skeleton two ways, in
-`examples/12-template-method-and-the-delegate-alternative`.
-`CustomsDeclarationBuilder` is the classic inheritance form: an abstract class
-whose `Build` method runs the sequence and seals it against reordering, with
-three protected steps a subclass fills in. `DeclarationEngine` is the
-alternative: a static method that runs the identical sequence but reads each
-step from a `DeclarationSteps` record of `Func<>` values instead of an
-override. Both produce the same `CustomsDeclaration` for the same shipment and
-country.
+If each country's handler writes the whole sequence, a rushed new one calculates duty before it knows the required fields, or skips validation. A reviewer checks the formula and the threshold, not whether `Validate` ran after `CalculateDuty`. Taking the sequence out of the country's hands leaves three seams to write and review.
 
 {% include excalidraw.html name="12-template-method-and-the-delegate-alternative" caption="Figure 12.1: The same three-step customs skeleton, collect fields, calculate duty, validate, built two ways: a sealed inheritance hierarchy and a record of delegates, producing identical results per country." %}
 
-## The inheritance form: a sealed skeleton
+## Pattern: Template Method
 
-The inheritance form puts the sequence in a base class and makes it unreachable
-from below. That is where the pattern's one guarantee lives: no subclass, now or
-later, can change the order. `CustomsDeclarationBuilder` has one public method,
-`Build`, that runs the three steps in order, and three protected abstract steps
-a subclass supplies:
+### The problem
+
+Several countries share one declaration process and differ in what each step does. The order must hold for every country, including ones not written yet, and a new country should add only its own rules.
+
+### The solution
+
+A **Template Method** defines an algorithm's skeleton in one method and defers the content of individual steps to code supplied separately, so the order can't change while the steps do.
+
+### How C# models it
+
+The inheritance form is an abstract class with one public member and three protected abstract steps:
 
 ```csharp
 public abstract class CustomsDeclarationBuilder
 {
-    protected CustomsDeclarationBuilder() { }                 // #A
+    protected CustomsDeclarationBuilder()
+    {
+    }
 
-    public CustomsDeclaration Build(Shipment shipment)       // #B
+    public CustomsDeclaration Build(Shipment shipment)
     {
         ArgumentNullException.ThrowIfNull(shipment);
 
-        var requiredFields = CollectRequiredFields(shipment); // #C
+        var requiredFields = CollectRequiredFields(shipment);
         var duty = CalculateDuty(shipment);
         var validationMessages = Validate(shipment);
 
         return new CustomsDeclaration(shipment.DestinationCountry, requiredFields, duty, validationMessages);
     }
 
-    protected abstract IReadOnlyList<string> CollectRequiredFields(Shipment shipment); // #D
+    protected abstract IReadOnlyList<string> CollectRequiredFields(Shipment shipment);
+
     protected abstract Money CalculateDuty(Shipment shipment);
+
     protected abstract IReadOnlyList<string> Validate(Shipment shipment);
 }
 ```
 
-`#A` The constructor is `protected`: only a concrete subclass constructs the
-builder, which the analyzer rule CA1012 enforces.
-`#B` `Build` carries no `virtual` keyword, so no subclass can override, reorder,
-or skip it. That missing keyword is what makes this a template method rather
-than three loosely related hooks called from the same place.
-`#C` The step order lives here, in one place, fixed at compile time for every
-subclass that will ever exist.
-`#D` The three seams each country fills.
-
-The three per-country classes, `UnitedStatesDeclarationBuilder`,
-`GermanyDeclarationBuilder`, and `JapanDeclarationBuilder`, are each `sealed` and
-override only those three steps. `UnitedStatesDeclarationBuilder`, for one,
-requires an Importer of Record and an HTS code, charges 2.5 percent of declared
-value, and flags a shipment once its value exceeds 2500.00 USD. Germany and
-Japan differ only in their fields, formulas, and thresholds, which Figure 12.2
-lays out side by side. One check is shared across all three: a shipment with
-zero line items is flagged everywhere, since every customs authority wants to
-see at least one declared good. Reading any one subclass shows what that country
-does differently. None of them says anything about step order, because the order
-was never theirs to control.
+The constructor is `protected` because only a subclass may construct an abstract type; CA1012 flags a public one. `UnitedStatesDeclarationBuilder`, `GermanyDeclarationBuilder` and `JapanDeclarationBuilder` are `sealed` and override only the three steps. They can't touch `Build`, because it isn't `virtual`: nothing on it can be overridden, reordered or skipped. That missing `virtual` makes this a template method rather than three hooks called from one place. Reading a subclass tells a reviewer everything the country does differently and nothing about order, because order was never its to control.
 
 {% include excalidraw.html name="12-template-method-step-order" caption="Figure 12.2: Three countries plug different required fields, duty formulas, and validation thresholds into the same fixed three-step slot order; the order never moves, only the content." %}
 
-## The delegate form: steps as values
+### The delegate form: steps as values
 
-A class per country is a lot of ceremony when the rules are just three
-functions. The delegate form keeps the same guarantee, the fixed order, but
-drops the hierarchy. `DeclarationSteps` is a record holding the three step
-functions, one each:
+The same skeleton needs no hierarchy. A record holds one function per step:
 
 ```csharp
 public sealed record DeclarationSteps(
@@ -141,9 +90,7 @@ public sealed record DeclarationSteps(
     Func<Shipment, IReadOnlyList<string>> Validate);
 ```
 
-`DeclarationEngine` is a static class with one static method, `Build`, that
-runs those three functions in the same order `CustomsDeclarationBuilder.Build`
-uses:
+A static method runs them in the same order:
 
 ```csharp
 public static class DeclarationEngine
@@ -153,7 +100,7 @@ public static class DeclarationEngine
         ArgumentNullException.ThrowIfNull(shipment);
         ArgumentNullException.ThrowIfNull(steps);
 
-        var requiredFields = steps.CollectRequiredFields(shipment); // #A
+        var requiredFields = steps.CollectRequiredFields(shipment);
         var duty = steps.CalculateDuty(shipment);
         var validationMessages = steps.Validate(shipment);
 
@@ -162,67 +109,9 @@ public static class DeclarationEngine
 }
 ```
 
-`#A` The same fixed order, read from the record this time. An ordinary method
-fixes order the way the non-virtual `Build` did: the calls run in the sequence
-they appear in, and nothing about `DeclarationSteps` lets a caller run them
-differently.
+Order is fixed the way any method fixes it: the calls appear in sequence, and `DeclarationSteps` gives a caller no way to run them differently. A country's rules are a value. `CountrySteps` exposes `UnitedStates`, `Germany` and `Japan`, each a `DeclarationSteps` with the same thresholds, rounding and message text as the matching subclass. A fourth country is one more static property instead of one more class. The substance is the same size, three lambdas against three overrides, but the type system no longer mints a class for what is a configuration value.
 
-Nothing here subclasses anything. A country's rules aren't a type at all.
-They're a value, an instance of `DeclarationSteps` holding three closures.
-
-`CountrySteps` is the delegate form's counterpart to the three builder
-subclasses. It exposes a `UnitedStates`, a `Germany`, and a `Japan` property,
-each a `DeclarationSteps` value that reproduces the same rules as the matching
-`CustomsDeclarationBuilder` subclass, down to the same thresholds, rounding,
-and message text. Reading `CountrySteps.Japan` tells a reviewer the same three
-facts reading `JapanDeclarationBuilder` did: which fields, which formula, which
-threshold. What's gone is the type itself.
-
-Adding a fourth country in the delegate form means adding one static property
-that returns a `DeclarationSteps` value. In the inheritance form it means
-adding one sealed class. The two are the same size, three lambdas against three
-method overrides. The difference is that the delegate form never asks the type
-system to mint a new class for what is really a configuration value.
-
-Both forms guarantee step order, and the test suite checks each one.
-`StepOrderTests.Inheritance_form_runs_steps_in_the_fixed_declared_order`
-overrides the three steps in a test-only subclass to append their names to a
-log, calls `Build`, and asserts the log reads `CollectRequiredFields`,
-`CalculateDuty`, `Validate`.
-`StepOrderTests.Delegate_form_runs_steps_in_the_same_fixed_order` does the same
-with three recording `Func<>` values passed into `DeclarationEngine.Build`.
-
-## Where inheritance still fits
-
-A record of delegates doesn't always beat an inheritance hierarchy. The
-delegate form fits here because every step is a pure function of its `Shipment`:
-no step calls another, none carries state between calls, and nothing outside
-`DeclarationEngine` treats a country's rules as a type. Four situations shift the
-balance back toward a class.
-
-**A helper shared across steps.** If every country's `CalculateDuty` used the
-same rounding helper or tariff-table lookup, a base class hands it down as a
-protected method. With `DeclarationSteps`, that helper becomes a static method or
-a captured local every lambda wires up by hand, scattered across `CountrySteps`
-instead of living once on the base.
-
-**State shared between steps.** The steps here never pass anything to each other
-beyond the `shipment` each receives. When step two needs a value step one
-computed, instance fields on a subclass carry it naturally; a closure-based
-design has to thread it through parameters or share a captured variable, the
-manual coordination a field removes.
-
-**A type something else matches on.** If code elsewhere asked whether a builder
-is a European Union declaration, or kept builders in a dictionary keyed by
-`Type`, inheritance gives it a type to match against:
-`GermanyDeclarationBuilder is IEuCustomsDeclaration`. A `DeclarationSteps` record
-has no identity beyond its three function references.
-
-**A step that calls another step.** This is the case classic Template Method
-leans on hardest: Gamma, Helm, Johnson, and Vlissides describe steps that call
-concrete, non-overridable operations on the base class mid-run. A base class
-holds such a helper as a `protected` method every override can call. A `Func<>`
-would have to take it in as yet another delegate.
+Both forms run `CollectRequiredFields`, `CalculateDuty`, `Validate` in that order, observed by recording each step as it runs, and both produce the same declaration for each of the three countries.
 
 {% include codetabs.html langs="Inheritance|Delegate" %}
 ```csharp
@@ -257,146 +146,50 @@ public static DeclarationSteps Japan { get; } = new(
 var declaration = DeclarationEngine.Build(shipment, CountrySteps.Japan);
 ```
 
-## Record equality and the parity test
+### Where inheritance still fits
 
-Proving the two forms agree sounds like one line: build a declaration each way,
-then assert the two records are equal. That assertion won't hold even when the
-two carry identical values. The reason is worth knowing, because it shows up with
-any record that holds a collection behind an interface.
+The delegate form wins here because every step is a pure function of its `Shipment`. Change any of these conditions and a class costs less:
 
-Start with two plain arrays:
+| Need | Base class | Record of delegates |
+| --- | --- | --- |
+| A shared helper, such as rounding or a tariff-table lookup | A protected method every subclass inherits | A static method or captured local wired into every lambda by hand |
+| State carried across steps, such as a running total | Instance fields on the subclass | Threaded through parameters, or a mutable capture shared across lambdas |
+| A type something else matches on, such as `is IEuCustomsDeclaration` or a `Type`-keyed registry | The subclass is the type | No identity beyond three delegate references, compared by reference |
+| A step that calls shared base behavior, such as a `FormatMessage` helper inside `Validate` | A `protected` or `private` method on the base | Passed in as yet another delegate |
 
-```csharp
-string[] a = ["Importer of Record", "HTS Code", "Country of Origin"];
-string[] b = ["Importer of Record", "HTS Code", "Country of Origin"];
+The last row is the case Gamma, Helm, Johnson and Vlissides lean on: template methods that call concrete, non-overridable operations on the base class, so an override can reach back into shared behavior. Both forms are idiomatic C#; the choice is which one costs less for the variation in hand.
 
-bool sameReference = a == b;             // false: two separate array objects
-bool sameContents = a.SequenceEqual(b);  // true: same strings, same order
-```
+### Comparing the two forms: record equality
 
-`CustomsDeclaration` holds `RequiredFields` and `ValidationMessages` as
-`IReadOnlyList<string>`. The `Equals` a record generates compares each member
-with `EqualityComparer<T>.Default`, and for an interface type that carries no
-equality of its own, that comparer uses the first check above: reference
-equality. Build one declaration from `UnitedStatesDeclarationBuilder.Build` and
-one from `DeclarationEngine.Build(shipment, CountrySteps.UnitedStates)`, and
-their `RequiredFields` lists hold the same three strings in two separate arrays.
-So whole-record equality reports the declarations as unequal, even though every
-value in them matches.
+Proving the forms agree looks like one equality check on two `CustomsDeclaration` records. It isn't. `RequiredFields` and `ValidationMessages` are declared `IReadOnlyList<string>`. Generated record equality compares each member with `EqualityComparer<T>.Default` for its declared type, and for an interface with no equality of its own that falls back to reference equality on the backing array. Two declarations built independently each hold their own `string[]` with the same strings in the same order, and the records compare unequal.
 
-The parity test gets around that by comparing fields, not whole records.
-`ParityTests.Inheritance_and_delegate_forms_agree_for_the_same_country` asserts
-`DestinationCountry`, `RequiredFields`, `Duty`, and `ValidationMessages` one at a
-time, as a `[Theory]` over all three countries. For the two list members it
-leans on xUnit's `Assert.Equal`, which walks the two sequences element by
-element, the second check above. That comparison is what proves the two forms
-produce the same declaration.
+Compare the fields instead: `DestinationCountry`, `RequiredFields`, `Duty` and `ValidationMessages`, for each country. xUnit's `Assert.Equal` differs from the record's `Equals` here: when both arguments are `IEnumerable<T>`, it walks the sequences element by element. `Assert.Equal(fromBuilder.RequiredFields, fromEngine.RequiredFields)` compares content and order; `Assert.Equal(fromBuilder, fromEngine)` on the whole records doesn't reliably do so for those members. The same applies to any record that exposes an `IEnumerable<T>`-shaped member.
 
-The split is general. A record's own equality compares a collection member by
-reference; a collection-aware check compares it by content. For any record with
-an `IEnumerable<T>` member, pick the one that matches what you're claiming.
+## When not to use it
+
+- **One implementation.** A two-step sequence with one caller and no second implementation coming is a plain method that does both in order. The customs example earns the pattern with three countries today and a realistic fourth; a system with one hardcoded destination writes `BuildUnitedStatesDeclaration` and stops.
+- **No shared skeleton.** If a country needs a fourth step the others skip, or runs duty before required fields, forcing it through the same `Build` produces a subclass or a `DeclarationSteps` that lies about following the process. Don't bolt on an optional fourth hook; that country isn't a variation of this algorithm.
+
+<blockquote class="ai-sidebar" markdown="1">
+**Specifying a new country.** "Add Canada to the declarations" leaves open whether it's a new `CustomsDeclarationBuilder` subclass or a `DeclarationSteps` value. State the form and the rules:
+
+> Add `CountrySteps.Canada` as a `DeclarationSteps` value: its required fields, its duty formula rounded with `MidpointRounding.AwayFromZero`, and its validation threshold, plus the zero-line-item check. Don't add a subclass unless the rules need a shared protected helper, state across steps, a type something matches on, or a step that calls another.
+
+If the reply writes a subclass, ask which of those four it needs.
+</blockquote>
 
 ## Build, run, observe
-
-The chapter makes two claims: both forms run the steps in the same fixed order,
-and both produce the same declaration for the same shipment. The suite lets you
-watch those hold rather than trust the prose. Run it from the example's own
-directory, no container in the loop:
 
 ```sh
 cd examples/12-template-method-and-the-delegate-alternative
 dotnet test
 ```
 
-The repo-level `scripts/verify.sh` runs the same xUnit v3 suite. It checks three
-things:
-
-- **The order holds, both ways.** Two `StepOrderTests` cases record the steps as
-  they run and assert the order is `CollectRequiredFields`, `CalculateDuty`,
-  `Validate`, once through the inheritance form and once through the delegate
-  form. This is the guarantee the whole pattern rests on.
-- **The content varies by country.** Four `PerCountryDeclarationTests` cases
-  confirm the United States, Germany, and Japan each produce their own fields,
-  duty, and validation outcome, and that one shipment run through all three comes
-  back as three distinct declarations.
-- **The two forms agree.** Three
-  `ParityTests.Inheritance_and_delegate_forms_agree_for_the_same_country` theory
-  cases, one per country, check that the builder and the engine produce the same
-  declaration field by field, so the two forms are interchangeable.
-
-Observed locally on Fedora with the .NET 10 SDK:
-
-```
-Test run summary: Passed!
-  total: 9
-  failed: 0
-  succeeded: 9
-  skipped: 0
-  duration: 1s 210ms
-```
-
-## When not to use it
-
-Template Method, in either form, is built for a skeleton with more than one
-real implementation of its varying steps, now or clearly coming. A one-off,
-two-step sequence with one caller and no second implementation planned
-doesn't need an abstract base class or a `DeclarationSteps`-shaped record. It
-needs a plain method that does both things in order. The customs example has
-the variation the pattern is built for: three real countries, each
-with its own formula and threshold, exist today, and a fourth is a realistic
-addition. A system with one destination hardcoded and no second one
-planned should write `BuildUnitedStatesDeclaration` as an ordinary method and
-stop there.
-
-The second failure mode is reaching for Template Method when the steps being
-split don't share a skeleton at all, only a resemblance in their parameter
-lists. Say one country's process needs a fourth step the others skip, or needs
-its steps in a different order because its customs authority processes duty
-before confirming required fields. Forcing that country through the same fixed
-`Build` sequence produces a subclass, or a `DeclarationSteps` value, that lies
-about following a shared process it doesn't follow. Don't bolt an optional
-fourth hook onto the template. That country isn't a variation of the same
-algorithm, so it doesn't belong behind the same skeleton.
-
-<blockquote class="ai-sidebar" markdown="1">
-Ask an AI to "add Canada to the customs declarations" and it will usually return
-a new sealed `CustomsDeclarationBuilder` subclass, because that is how most
-Template Method examples are written. When Canada's rules are just three
-functions, that subclass is a file you don't need. Put this chapter's decision in
-the prompt:
-
-> Add Canada to the customs declarations. Use a `DeclarationSteps` value on
-> `CountrySteps` rather than a new `CustomsDeclarationBuilder` subclass, unless
-> Canada's rules need shared base behavior, state carried across steps, or a type
-> something else pattern-matches on. If you use a subclass, say which of those
-> three it needs.
-
-If the reply is a subclass with no reason given, ask for the value form.
-</blockquote>
-
-## Where this leaves you
-
-You can now:
-
-- Say what Template Method fixes (the order of the steps) and what it leaves open
-  (each step's content), the split the customs skeleton is built around.
-- Write the inheritance form: `CustomsDeclarationBuilder`'s protected
-  constructor, its non-virtual `Build`, and the three protected abstract steps
-  each country overrides.
-- Write the delegate form: a `DeclarationSteps` record of `Func<>` values that
-  `DeclarationEngine.Build` runs in the same fixed order, with one value per
-  country on `CountrySteps`.
-- Add a country as a value instead of a subclass, and name the trade: a value is
-  cheaper to add and read until a variation needs shared base behavior, state
-  across steps, or a type other code matches on.
-- Explain why a record with an `IReadOnlyList<string>` member can't be compared
-  by its generated whole-object equality (that check falls to reference equality
-  on the interface member), and write the parity test that compares the fields
-  instead.
+All 9 tests pass, and `scripts/verify.sh` runs them with every other example. They cover step order for both forms, each country's distinct declaration, and field-by-field agreement between the forms for all three countries.
 
 ## For deeper coverage
 
-- Gamma, Helm, Johnson, and Vlissides, [*Design Patterns: Elements of Reusable Object-Oriented Software*](https://www.pearson.com/en-us/subject-catalog/p/design-patterns-elements-of-reusable-object-oriented-software/P200000009480) (Addison-Wesley, 1994): the original statement of Template Method, including the base-class-calls-concrete-operations variation this chapter's "where inheritance still fits" section draws on.
-- Microsoft Learn, [Records](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/records): the authority for how compiler-generated record equality compares each declared member, including the interface-typed collection member this chapter's parity-test section depends on.
-- Microsoft Learn, [Equality comparisons](https://learn.microsoft.com/en-us/dotnet/standard/base-types/equality-comparisons): the authority for `EqualityComparer<T>.Default` falling back to reference equality for a type with no overridden equality member.
+- Gamma, Helm, Johnson, and Vlissides, [*Design Patterns: Elements of Reusable Object-Oriented Software*](https://www.pearson.com/en-us/subject-catalog/p/design-patterns-elements-of-reusable-object-oriented-software/P200000009480) (Addison-Wesley, 1994): the original statement of Template Method, including the base-class-calls-concrete-operations variation.
+- Microsoft Learn, [Records](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/records): how compiler-generated record equality compares each declared member, including an interface-typed collection member.
+- Microsoft Learn, [Equality comparisons](https://learn.microsoft.com/en-us/dotnet/standard/base-types/equality-comparisons): `EqualityComparer<T>.Default` falling back to reference equality for a type with no overridden equality member.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

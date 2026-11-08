@@ -7,7 +7,7 @@ giving each one a dedicated stack, demonstrated with a sailing booking desk.
   ledger and returns the sequence number it was recorded under.
 - **`InMemoryBookingLedger`.** Confirms with `Interlocked.Increment` over a
   sequence counter. It suspends with `Task.Yield()`, never a wall-clock delay,
-  so a caller sees a genuine asynchronous suspend-and-resume without a test
+  so a caller sees an asynchronous suspend-and-resume without a test
   ever waiting on the clock.
 - **`SailingBookingDesk`.** Accepts a `BookingRequest` through the ledger
   (`AcceptAsync`), accepts a batch concurrently (`AcceptAllAsync`), and

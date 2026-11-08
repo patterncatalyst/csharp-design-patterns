@@ -13,461 +13,253 @@ description: "Dispose(bool), finalizer interaction, using and await using, and t
 
 By the end of this chapter you can:
 
-- State what `IDisposable` and the `using` statement guarantee about *when*
-  a resource is released. Explain why that timing differs fundamentally
-  from when the garbage collector would reclaim the same object.
-- Implement the dispose pattern's idempotency guard: a `_disposed` field
-  checked with `ObjectDisposedException.ThrowIf`. Explain why a sealed
-  class that owns only managed `IDisposable` members needs neither a
-  finalizer nor a `Dispose(bool)` overload.
-- Implement `IAsyncDisposable` with a `DisposeAsync` method that returns
-  `ValueTask`, and explain why an asynchronous flush belongs there and
-  can't run inside a synchronous `Dispose`.
-- Apply `ConfigureAwait(false)` correctly on every `await` inside a
-  library's async dispose path, and say what it buys and what skipping it
-  would cost.
-- Trace how `ManifestWriter`'s synchronous `FileStream` and
-  `LedgerAppender`'s asynchronous `StreamWriter` each apply the correct half
-  of the dispose pattern for exactly what they own.
+- State what `IDisposable` and `using` guarantee about *when* a resource is
+  released, and how that differs from garbage collection.
+- Implement the idempotency guard, a `_disposed` field checked with
+  `ObjectDisposedException.ThrowIf`, and say why a sealed class owning only
+  managed `IDisposable` members needs no finalizer and no `Dispose(bool)`.
+- Implement `IAsyncDisposable` with a `ValueTask`-returning `DisposeAsync`, and
+  say why an asynchronous flush can't run inside a synchronous `Dispose`.
+- Apply `ConfigureAwait(false)` on every `await` in a library's async dispose
+  path.
+- Choose the half of the dispose pattern a type needs from what it owns.
 
 ## Why this matters
 
-A consignment manifest is a file a warehouse keeps open only while it's
-actively writing new shipment lines into it. `ManifestWriter` opens that
-file exclusively, `FileShare.None`, for the same reason a loading-dock clerk
-locks a paper logbook while filling in an entry. Nobody else should see a
-half-written line, and nobody else should overwrite it mid-write. The
-exclusivity itself is correct; the problem is how long it lasts.
+`ManifestWriter` opens a consignment manifest with `FileShare.None`, so nobody
+else sees or overwrites a half-written line. The exclusivity is right; its
+duration is the problem. If the handle is released only when the garbage
+collector finalizes the abandoned writer, the lock lasts as long as the
+collector decides: seconds under memory pressure, much longer with none. A
+reconciliation job, a person checking a shipment or a scheduled audit sweep is
+refused for an interval nobody can predict from the source.
 
-If the handle backing `ManifestWriter` only lets go when the garbage
-collector eventually finalizes the abandoned object, "how long it lasts"
-stops being a line of code anyone wrote. It becomes whatever the collector
-decides: a few seconds under light memory pressure, much longer under none
-at all. A second process that wants that same file, a reconciliation job, a
-human checking a shipment, an audit sweep on a schedule, gets refused for an
-interval nobody scheduled and can't predict by reading the source.
-
-`LedgerAppender` raises the same problem with worse stakes, because it
-buffers before it writes. An unflushed `StreamWriter` sitting on a
-finalizer queue isn't just locking a file somebody else wants to read. It's
-holding bytes that describe a booking that, as far as the ledger file on
-disk is concerned, never happened. A process crash, a container recycle, or
-code that forgot to close the appender before moving on leaves a gap
-between what the application believes it recorded and what the file
-actually contains.
-
-.NET gives a program exactly one guaranteed moment to close that gap: the
-end of a `using` or `await using` scope. That moment runs before control
-leaves the scope, not whenever a future collection happens to run a
-finalizer. Everything in this chapter, the dispose pattern's guard, the
-split between synchronous and asynchronous cleanup, exists to make that one
-guaranteed moment do the right thing every time it runs.
+`LedgerAppender` buffers before it writes. An unflushed `StreamWriter` waiting
+for finalization holds bytes describing a booking that, on disk, never
+happened. A crash, a recycle or a forgotten close leaves the file short of what
+the application believes it recorded. The one guaranteed moment to close that
+gap is the end of a `using` or `await using` scope, which runs before control
+leaves the scope.
 
 {% include excalidraw.html name="07-dispose-and-iasyncdisposable" caption="Figure 7.1: A using scope releases a file handle the instant it exits, not at an unpredictable garbage-collection pass; an await using scope awaits an asynchronous flush before unlocking the file it wrote to." %}
 
 ## `using` and the scope that releases a handle on schedule
 
-`IDisposable` is a one-method contract. A type that holds something worth
-releasing deterministically, a file handle, a network socket, a lock,
-implements `Dispose()` and promises that calling it frees that resource
-right then, not eventually. The
-[`IDisposable` interface documentation](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable)
-describes exactly this: a type implements the interface "to release
-unmanaged resources" and callers "call the `Dispose` implementation... when
-the instance that implements `IDisposable` is no longer needed." Nothing
-about the interface forces a caller to use it correctly; a consumer that
-never calls `Dispose` still compiles.
+A type that holds a file handle, socket or lock implements `IDisposable` and
+frees the resource when `Dispose()` is called, "when the instance that
+implements `IDisposable` is no longer needed"
+([`IDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable)).
+The interface can't force a caller to call it. The
+[`using` statement](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/using)
+can: it calls `Dispose` "even if an exception occurs", through a
+compiler-generated `try`/`finally`. A `using` declaration, the form without
+braces that ends at the enclosing scope, compiles to the same `try`/`finally`.
 
-What makes the contract reliable in practice is the `using` statement. The
-[`using` statement reference page](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/using)
-specifies it as syntax that "ensures the correct use of `IDisposable`
-instances" by calling `Dispose` "even if an exception occurs" inside the
-block, through a compiler-generated `try`/`finally`. A `using` declaration,
-the form without braces that ties the call to the end of the enclosing scope
-instead of an explicit block, compiles to the identical `try`/`finally`.
-Both forms run `Dispose` at one precise, readable point in the method, not
-at some later point the method's author doesn't control.
-
-`ManifestWriterTests.Handle_is_released_as_soon_as_the_using_scope_exits`
-makes that determinism checkable rather than assumed. While a
-`ManifestWriter` is alive inside a `using` block, the test opens the same
-path a second time with `FileShare.None` and asserts that the second open
-throws `IOException`, because the first handle is still held exclusively.
-The instant the `using` block ends, the same open call that just failed
-succeeds: no delay, no retry loop, no `GC.Collect()` anywhere in the test.
-
-That's the entire value proposition of `IDisposable` plus `using` over
-relying on the collector alone. A resource's lifetime is tied to a lexical
-scope a reader can see on the page, not to generation boundaries and
-finalization queues a reader can't see at all. The
-[cleaning up unmanaged resources documentation](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/unmanaged)
-states that ".NET's garbage collector does not allocate or release
-unmanaged memory." More to the point here, it doesn't promise *when* it
-will run a finalizer that releases something at all. A `using` scope is the
-only mechanism in the language that promises a specific instant.
+While a `ManifestWriter` is alive inside a `using` block, a second open of the
+same path with `FileShare.None` throws `IOException`. The moment the block ends,
+the same open succeeds, with no delay, retry or `GC.Collect()`. The resource's
+lifetime is a lexical scope you can see on the page. The collector "does not
+allocate or release unmanaged memory"
+([Cleaning up unmanaged resources](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/unmanaged)),
+and it promises no time for running a finalizer. Only a `using` scope promises an
+instant.
 
 ## The dispose pattern: a guard, not a ceremony
 
-A `Dispose` method that assumes it only ever runs once is a method waiting
-to break. Disposing an object twice happens more often than it should: a
-`using` scope ending normally after code earlier in the method already
-called `Dispose` explicitly on an error path, or two collaborators each
-closing the same shared resource out of defensiveness. `ManifestWriter`
-guards against exactly that with a `_disposed` field and an early return:
+Objects get disposed twice: an error path calls `Dispose` and then the `using`
+scope ends, or two collaborators both close a shared resource. `ManifestWriter`
+guards with a `_disposed` field:
 
 ```csharp
 public void Dispose()
 {
-    if (_disposed)   // #A
+    if (_disposed)
     {
         return;
     }
 
-    _stream.Dispose();   // #B
+    _stream.Dispose();
     _disposed = true;
 }
 ```
 
-`#A` If disposal already ran, return immediately instead of touching the
-stream again.
-`#B` The first call releases the `FileStream` and flips the field; every
-call after that is a no-op.
-
-`ManifestWriterTests.Disposing_twice_is_a_harmless_no_op` calls `Dispose`
-twice back to back, then reads the file to confirm the earlier write
-survived. Nothing throws, and nothing double-releases a handle the runtime
-already reclaimed. The same field backs the other half of the contract:
-refusing use after disposal, with one line at the top of every public
+The first call releases the `FileStream` and sets the field; later calls do
+nothing. Disposing twice throws nothing, and the earlier write survives. The
+same field refuses use after disposal, with one line at the top of every public
 member that touches the resource:
 
 ```csharp
 public void WriteLine(ManifestEntry entry)
 {
-    ObjectDisposedException.ThrowIf(_disposed, this);   // #A
+    ObjectDisposedException.ThrowIf(_disposed, this);
     // ...
 }
 ```
 
-`#A` A static helper, not hand-rolled `if` plus `throw`. It exists
-specifically for this check, written the same way everywhere it appears, so
-a reviewer recognizes the pattern instantly instead of re-reading a bespoke
-conditional each time.
-
-`ManifestWriterTests.Writing_after_dispose_throws_object_disposed_exception`
-disposes a writer, then calls `WriteLine` on it, asserting the exact
-exception type the guard throws. A boolean field and one guard call
-repeated at every entry point are the entire dispose pattern a type like
-this needs. Neither piece depends on what kind of resource sits behind it;
-the same shape works whether the field underneath is a `FileStream`, a
-socket, or a lock.
+`ObjectDisposedException.ThrowIf` is the BCL helper for this guard, so it reads
+the same everywhere and a reviewer recognizes it at once. Writing to a disposed
+writer throws `ObjectDisposedException`. A boolean field and one guard call per
+entry point are the whole pattern for this type, whatever resource sits behind
+it: a `FileStream`, a socket or a lock.
 
 ## Why `ManifestWriter` needs no finalizer and no `Dispose(bool)`
 
-Books and reference pages about the dispose pattern usually show a longer
-version than the one above: a protected `Dispose(bool disposing)` overload,
-a public parameterless `Dispose()` that calls it with `true` and then calls
-`GC.SuppressFinalize(this)`, and a finalizer that calls the same protected
-overload with `false`. The
-[Implement a `Dispose` method documentation](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose)
-explains which problem that longer shape solves: it exists for "a class
-that holds unmanaged resources directly" or that can be subclassed, where a
-finalizer is the last backstop against a resource leaking forever if some
-caller, somewhere, never calls `Dispose` at all.
+The commonly shown dispose pattern is longer: a protected
+`Dispose(bool disposing)`, a public `Dispose()` that calls it with `true` and
+then `GC.SuppressFinalize(this)`, and a finalizer that calls it with `false`.
+[Implement a `Dispose` method](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose)
+gives that shape for "a class that holds unmanaged resources directly" or one
+that can be subclassed, where the finalizer is the backstop if nobody calls
+`Dispose`.
 
-`ManifestWriter` is neither of those things. It's `sealed`, so no subclass
-can ever add an unmanaged resource underneath it that this class's
-`Dispose` wouldn't know about. The one resource it owns is a `FileStream`,
-a managed wrapper that already carries its own finalizer as the backstop
-the Microsoft Learn guidance describes.
+`ManifestWriter` is neither:
 
-Wrapping an already-finalizable `FileStream` inside another type with its
-own finalizer doesn't add a second layer of safety. It adds a second object
-the collector has to promote to a later generation and finalize before its
-memory can be reclaimed, for a resource the `FileStream`'s own finalizer was
-already going to clean up if `Dispose` were somehow never called. That
-anti-pattern has a name in the analyzer rules the base class library ships
-with:
+- It's `sealed`, so no subclass can add an unmanaged resource beneath it.
+- Its one resource is a `FileStream`, a managed wrapper with its own finalizer.
+
+A second finalizer around an already-finalizable `FileStream` adds no safety. It
+adds an object the collector must promote to a later generation and finalize
+before reclaiming its memory.
 [CA1063](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1063),
 "Implement `IDisposable` correctly," and
 [CA1816](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1816),
-"Call `GC.SuppressFinalize` correctly." Both flag exactly this shape when a
-type reaches for the full pattern without an unmanaged resource or a
-finalizer of its own to justify it.
+"Call `GC.SuppressFinalize` correctly," flag a type that takes the full pattern
+without an unmanaged resource or a finalizer of its own to justify it.
 
 {% include excalidraw.html name="07-dispose-pattern-paths" caption="Figure 7.2: Three dispose shapes for three different ownership cases: a sealed type with only managed resources needs just a guarded Dispose; one holding an unmanaged handle directly needs the full finalizer pattern; one whose release must await a flush implements the asynchronous contract instead." %}
 
-The simple, one-method `Dispose()` this chapter already showed isn't a
-shortcut taken because the full pattern was too much trouble to write. It's
-the correct amount of pattern for what `ManifestWriter` actually owns: a
-sealed class, one managed `IDisposable` field, no unmanaged handle it
-touches directly. The full `Dispose(bool)` and finalizer shape stays
-available in the base class library documentation for the day a type in
-this codebase does hold an unmanaged resource directly or needs to support
-subclassing safely. Reaching for it here, on a type where neither condition
-holds, would add a finalizer with nothing underneath it to protect.
+The one-method `Dispose()` is the right amount of pattern for a sealed class with
+one managed `IDisposable` field. Use the full `Dispose(bool)` and finalizer shape
+when a type holds an unmanaged resource directly or must support subclassing.
 
 ## `IAsyncDisposable`, `await using`, and a `ValueTask` return
 
-A synchronous `Dispose()` method has a signature that returns `void`, which
-means it can't `await` anything inside it. The alternatives are both bad:
-block the calling thread on the result, risking a deadlock on whatever
-synchronization context the caller runs under, or fire the work off and
-return before it finishes, defeating the point of a deterministic release.
-`LedgerAppender` needs its last write flushed and its file handle released
-before the method that disposes it can safely assume the ledger is durable,
-and flushing a `StreamWriter` over an asynchronous `FileStream` is itself an
-async operation.
+`Dispose()` returns `void`, so it can't `await`. It can block on the result,
+risking a deadlock on the caller's synchronization context, or start the work
+and return before it finishes, which defeats deterministic release.
+`LedgerAppender` must flush its last write and release its handle before the
+caller can assume the ledger is durable, and flushing a `StreamWriter` over an
+asynchronous `FileStream` is itself asynchronous.
 
-`IAsyncDisposable` exists for precisely this case. The
-[`IAsyncDisposable` interface documentation](https://learn.microsoft.com/en-us/dotnet/api/system.iasyncdisposable)
-describes `DisposeAsync` as a method that "performs tasks associated with
-freeing, releasing, or resetting unmanaged resources *asynchronously*." The
-[Implement a `DisposeAsync` method documentation](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync)
-is explicit that the method's return type is `ValueTask`, not `Task`,
-because a disposal that frequently completes synchronously, nothing left to
-flush, the writer was never used, shouldn't pay for a heap-allocated `Task`
-every time it runs.
+[`IAsyncDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.iasyncdisposable)
+provides `DisposeAsync` for freeing resources "*asynchronously*".
+[Implement a `DisposeAsync` method](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync)
+returns `ValueTask`, not `Task`, because a disposal that often completes
+synchronously, with nothing to flush, shouldn't allocate a `Task` every time.
 
-`LedgerAppender.DisposeAsync` applies the same idempotency guard as the
-synchronous version, then awaits the one thing it owns:
+`LedgerAppender.DisposeAsync` uses the same guard, then awaits the one thing it
+owns:
 
 ```csharp
 public async ValueTask DisposeAsync()
 {
-    if (_disposed)   // #A
+    if (_disposed)
     {
         return;
     }
 
-    await _writer.DisposeAsync().ConfigureAwait(false);   // #B
+    await _writer.DisposeAsync().ConfigureAwait(false);
     _disposed = true;
 }
 ```
 
-`#A` The same idempotency guard as the synchronous version: if disposal
-already ran, return.
-`#B` Awaiting the flush is the whole point. Disposing a `StreamWriter`
-asynchronously flushes its buffered bytes to the underlying `FileStream`
-before closing it, so by the time this `await` completes, the ledger line
-written earlier is durable on disk and the file is unlocked.
-
-The caller-side mechanics mirror `using` exactly. The `await using`
-statement, covered on the same
-[`using` statement reference page](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/using)
-cited earlier, compiles to a `try`/`finally` that `await`s `DisposeAsync` in
-the `finally` block instead of calling `Dispose` synchronously.
-
-`LedgerAppenderTests.Ledger_file_is_locked_until_the_await_using_scope_exits`
-proves the lock holds for the whole scope, the same way the synchronous test
-did for `ManifestWriter`.
-`LedgerAppenderTests.Await_using_flushes_and_closes_the_ledger_file` proves
-the written line is actually readable, and the file unlocked, the moment
-the `await using` scope ends, not merely that the method returned without
-throwing.
+Disposing a `StreamWriter` asynchronously flushes its buffer to the
+`FileStream` before closing it. When the `await` completes, the ledger line is
+on disk and the file is unlocked. `await using` compiles to a `try`/`finally`
+that awaits `DisposeAsync` in the `finally` block. The file stays locked for the
+whole scope, and the moment the scope ends the appended line is readable and the
+file is free.
 
 ## `ConfigureAwait(false)` on the way out
 
-Every `await` inside `DisposeAsync` in this chapter's example carries
-`.ConfigureAwait(false)`. An `await` without it tries to resume the rest of
-the method on whatever `SynchronizationContext` or `TaskScheduler` was
-current when the `await` started, a behavior a UI framework needs so
-continuations land back on the UI thread. A library method has no UI thread
-to get back to and no caller-specific context it has any business assuming
-exists. Forcing a resumption onto a context the library didn't set up and
-doesn't control is unnecessary scheduling overhead at best, and a
-contributor to deadlocks at worst, when that context is single-threaded and
-already busy waiting on this same call.
+Every `await` in `DisposeAsync` carries `.ConfigureAwait(false)`. Without it, the
+continuation tries to resume on the `SynchronizationContext` or `TaskScheduler`
+that was current when the `await` began, which a UI framework needs to get back
+to its UI thread. A library has no UI thread and no business assuming a caller's
+context. Resuming there costs scheduling overhead at best, and at worst
+deadlocks when that context is single-threaded and busy waiting on the same
+call.
 
-The
-[Implement a `DisposeAsync` method documentation](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync)
-shows this exact idiom in its own sample code, awaiting an inner
-`DisposeAsync` call with `ConfigureAwait(false)` before setting a disposed
-flag, for the same reason this chapter's example does it: disposal code is
-library code, and library code shouldn't assume anything about the context
-it was called from. The
-[`Task.ConfigureAwait` API reference](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.configureawait)
-documents the parameter directly: passing `false` means the continuation
-"doesn't [need to] run on the original context," which is precisely true of
-everything `LedgerAppender.DisposeAsync` does after the `await`, a single
-field assignment with no dependency on any particular thread.
+[Implement a `DisposeAsync` method](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync)
+uses the same idiom, awaiting an inner `DisposeAsync` with
+`ConfigureAwait(false)` before setting a disposed flag. Per
+[`Task.ConfigureAwait`](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.configureawait),
+`false` means the continuation doesn't need to run on the original context,
+which is true of the single field assignment after the `await`. Apply it on
+every `await` in every async method a library exposes, not only the ones you
+remember, or the bug surfaces when a future caller runs the library from a
+context that matters.
 
-Applying the same call consistently, on every `await` in every async method
-a library exposes rather than only the ones a developer remembers to check,
-keeps the habit from becoming a source of subtle bugs. Those bugs show up
-only when some future caller runs the library from a context that does
-matter.
+## `ManifestWriter` and `LedgerAppender` side by side
 
-## Applying it: `ManifestWriter` and `LedgerAppender` side by side
+| | `ManifestWriter` | `LedgerAppender` |
+|---|---|---|
+| Owns | One `FileStream` | One `StreamWriter` over a `FileStream` |
+| Opened with | `FileShare.None` | `FileShare.None` and `FileOptions.Asynchronous` |
+| Writes | Synchronously: small, infrequent lines where blocking for a local disk write costs nothing | Asynchronously: a hotter write path, where an async-capable handle pays off |
+| Releases with | `IDisposable.Dispose()` | `IAsyncDisposable.DisposeAsync()` |
+| Sealed, `_disposed` guard, `ThrowIf` on every public member | Yes | Yes |
+| Finalizer or `Dispose(bool)` | No | No |
 
-The two types in this chapter's example look different on the surface:
-synchronous against asynchronous, a `FileStream` opened with default
-options against one opened with `FileOptions.Asynchronous` and wrapped in a
-`StreamWriter`. But they apply identical reasoning to two different
-constructors on `FileStream`.
+`FileOptions.Asynchronous` has to be set for reads and writes on that handle to
+run asynchronously, instead of falling back to a blocking call inside a `Task`.
 
-`ManifestWriter` opens its file with `FileShare.None` and writes and
-flushes synchronously, because a manifest entry is a small, infrequent
-write where blocking the calling thread for the few milliseconds a local
-disk write takes costs nothing worth avoiding. `LedgerAppender` opens its
-file with the same `FileShare.None` exclusivity but adds
-`FileOptions.Asynchronous`, the flag the runtime needs before asynchronous
-reads and writes on that handle actually run asynchronously, rather than
-silently falling back to a blocking call dressed up in a `Task` wrapper. A
-booking ledger in a real system sits on a hotter write path than an
-occasional manifest line, and that's where the cost of an async-capable
-handle starts paying for itself.
-
-What stays identical between them is everything this chapter covered
-before that difference. Both are `sealed`; both own exactly one managed
-`IDisposable` (a `FileStream` directly, or a `StreamWriter` wrapping one);
-both carry a `_disposed` field checked with `ObjectDisposedException.ThrowIf`
-at the top of every public member; and neither needs a finalizer or a
-`Dispose(bool)` overload, for the same reason given for `ManifestWriter`
-earlier: no subclass can add an unmanaged resource underneath a sealed
-type, and the one resource each type owns already finalizes itself if
-`Dispose` or `DisposeAsync` is never called.
-
-The only axis that actually decides which interface a type implements is
-whether releasing its resource requires awaiting something.
-`ManifestWriter`'s `Stream.Dispose()` call is synchronous because flushing
-an already-flushed, synchronously written stream and closing its handle is
-itself synchronous work. The moment a release has to await a flush, as
-`LedgerAppender`'s does, `IAsyncDisposable` is the only contract that can
-express that without blocking a thread to fake being synchronous.
+One question decides the interface: does releasing the resource require awaiting
+something? `ManifestWriter`'s `Stream.Dispose()` closes an already-flushed,
+synchronously written stream, which is synchronous work. When a release has to
+await a flush, as `LedgerAppender`'s does, `IAsyncDisposable` is the only
+contract that expresses it without blocking a thread.
 
 ## Build, run, observe
-
-This chapter's central guarantee is checkable, not assumed: a file handle
-stays locked for the entire `using` or `await using` scope and is released
-the instant that scope exits, proven against the file system rather than
-against garbage-collection timing. The suite in
-`examples/07-dispose-and-iasyncdisposable` lets you watch that hold. Run it
-from the example's own directory, no container in the loop:
 
 ```sh
 cd examples/07-dispose-and-iasyncdisposable
 dotnet test
 ```
 
-The repo-level `./scripts/verify.sh` runs the same suite. Observed locally
-on Fedora with the .NET 10 SDK:
-
-```
-Test run summary: Passed!
-  total: 7
-  failed: 0
-  succeeded: 7
-  skipped: 0
-  duration: 905ms
-```
-
-The seven cases split across the two types this chapter covers:
-
-- **The lock holds for the whole scope, both ways.**
-  `ManifestWriterTests.Handle_is_released_as_soon_as_the_using_scope_exits`
-  and `LedgerAppenderTests.Ledger_file_is_locked_until_the_await_using_scope_exits`
-  each open the file a second time with `FileShare.None` while the writer is
-  still alive, assert the second open fails, then assert it succeeds the
-  instant the scope exits. This is the guarantee the chapter rests on.
-- **The guard refuses use after disposal.**
-  `ManifestWriterTests.Writing_after_dispose_throws_object_disposed_exception`
-  and `LedgerAppenderTests.Appending_after_dispose_async_throws_object_disposed_exception`
-  call a public member on a disposed instance and assert
-  `ObjectDisposedException`.
-- **Disposing twice is harmless.**
-  `ManifestWriterTests.Disposing_twice_is_a_harmless_no_op` and
-  `LedgerAppenderTests.Disposing_async_twice_is_a_harmless_no_op` each call
-  the dispose method twice back to back and confirm the earlier write
-  survived.
-- **The async flush actually lands.**
-  `LedgerAppenderTests.Await_using_flushes_and_closes_the_ledger_file` proves
-  the file on disk contains the appended line once the `await using` scope
-  ends, not merely that the method returned without throwing.
-
-None of these checks asserts that a method merely returned. Each one checks
-the file system or the thrown exception type directly, which is what turns
-"deterministic cleanup" from a claim in this chapter's prose into something a
-test run demonstrates on every commit.
+All 7 tests pass; `./scripts/verify.sh` runs the same suite. For both types, the
+file is locked to a second exclusive opener for the whole scope and free the
+moment it exits, use after disposal throws `ObjectDisposedException`, and a
+second dispose is harmless. After an `await using` scope ends, the ledger file
+contains the appended line. Every check reads the file system or the exception
+type.
 
 ## When not to use it
 
-Not every type that touches something releasable needs to become a
-first-class `IDisposable` or `IAsyncDisposable`. A `ManifestEntry`, the
-`readonly record struct` this chapter's writer appends, holds a shipment
-ID, a destination string, and a weight. None of those fields owns anything
-that needs releasing, and giving it a `Dispose` method because "it flows
-through code that also happens to dispose things" adds a method with
-nothing to do and a `using` block at every call site with nothing to
-release.
+- **A type that owns nothing releasable.** `ManifestEntry`, a `readonly record
+  struct` with a shipment ID, a destination and a weight, gets no `Dispose`. One
+  would do nothing and put an empty `using` at every call site.
+- **A wrapper around one disposable.** A method that opens a `ManifestWriter`,
+  writes a few lines and returns needs a `using` around that call, not a second
+  disposable type to manage the first. A wrapper earns its cost only when it adds
+  cleanup of its own: a second resource, a counter that needs flushing, state
+  that outlives one call.
+- **A finalizer "to be safe".** On a type with no unmanaged resource and no
+  subclass that could add one, the finalizer runs for every instance that
+  reaches the finalization queue, slowing collection for a guarantee the type
+  never needed.
 
-The same restraint applies to short-lived helper types built around an
-already-disposable collaborator. A method that opens a `ManifestWriter`,
-writes a handful of lines, and returns needs a `using` around that one
-call, not a second disposable wrapper type built to manage the first one on
-the caller's behalf. Wrapping a disposable in another disposable earns its
-cost only when the wrapper adds real cleanup of its own: a second resource,
-a counter that needs flushing, state that outlives a single call.
-Otherwise it's an extra type and an extra `using` block standing between a
-caller and the resource it already knows how to release correctly by
-itself.
-
-The full six-member dispose pattern, finalizer included, is the easier
-mistake to make in the other direction. A type gains a finalizer "to be
-safe" even though it owns no unmanaged resource and can't be subclassed in
-any way that would add one. That finalizer now runs on every instance that
-reaches the finalization queue, whether or not `Dispose` was ever skipped,
-slowing down collection for a safety guarantee the type never needed.
-`ManifestWriter` and `LedgerAppender` both show the smaller, correct shape:
-implement the single interface that matches whether releasing the resource
-requires an `await`, guard it with one boolean field, and stop there unless
-an unmanaged handle or a subclassing requirement shows up to justify more.
+Implement the one interface that matches whether release needs an `await`,
+guard it with one boolean field, and add more only when an unmanaged handle or a
+subclassing requirement appears.
 
 <blockquote class="ai-sidebar" markdown="1">
-Ask an AI pairing partner to "make this class disposable" and a common
-result is the full six-member pattern pasted in regardless of whether the
-class is sealed or owns anything unmanaged, or, for a class with one
-`await`-based cleanup step, a synchronous `Dispose()` that blocks on
-`.GetAwaiter().GetResult()` instead of reaching for `IAsyncDisposable`. Put
-this chapter's decision rule in the prompt:
-
-> Implement disposal for this type using this rule: if releasing it
-> requires awaiting something, implement `IAsyncDisposable` with a
-> `ValueTask DisposeAsync()`, not a blocking `Dispose()`. Add a finalizer
-> and a `Dispose(bool)` overload only if this exact type is unsealed or
-> owns an unmanaged resource directly; otherwise a guarded `Dispose()` or
-> `DisposeAsync()` with one `_disposed` field is the whole pattern.
-
-A finalizer on a sealed, managed-only type, or a blocking `Dispose()`
-standing in for `DisposeAsync`, is a tell the generated code skipped both
-questions.
+Ask an AI pairing partner to "make this class disposable" and a common result is
+the full six-member pattern, finalizer, `Dispose(bool)` and
+`GC.SuppressFinalize`, whether or not the class is sealed or owns anything
+unmanaged, because that shape is what training material most often calls "the
+dispose pattern." For a class with one `await`-based cleanup step, the same
+prompt sometimes produces a synchronous `Dispose()` that blocks on
+`.GetAwaiter().GetResult()` instead of implementing `IAsyncDisposable`, with
+deadlock risk built in. Check a generated implementation against two questions:
+does release require awaiting something, which decides the interface, and does
+this type own an unmanaged resource directly or allow subclassing, which alone
+justifies the finalizer and `Dispose(bool)` that CA1063 and CA1816 gate.
 </blockquote>
-
-## Where this leaves you
-
-You can now:
-
-- State what `IDisposable` plus `using` guarantees about timing, and explain
-  why that differs from garbage collection: `ManifestWriterTests.Handle_is_released_as_soon_as_the_using_scope_exits`
-  checks a file-system lock, not a claim about when a finalizer runs.
-- Write the dispose pattern's idempotency guard: `ManifestWriter.Dispose`'s
-  `_disposed` field and early return, plus `ObjectDisposedException.ThrowIf`
-  at the top of `WriteLine`, and explain why that sealed, managed-only type
-  needs neither a finalizer nor a `Dispose(bool)` overload.
-- Write `IAsyncDisposable` with a `ValueTask`-returning `DisposeAsync`:
-  `LedgerAppender.DisposeAsync` awaits `_writer.DisposeAsync()` because the
-  flush it performs can't run inside a synchronous `Dispose`.
-- Apply `ConfigureAwait(false)` on every `await` in an async dispose path,
-  and say what it buys (no forced resumption onto a context the library
-  doesn't control) against what skipping it would cost (unnecessary
-  scheduling overhead, or a deadlock on a busy single-threaded context).
-- Say which half of the dispose pattern a type needs by what it owns:
-  `ManifestWriter`'s synchronous `FileStream.Dispose()` against
-  `LedgerAppender`'s `await`-based `StreamWriter.DisposeAsync()`, the same
-  guard shape applied to two different release costs.
 
 ## For deeper coverage
 
-- [Implement a `Dispose` method](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose) and [Implement a `DisposeAsync` method](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync) on Microsoft Learn: the canonical shape of the synchronous and asynchronous dispose patterns, including the `ConfigureAwait(false)` idiom this chapter's example follows.
-- The [`IDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable) and [`IAsyncDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.iasyncdisposable) interface references, the [`using` statement](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/using) language reference, and [Cleaning up unmanaged resources](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/unmanaged): the primary sources this chapter cites for every claim about scope-exit timing versus garbage collection.
-- [CA1063: Implement `IDisposable` correctly](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1063) and [CA1816: Call `GC.SuppressFinalize` correctly](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1816): the analyzer rules behind this chapter's claim that a sealed class owning only managed disposables shouldn't carry a finalizer.
+- [Implement a `Dispose` method](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose) and [Implement a `DisposeAsync` method](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync) on Microsoft Learn: the canonical shape of the synchronous and asynchronous dispose patterns, including the `ConfigureAwait(false)` idiom used here.
+- The [`IDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable) and [`IAsyncDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.iasyncdisposable) interface references, the [`using` statement](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/using) language reference, and [Cleaning up unmanaged resources](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/unmanaged): the primary sources for every claim about scope-exit timing versus garbage collection.
+- [CA1063: Implement `IDisposable` correctly](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1063) and [CA1816: Call `GC.SuppressFinalize` correctly](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1816): the analyzer rules behind the claim that a sealed class owning only managed disposables should not carry a finalizer.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

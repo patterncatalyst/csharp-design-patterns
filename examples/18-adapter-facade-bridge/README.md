@@ -4,7 +4,7 @@ Three structural patterns over one shipping domain: carrier integration,
 booking orchestration, and label printing, plus the conversion operators
 that make the value types in all three feel built-in.
 
-- **Adapter.** Three carriers, three genuinely different native shapes, one
+- **Adapter.** Three carriers, three different native shapes, one
   target interface, `ICarrierGateway`. `FastlineSoapClient.SubmitQuote`
   takes plain strings and an integer gram weight and returns a
   `FastlineQuoteResponse`, the shape a generated SOAP client would produce.

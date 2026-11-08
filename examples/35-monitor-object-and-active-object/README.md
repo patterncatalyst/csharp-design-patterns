@@ -12,7 +12,7 @@ servant, so the strategies can be compared on identical input.
   synchronous, so the gate is held only as long as it takes to check and
   update the plan, and there is no `await` anywhere near the lock.
 - **Stage 3 - an async-aware gate.** A reservation is not confirmed until its
-  write lands in `IStowageLedger`, and that write is a genuine `await`. A
+  write lands in `IStowageLedger`, and that write is an `await`. A
   plain `lock` statement cannot wrap an `await` (the compiler rejects it), so
   `SemaphoreStowagePlan` swaps the monitor for a `SemaphoreSlim` sized to one,
   which can be awaited across the ledger write while still serializing
@@ -32,7 +32,7 @@ servant, so the strategies can be compared on identical input.
   that splits "the write landed in the channel" from "the reservation
   finished," which is what lets a test observe a full channel deterministically.
 - **Test doubles.** `InMemoryStowageLedger` stands in for durable I/O with a
-  `Task.Yield()` so every append is a genuine asynchronous continuation.
+  `Task.Yield()` so every append is an asynchronous continuation.
   `GatedStowageLedger` signals the instant a write starts and then blocks
   until the test releases it, pinning the scheduler at a known point.
   `ThrowOnceStowageLedger` fails its first write and succeeds after that.

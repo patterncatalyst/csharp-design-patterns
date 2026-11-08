@@ -2,9 +2,9 @@
 
 Paired diagram assets for the book. Each figure is two files that share a basename:
 
-- `diagrams/<name>.svg` — the rendered diagram, embedded inline by the
+- `diagrams/<name>.svg`, the rendered diagram, embedded inline by the
   `excalidraw.html` include and shown in the gallery at `/diagrams/`.
-- `diagrams/<name>.excalidraw` — the editable source. Open it on
+- `diagrams/<name>.excalidraw`, the editable source. Open it on
   [excalidraw.com](https://excalidraw.com) to edit, then re-export the SVG.
 
 ## Conventions

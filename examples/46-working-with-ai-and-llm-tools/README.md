@@ -18,7 +18,7 @@ Strategy interface with exactly one implementation in the compilation.
   zero implementations, and a `*Strategy` interface with two or more
   implementations are all left alone.
 - **The corrected sample.** `RatingReview.csproj` hosts `IRatingStrategy`
-  with two genuine implementations, `StandardRatingStrategy` and
+  with two implementations, `StandardRatingStrategy` and
   `ExpressRatingStrategy`, each pricing a `BookingRequest` with its own
   formula. This is the reviewed, two-strategy form of a sample an LLM first
   drafted with only one strategy in place, so the analyzer has nothing to

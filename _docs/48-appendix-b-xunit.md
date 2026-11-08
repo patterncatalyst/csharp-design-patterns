@@ -5,7 +5,7 @@ layout: tutorial
 sectionid: docs
 part: appendices
 appendix: "B"
-description: "A reference for the xUnit test framework this book writes its suites against."
+description: "A reference for the xUnit v3 test framework the examples are written against."
 ---
 
 ## Learning objectives
@@ -13,41 +13,37 @@ description: "A reference for the xUnit test framework this book writes its suit
 By the end of this appendix you can:
 
 - Choose between `[Fact]` and `[Theory]`, and pick `[InlineData]`,
-  `[MemberData]`, or a typed `TheoryData<...>` source for a parametrized
-  test's cases.
-- Name the `Assert` members this book's suites rely on most and the shape of
-  test each one fits: equality, truth, reference identity, collection size,
-  and thrown exceptions.
-- Explain why a test passes `TestContext.Current.CancellationToken` into a
-  token-accepting call, and what xUnit1051 is warning you about when you
-  don't.
-- Run a suite with `dotnet test --project <proj>` at the repository level and
-  with a bare `dotnet test` from a single example's own directory, and state
-  which runner is doing the work in each case.
-- Apply the house test-method naming convention and explain why its test
-  projects suppress CA1707 only for themselves.
+  `[MemberData]` or a typed `TheoryData<...>` source for a theory's cases.
+- Pick the `Assert` member for each kind of claim: equality, truth, reference
+  identity, collection size, type and thrown exceptions.
+- Pass `TestContext.Current.CancellationToken` into token-accepting calls,
+  and say what xUnit1051 warns about.
+- Run tests with `dotnet test --project <proj>` from the repository root and
+  with a bare `dotnet test` from one example's directory.
+- Apply the underscore naming convention and scope the CA1707 suppression to
+  test projects.
 
 ## Why this matters
 
-Every test in this book is written against xUnit v3, not the v2 line most
-existing .NET codebases still run. The package pinned in every test project,
-`xunit.v3`, is a from-scratch rewrite of the framework's runner architecture:
-it drops the legacy VSTest adapter path entirely and runs on
-Microsoft.Testing.Platform, a leaner host that starts a test assembly as its
-own console executable. That change is invisible in most of the test code
-you write, a `[Fact]` still looks like a `[Fact]`, but it reaches into a
-handful of places a reader coming from xUnit v2 or another framework will
-notice: how a test gets its cancellation token, how `dotnet test` is invoked
-from a script, and what a theory's data source is allowed to look like. This
-appendix collects the v3 surface this book's suites use, so a
-chapter introducing a pattern can show a test without re-explaining the
-framework underneath it, and you have one place to check whether an xUnit
-idiom you remember from elsewhere still applies.
+Every test project uses xUnit v3, not the v2 line most existing .NET
+codebases still run. The `xunit.v3` package rewrites the runner architecture:
+it drops the VSTest adapter path and runs on Microsoft.Testing.Platform, a
+leaner host that starts a test assembly as its own console executable. Most
+test code looks the same (a `[Fact]` is still a `[Fact]`), but three things
+change for a reader coming from v2: how a test gets its cancellation token,
+how `dotnet test` is invoked from a script, and what a theory's data source
+may look like.
 
 ## Facts, theories, and data sources
 
-A `[Fact]` is a single test case with no parameters. It is the default shape
-for a test that checks one behavior with one set of inputs:
+| Attribute | Use it for |
+| --- | --- |
+| `[Fact]` | One case with no parameters |
+| `[Theory]` + `[InlineData]` | A handful of literal cases |
+| `[Theory]` + `[MemberData]` returning `TheoryData<...>` | Named or computed rows, typed at compile time |
+
+A `[Fact]` follows the Arrange, Act, Assert shape, with substitute setup in
+Arrange and each phase commented when the body is long:
 
 ```csharp
 public class FactTests
@@ -74,12 +70,8 @@ public class FactTests
 }
 ```
 
-This is the four-phase shape this book's suites follow throughout: Arrange
-(including any substitute setup), Act, Assert, with each phase commented when
-a test's body is long enough to benefit from the labels.
-
-A `[Theory]` runs the same test body once per data row. `[InlineData]` is the
-right tool for a handful of literal cases:
+A `[Theory]` runs the body once per data row. `[InlineData]` supplies literal
+rows:
 
 ```csharp
 [Theory]
@@ -103,10 +95,8 @@ public async Task Passes_the_destination_and_weight_through_to_the_carrier_rate_
 }
 ```
 
-For a case that calls for a name rather than an index into positional
-literals, `[MemberData]` pulls its rows from a method, and this book always
-types that method's return as `TheoryData<...>` rather than a bare
-`IEnumerable<object[]>`:
+`[MemberData]` pulls rows from a method. Type its return as
+`TheoryData<...>`, not `IEnumerable<object[]>`:
 
 ```csharp
 public static TheoryData<decimal, decimal> WeightTierBaseRates() => new()
@@ -125,25 +115,28 @@ public async Task Returns_the_carriers_quoted_base_rate_for_each_weight_tier(
 }
 ```
 
-A `TheoryData<T1, T2, ...>` source keeps every row strongly typed, catches a
-mismatched argument at compile time instead of a runtime cast failure inside
-the test runner, and satisfies the analyzer rule that flags an untyped
-`object[]` theory source as a style violation under this book's
-`EnforceCodeStyleInBuild` setting.
+`TheoryData<T1, T2, ...>` keeps every row strongly typed, so a mismatched
+argument fails at compile time instead of as a runtime cast inside the
+runner. It also satisfies the analyzer rule that flags an untyped `object[]`
+source, which `EnforceCodeStyleInBuild` turns into a build failure.
 
-## Assert: the members this book's suites lean on
+## Assert: the common members
 
-xUnit v3's `Assert` class carries the same broad surface the framework has
-always had; the subset below is what this book's suites reach for, grouped by
-the shape of the claim they check.
+| Claim | Members |
+| --- | --- |
+| Value equality | `Assert.Equal`, `Assert.NotEqual` |
+| Reference identity | `Assert.Same`, `Assert.NotSame` |
+| Truth | `Assert.True`, `Assert.False` |
+| Presence | `Assert.Null`, `Assert.NotNull` |
+| Collections | `Assert.Single` (returns the element), `Assert.Empty`, `Assert.NotEmpty`, `Assert.Contains`, `Assert.DoesNotContain` |
+| Exact runtime type | `Assert.IsType<T>` |
+| Exceptions | `Assert.Throws<T>`, `Assert.ThrowsAsync<T>`, `Assert.ThrowsAnyAsync<T>` |
+| Less common | `Assert.Matches` (regex), `Assert.InRange` (numeric bound), `Assert.Collection` (element by element) |
 
-Equality and comparison: `Assert.Equal(expected, actual)` is the workhorse
-for value types and records, comparing by value the way a `Money` or
-`Consignment` record is designed to compare. `Assert.NotEqual` is its
-negation. `Assert.Same(expected, actual)` and `Assert.NotSame` check
-reference identity, which matters when a test is proving that a dependency
-injection container handed back the exact same registered instance rather
-than two separately constructed ones that happen to compare equal:
+`Assert.Equal` compares records such as `Money` and `Consignment` by value.
+`Assert.Same` checks reference identity, which is the claim to make when a
+dependency injection container must return one registered instance through
+several interfaces:
 
 ```csharp
 [Fact]
@@ -162,23 +155,11 @@ public async Task Narrow_interfaces_resolve_to_the_same_registered_gateway_insta
 }
 ```
 
-Truth and nullability: `Assert.True` and `Assert.False` check a boolean
-condition directly, usually a predicate that would otherwise need its own
-named assertion. `Assert.Null` and `Assert.NotNull` check presence or
-absence, which under this book's nullable reference types setting is as much
-a runtime behavior check as it is a type-level claim: a method that promises
-a non-null return is asked to honor that promise at run time, not merely
-compile as if it does.
+With nullable reference types on, `Assert.NotNull` checks at run time the
+promise a non-nullable return type makes at compile time.
 
-Collections: `Assert.Single(collection)` checks that a collection holds
-exactly one element and hands that element back for further assertions,
-`Assert.Empty` and `Assert.NotEmpty` check the zero and non-zero cases, and
-`Assert.Contains` / `Assert.DoesNotContain` check membership, either by value
-or with a predicate.
-
-Types: `Assert.IsType<T>(value)` checks that a value's runtime type is
-exactly `T`, which this book reaches for when a factory's whole job is
-choosing which concrete type to hand back:
+`Assert.IsType<T>` checks that the runtime type is exactly `T`, the claim for
+a factory whose job is choosing the concrete type:
 
 ```csharp
 [Fact]
@@ -194,14 +175,11 @@ public void Resolves_the_fastline_family_by_type()
 }
 ```
 
-Exceptions: `Assert.Throws<TException>(() => ...)` runs a synchronous
-delegate and asserts it throws exactly `TException`, handing back the caught
-exception so a test can assert on its message or properties too. The async
-counterpart, `Assert.ThrowsAsync<TException>`, awaits an async delegate and
-asserts the same thing; `Assert.ThrowsAnyAsync<TException>` relaxes the exact
-type to "this type or a subtype," useful when a chain of awaited calls could
-surface the failure wrapped differently depending on which layer observes it
-first.
+`Assert.Throws<T>` runs a synchronous delegate, requires exactly `T`, and
+returns the exception so you can check its message or properties.
+`Assert.ThrowsAsync<T>` awaits an async delegate. `Assert.ThrowsAnyAsync<T>`
+also accepts a subtype, which helps when a chain of awaited calls can surface
+the failure as a different derived type depending on the layer:
 
 ```csharp
 [Fact]
@@ -213,46 +191,29 @@ public void Constructor_rejects_a_non_positive_weight()
 }
 ```
 
-None of this is the complete `Assert` surface. It is the subset that covers
-nearly every test in this book, and a chapter that needs one more member,
-`Assert.Matches` for a regular expression, `Assert.InRange` for a numeric
-bound, `Assert.Collection` for element-by-element checks over a sequence,
-introduces it in place with a short comment rather than assuming you already
-know it.
+## TestContext.Current and the cancellation token
 
-## TestContext.Current and the token every call threads through
-
-xUnit v3 gives every running test access to its context through a static
-property, `TestContext.Current`, rather than requiring a constructor
-parameter or a base class to opt in. The member this book's suites use
-constantly is `TestContext.Current.CancellationToken`, a token tied to the
-test's own lifetime, canceled if the test runner is asked to stop a run in
-progress:
+xUnit v3 exposes the running test's context through the static
+`TestContext.Current`, with no constructor parameter or base class. Its
+`CancellationToken` is tied to the running test's lifetime and is canceled when the
+runner stops a run:
 
 ```csharp
 var baseRate = await carrierRates.GetBaseRateAsync(
     "Rotterdam", 820m, TestContext.Current.CancellationToken);
 ```
 
-Every async, token-accepting call in this book's test suites passes that
-token (or a caller-owned `CancellationTokenSource.Token` when a test is
-specifically exercising cancellation behavior) instead of leaving the
-parameter to default to `CancellationToken.None` implicitly. The built-in
-analyzer rule xUnit1051 flags a test that calls a cancellation-token-
-accepting method without forwarding one, precisely because a test that
-silently defaults to `None` can't be canceled if the run is stopped early,
-and a hung or slow collaborator in that test blocks the whole suite instead
-of being torn down with it. Passing `TestContext.Current.CancellationToken`
-is the fix for essentially every instance of that warning in this book's
-examples; a test with its own `CancellationTokenSource`, usually one proving
-that a method respects cancellation, passes that source's token instead,
-since that is the token under test.
+Pass that token to every async, token-accepting call instead of letting the
+parameter default to `CancellationToken.None`. The analyzer rule xUnit1051
+flags a call that doesn't forward one: a test on `None` can't be canceled,
+so a hung collaborator blocks the whole run instead of being torn down
+with it. When the behavior being checked is cancellation itself, pass the
+token of your own `CancellationTokenSource` instead.
 
-## Running the suite: Microsoft.Testing.Platform and dotnet test
+## Running tests: Microsoft.Testing.Platform and dotnet test
 
-This book's test projects run on Microsoft.Testing.Platform rather than the
-older VSTest-based `dotnet test` path, selected once for the whole repository
-by the root `global.json`:
+The root `global.json` selects Microsoft.Testing.Platform for every test
+project:
 
 ```json
 {
@@ -262,42 +223,32 @@ by the root `global.json`:
 }
 ```
 
-That selection has one concrete, visible effect on the command line: running
-every example's tests from the repository root needs each project path
-spelled out with `--project`, because this runner mode rejects a bare
-positional path the older one accepted:
+Under this runner, `dotnet test` from the repository root needs each project
+named with `--project`; a bare positional path is rejected:
 
 ```sh
 dotnet test --project examples/10-testing-with-xunit-and-nsubstitute/RatingEngine.Tests/RatingEngine.Tests.csproj
 ```
 
-`scripts/verify.sh` runs exactly that command for every test project under
-`examples/`. Working on a single example from its own directory is simpler,
-because there's only one test project for the runner to find:
+`scripts/verify.sh` runs that command for every test project under
+`examples/`. From one example's directory a bare `dotnet test` works, because
+there's only one test project to find:
 
 ```sh
 cd examples/10-testing-with-xunit-and-nsubstitute
 dotnet test
 ```
 
-Both invocations exercise the same `xunit.v3` package and the same
-Microsoft.Testing.Platform host; the `--project` flag only matters once a
-script is driving more than one project from a directory above them.
+Both run the same `xunit.v3` package on the same host.
 
 ## Naming convention and the CA1707 exception
 
-Every test method in this book reads as a sentence describing a behavior,
-written with underscores rather than camel case:
-`Records_exactly_one_audit_entry_for_the_quoted_consignment`,
-`Constructor_rejects_a_blank_destination`,
-`Verifying_an_awaited_call_needs_an_await_in_front_of_received`. A name in
-this shape reads directly as the assertion a failing test report makes,
-without needing to open the method body to find out what broke.
+Test methods read as a sentence describing a behavior, with underscores
+instead of camel case, as in the listings above. A failing test report then
+states what broke without opening the method.
 
-Roslyn's CA1707 analyzer flags identifiers containing underscores, which
-would otherwise fight this convention on every single test method. Rather
-than disable the rule project-wide, each test project's `.csproj` suppresses
-it only for itself:
+Roslyn's CA1707 flags underscores in identifiers. Each test project's
+`.csproj` suppresses it for that project only:
 
 ```xml
 <PropertyGroup>
@@ -310,15 +261,12 @@ it only for itself:
 </PropertyGroup>
 ```
 
-The library project under test keeps CA1707 active, so the naming exception
-never leaks past the one place it's meant for: a test's own method names, not
-the production types and members the tests exercise.
+The library under test keeps CA1707 on, so the exception never reaches
+production types and members.
 
-## The test package pins
+## Package pins
 
-Every test project in this book pins the same four packages directly in its
-own `.csproj`, surveyed and dated at the point the project was created rather
-than assumed from memory:
+Each test project pins the same four packages in its own `.csproj`:
 
 | Package | Version |
 |---|---|
@@ -327,21 +275,17 @@ than assumed from memory:
 | `Microsoft.NET.Test.Sdk` | 18.11.0 |
 | `NSubstitute` | 6.2.0 |
 
-There is no central package management file consolidating these across the
-repository; each test project's `.csproj` carries its own
-`<PackageReference>` entries at these versions. That keeps every example
-standalone, copyable out of this repository with nothing left behind in a
-shared file one or more directories up, at the cost of updating a version in
-more than one place when this book re-surveys its pins.
+There's no central package management file. Each example stays
+standalone and copyable, at the cost of updating a version in every test
+project when the pins change.
 
 ## For deeper coverage
 
 - [Getting started with xUnit.net v3](https://xunit.net/docs/getting-started/v3/getting-started)
-  is the framework's own setup and authoring guide for the version this book
-  pins.
+  is the framework's own setup and authoring guide for the pinned version.
 - [xunit.net](https://xunit.net/) is the project's home page, with links to
   the full `Assert` reference and release notes for the `xunit.v3` line.
 - [Microsoft.Testing.Platform overview](https://learn.microsoft.com/dotnet/core/testing/microsoft-testing-platform-intro)
-  covers the test host xUnit v3 runs on in .NET 10, including the
-  `dotnet test --project` requirement this book's scripts work with.
+  covers the host xUnit v3 runs on, including the
+  `dotnet test --project` requirement the scripts work with.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

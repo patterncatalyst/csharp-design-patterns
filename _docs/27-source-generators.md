@@ -13,70 +13,23 @@ description: "Replacing reflection-based factories, registries, and mappers at b
 
 By the end of this chapter you can:
 
-- Explain how `CarrierGatewayGenerator`, an `IIncrementalGenerator`, reads
-  `carriers.manifest` through `context.AdditionalTextsProvider`, and why a
-  source generator runs inside the host compiler process rather than
-  alongside the application it contributes to.
-- Trace the pipeline `CarrierGatewayGenerator.Initialize` builds, `Parse` on
-  each `AdditionalText`, `Collect().Select(Combine)` across every matching
-  file, and `RegisterSourceOutput(model, Emit)`, and say what
-  `CarrierManifestModel` each stage hands to the next.
-- Explain why wrapping `CarrierManifestModel`'s entries in
-  `EquatableArray<CarrierEntry>` instead of a plain
-  `ImmutableArray<CarrierEntry>` is what lets the incremental pipeline cache
-  an unchanged manifest, and how `.WithTrackingName` plus
-  `IncrementalStepRunReason` prove that caching holds.
-- Read the adapters `CarrierGatewayGenerator` emits per manifest row, the
-  `<Code>CarrierGateway` classes and the `GeneratedCarrierRegistry` that
-  lists and looks them up, and explain how `CarrierDispatch.ResolveEndpoint`
-  calls through to generated types it never names directly.
-- Say positively why a compile-time registry survives trimming and native
-  ahead-of-time compilation in a way a runtime scan over loaded assemblies
-  would not.
+- Feed a build-time input to an `IIncrementalGenerator` through `AdditionalFiles` and `AdditionalTextsProvider`.
+- Build the parse, combine and emit pipeline, and name each stage for tracking.
+- Make the pipeline's model compare by value with `EquatableArray<T>`, so an unchanged manifest is cached.
+- Emit adapter classes and a registry that hand-written code calls like any other type.
+- Say why a generated registry survives trimming and native AOT where a reflection scan doesn't.
 
 ## Why this matters
 
-A registry that maps a carrier code to the gateway responsible for it needs
-an entry for every carrier a shipping system supports. One way to build that
-registry is to scan for it at startup: reflect over every loaded assembly,
-find every type implementing `ICarrierGateway`, instantiate one of each, and
-keep the result in a dictionary for the life of the process. That approach
-works, and it means adding a carrier never touches the registry's own code.
-It also means the registry's contents are invisible until the scan runs, and
-every type the scan might find has to stay reachable through reflection for
-the scan to find it.
+A registry mapping a carrier code to its gateway needs one entry per carrier. The runtime way is a startup scan: reflect over loaded assemblies, find every `ICarrierGateway`, instantiate each with `Activator.CreateInstance`. Adding a carrier never touches the registry, but the contents are invisible until the scan runs, and every type it might find has to stay reachable through reflection.
 
-.NET 10 and C# 14 support building that same registry at build time instead,
-through `Microsoft.CodeAnalysis`'s `IIncrementalGenerator` interface. A
-source generator runs inside the compiler itself, reads whatever input the
-project gives it, and emits ordinary C# source that becomes part of the
-compilation it ran inside. Nothing about the generated code is special at
-runtime. A `<Code>CarrierGateway` class produced this way is a compiled type
-exactly like one a person typed by hand, callable, debuggable, and, this is
-the payoff a reflection-based scan cannot offer, visible to the trimmer and
-to native ahead-of-time compilation as ordinary referenced code rather than
-as a reflection target the tooling has to be told to preserve. Code the
-compiler can see because something in the project calls it directly survives
-trimming automatically. Code a runtime scan would otherwise have discovered
-by walking loaded assemblies does not get that guarantee without extra work,
-and keeping it reachable usually means annotating it, rooting it, or
-disabling trimming for the assembly that holds it.
-
-This chapter builds that registry the generated way. A plain text manifest
-lists each carrier once; a generator reads the manifest at compile time and
-emits one adapter class per row plus the registry that exposes all of them.
-Adding a carrier becomes a one-line change to the manifest. No hand-written
-class, no runtime scan, and no reflection ever runs to discover what the
-registry contains, because the registry's contents were already decided
-before the program started.
+A source generator builds the same registry at compile time. It runs inside the compiler, reads the project's input and adds ordinary C# to the compilation. The generated `<Code>CarrierGateway` classes are compiled types like any other, and the trimmer and the native AOT compiler see them as referenced code. Adding a carrier becomes a one-line manifest change.
 
 {% include excalidraw.html name="27-source-generators" caption="Figure 27.1: CarrierGatewayGenerator reads carriers.manifest at build time and emits one adapter class per row plus a registry exposing lookup by code. CarrierDispatch calls through that generated registry alone, never naming a generated type directly." %}
 
 ## A manifest as the generator's input
 
-The example behind this chapter lives in `examples/27-source-generators`.
-`carriers.manifest` is a plain text file, one carrier per line, each line a
-code, a display name, and an endpoint separated by commas:
+`carriers.manifest` lists one carrier per line: code, display name, endpoint.
 
 ```
 DHLX,DHL Express,https://api.dhlx.example
@@ -85,8 +38,7 @@ UPSX,UPS Worldwide,https://api.upsx.example
 USPS,USPS Priority,https://api.usps.example
 ```
 
-`CarrierManifest.csproj`, the project the generator contributes to, lists
-this file as an `AdditionalFiles` item rather than a compile item:
+The consuming project declares it as an additional file, not a compile item:
 
 ```csharp
 <ItemGroup>
@@ -94,19 +46,9 @@ this file as an `AdditionalFiles` item rather than a compile item:
 </ItemGroup>
 ```
 
-`AdditionalFiles` is the MSBuild item group a generator reads through
-`AdditionalTextsProvider`; it carries files the compiler never parses as
-C# source but still makes visible to anything running inside the
-compilation, exactly the shape a manifest, a config file, or a schema needs.
-The same project also references the generator itself with
-`OutputItemType="Analyzer"` and `ReferenceOutputAssembly="false"`, which
-loads the generator assembly as a compiler extension rather than as a normal
-library dependency; the generator's own output is C# source text, not a type
-the consuming project calls into directly, so there is nothing in it for the
-consuming project to link against.
+The compiler doesn't parse `AdditionalFiles` as C#, but anything running inside the compilation can read them, which suits a manifest, a config file or a schema. The same project references the generator with `OutputItemType="Analyzer"` and `ReferenceOutputAssembly="false"`: it loads as a compiler extension, and there's nothing in it to link against.
 
-The contract every generated adapter implements is hand-written and ordinary,
-not something the generator defines or could change:
+The contract every adapter implements is hand-written:
 
 ```csharp
 public interface ICarrierGateway
@@ -119,20 +61,11 @@ public interface ICarrierGateway
 }
 ```
 
-The generator targets this interface by name for each manifest row. Keeping
-the contract hand-written and the rows generated is the split this chapter
-is built around: a person decides the shape every carrier gateway has to
-honor, and the generator decides how many gateways exist and what each one's
-three properties return, reading that decision straight out of a text file
-instead of out of a person's typed-out class bodies.
+A person decides the shape each gateway honors. The generator decides how many exist and what each returns.
 
-## The incremental pipeline from file to source
+## The incremental pipeline
 
-`CarrierGatewayGenerator` implements `IIncrementalGenerator`, the interface
-every current .NET source generator is written against. Its single method,
-`Initialize`, does not generate anything itself. It wires up a pipeline, a
-sequence of provider stages, each one taking the previous stage's output and
-producing the next:
+`Initialize` generates nothing itself. It wires a pipeline of provider stages:
 
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -150,47 +83,20 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
 }
 ```
 
-`context.AdditionalTextsProvider` surfaces every `AdditionalFiles` entry the
-project declares, as a stream of `AdditionalText` values the pipeline can
-filter and transform. `.Where` keeps only files ending in `.manifest`, so
-the generator never tries to parse some other additional file the project
-happens to carry. `.Select` then calls `Parse` on each surviving file,
-turning raw text into a `CarrierManifestModel`, a small record struct
-wrapping the carrier rows that file contained. `.WithTrackingName` gives
-that stage a name, `"CarrierManifest.Parse"`, that shows up later when
-something inspects how the pipeline behaved across two runs, which is
-exactly what this chapter's caching tests do.
+| Stage | Input | Output |
+| --- | --- | --- |
+| `.Where` | every `AdditionalText` | files ending `.manifest` |
+| `.Select(Parse)`, tracked as `CarrierManifest.Parse` | one file's text | a `CarrierManifestModel` for that file |
+| `.Collect().Select(Combine)`, tracked as `CarrierManifest.Combine` | every parsed model | one merged model |
+| `RegisterSourceOutput(model, Emit)` | the merged model | `GeneratedCarrierRegistry.g.cs` via `AddSource` |
 
-`.Collect()` gathers every parsed manifest into one `ImmutableArray`, because
-a project could in principle declare more than one `.manifest` file, and
-`.Select(Combine)` merges all of them into a single `CarrierManifestModel`
-holding every carrier row from every manifest found. That merged model gets
-its own tracking name, `"CarrierManifest.Combine"`. The pipeline's last step,
-`context.RegisterSourceOutput(model, Emit)`, tells the compiler to call
-`Emit` whenever the combined model is available, handing it a
-`SourceProductionContext` it uses to add the generated file to the
-compilation with `context.AddSource`.
-
-Each stage only does one job. `Parse` turns one file's text into entries.
-`Combine` turns however many parsed files exist into one model. `Emit` turns
-one model into source text. None of the three stages know about the others'
-internals, and nothing about this shape is specific to carrier gateways;
-the same `AdditionalTextsProvider` → parse → combine → `RegisterSourceOutput`
-skeleton applies to any build-time input a generator reads once and converts
-into compiled types.
+The skeleton isn't specific to carriers. Any build-time input a generator reads and turns into types follows the same filter, parse, combine and emit shape.
 
 {% include excalidraw.html name="27-incremental-generator-pipeline" caption="Figure 27.2: The generator pipeline parses the manifest, combines every parsed file into one model, and emits source from it. Because that model compares by value, an unchanged manifest produces an unchanged model and the pipeline skips emitting entirely." %}
 
 ## The caching contract: why EquatableArray&lt;T&gt;
 
-An incremental generator skips work a plain generator
-would redo on every keystroke. Every provider stage in the pipeline above
-caches its output by comparing it to what the same stage produced on the
-previous run; if the new value is equal to the old one, the compiler reuses
-the cached result and does not call the stage's delegate again, let alone
-every stage downstream of it. That comparison runs through ordinary
-`Equals`, which is the entire reason `CarrierManifestModel` is written the
-way it is:
+Each stage caches its output and compares the new value with the previous run's using `Equals`. If they're equal, the compiler reuses the cached result and skips every stage downstream. So the model must compare by value:
 
 ```csharp
 internal sealed record CarrierEntry(string Code, string DisplayName, string Endpoint);
@@ -198,22 +104,7 @@ internal sealed record CarrierEntry(string Code, string DisplayName, string Endp
 internal readonly record struct CarrierManifestModel(EquatableArray<CarrierEntry> Entries);
 ```
 
-`CarrierEntry` is a record, so two entries with the same three strings are
-already equal to each other. The problem sits one level up, in how the
-model holds its collection of entries. `ImmutableArray<T>` only ever
-compares equal to the exact same backing array instance; two separately
-built `ImmutableArray<CarrierEntry>` values holding the identical four rows,
-in the identical order, are not equal to each other by `ImmutableArray<T>`'s
-own `Equals`, because that comparison checks array identity, not element
-content. If `CarrierManifestModel` wrapped a plain
-`ImmutableArray<CarrierEntry>`, reparsing an unchanged `carriers.manifest`
-on a second build would produce a new array with the same four rows, and the
-pipeline would see that as a changed model every time, because the arrays
-themselves are two different objects. Every downstream stage, `Combine` and
-`Emit` both, would rerun on every build regardless of whether the manifest's
-contents moved at all.
-
-`EquatableArray<T>` exists to fix exactly that mismatch:
+`CarrierEntry` is a record, so equal strings mean equal entries. The trap is the collection. `ImmutableArray<T>` equality compares the backing array instance, not the elements. Reparsing an unchanged manifest builds a new array with the same four rows, so a model holding a plain `ImmutableArray<CarrierEntry>` would look changed on every run, and `Combine` and `Emit` would rerun every time. `EquatableArray<T>` compares contents:
 
 ```csharp
 internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnumerable<T>
@@ -245,37 +136,21 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnu
 }
 ```
 
-`EquatableArray<T>`'s `Equals` calls `SequenceEqual` across the wrapped
-arrays instead of comparing array identity, so two instances holding the
-same elements in the same order are equal regardless of which array object
-backs either one. Because `CarrierManifestModel` is a `record struct`
-wrapping an `EquatableArray<CarrierEntry>`, its own generated equality
-delegates straight to `EquatableArray<T>.Equals`, and two parses of an
-unchanged manifest now produce models the pipeline recognizes as identical.
-The `where T : IEquatable<T>` constraint is what makes this work for any
-element type the pipeline might wrap, not just `CarrierEntry`: a record
-already implements `IEquatable<T>` of itself, which is why `CarrierEntry`
-needed no extra code to satisfy the constraint.
+The record struct's generated equality delegates to `EquatableArray<T>.Equals`, so two parses of the same manifest give equal models. The `IEquatable<T>` constraint is satisfied by any record element.
 
-`GeneratorCachingTests.Incremental_pipeline_caches_when_the_manifest_is_unchanged`
-proves the fix holds, not by checking that the generated source looks the
-same twice, but by reading the driver's own bookkeeping. It runs
-`CarrierGatewayGenerator` with `trackIncrementalGeneratorSteps: true`,
-drives it once and asserts every tracked step under the names
-`"CarrierManifest.Parse"` and `"CarrierManifest.Combine"` reports
-`IncrementalStepRunReason.New`, then drives it a second time against a
-separately built but content-equivalent compilation and asserts the same
-steps now report `IncrementalStepRunReason.Cached` or `.Unchanged`. That
-second run stands in for the ordinary case an incremental generator has to
-stay cheap for: something else in the project changed and triggered a
-rebuild, the manifest itself did not, and the pipeline's own tracked steps
-show that `Parse` and `Combine` were skipped rather than repeated.
+Cached output and correct output are separate properties, so check the driver's own bookkeeping. Run the generator with `trackIncrementalGeneratorSteps: true` and read each tracked step's `IncrementalStepRunReason`. Both steps report `New` on the first run. After that, two cases differ:
+
+| Second run | `Parse` | `Combine` |
+| --- | --- | --- |
+| Another file changed, same manifest text object | `Cached` | `Cached` |
+| Manifest re-read, same content, `EquatableArray<CarrierEntry>` | `Unchanged` | `Cached` |
+| Manifest re-read, same content, plain `ImmutableArray<CarrierEntry>` | `Modified` | `Modified` |
+
+In the first case `Parse` never reruns, so the model's equality doesn't matter. Value equality matters in the second: `Parse` reruns, produces an equal model, and everything downstream is skipped.
 
 ## What gets emitted, and who calls it
 
-`Emit`, the delegate `RegisterSourceOutput` calls once the combined model is
-ready, builds one `<Code>CarrierGateway` class per entry and a single
-registry that lists all of them:
+`Emit` writes one class per row and a registry:
 
 {% raw %}
 ```csharp
@@ -305,21 +180,9 @@ builder.AppendLine("    };");
 ```
 {% endraw %}
 
-That loop runs once per manifest row, so four rows become four classes,
-`DHLXCarrierGateway`, `FDXGCarrierGateway`, `UPSXCarrierGateway`, and
-`USPSCarrierGateway`, each one returning its code, display name, and
-endpoint as a string literal baked directly into the property. The same
-`Emit` method goes on to append a `GeneratedCarrierRegistry` class whose
-`All` property lists one instance of each generated class (shown above) and
-whose `Find` method, appended the same way with further `AppendLine` calls,
-walks that list for a matching code. `context.AddSource` hands the finished
-text to the compiler under a name of the generator's own choosing,
-`GeneratedCarrierRegistry.g.cs`, and from that point on the compiler treats
-the text exactly as it would a file a person wrote: parsed, type-checked,
-and compiled into the same assembly as everything else in the project.
+Four rows become `DHLXCarrierGateway`, `FDXGCarrierGateway`, `UPSXCarrierGateway` and `USPSCarrierGateway`, each returning string literals. `GeneratedCarrierRegistry.All` holds one instance of each, and a `Find` method, appended the same way, looks one up by code. An empty model emits nothing: a guard returns early, so no empty registry ships.
 
-`CarrierDispatch`, the hand-written class that resolves a carrier code to
-its endpoint, never names a single generated class:
+Hand-written code calls the registry and never names a generated class:
 
 ```csharp
 public sealed class CarrierDispatch
@@ -340,158 +203,49 @@ public sealed class CarrierDispatch
 }
 ```
 
-`ResolveEndpoint` calls `GeneratedCarrierRegistry.Find`, an ordinary static
-method call against a type that did not exist in any source file until the
-generator ran. Nothing distinguishes that call from a call against a
-hand-written type anywhere else in the project; the only sign the type is
-generated is the one-line manifest edit it would take to add a fifth
-carrier. `GeneratorEmitTests.Generated_code_compiles_with_no_errors` checks
-that this whole arrangement compiles, driving the generator
-directly against an in-memory `AdditionalText` and an in-memory copy of
-`ICarrierGateway` with `CSharpGeneratorDriver`, then asserting the updated
-compilation has no error diagnostics. `Generator_produces_no_adapter_output_without_a_manifest`
-checks the other edge: with no `AdditionalText` supplied at all,
-`RegisterSourceOutput` still runs, `Emit` sees an empty model, and the
-`if (model.Entries.Length == 0) return;` guard means no file is added and no
-empty `GeneratedCarrierRegistry` class ships with nothing in it.
+`GeneratedCarrierRegistry.Find` is an ordinary static call against a type that exists in no source file until the generator runs.
 
 ## The trimming and AOT argument
 
 {% include excalidraw.html name="27-generated-registry-vs-reflection" caption="Figure 27.3: A generated registry references each adapter statically at compile time, so trimming and native AOT see ordinary code. The reflection-based alternative it replaces scans loaded assemblies at startup, a path trimming can remove types out from under." %}
 
-A reflection-based version of this same registry would typically build
-itself once, at process startup, by enumerating loaded assemblies, finding
-every type implementing `ICarrierGateway`, and instantiating one of each
-with `Activator.CreateInstance`. That code is straightforward to write and
-expensive to trust under a trimmed or natively compiled build. A trimmer
-removes code nothing visibly calls; a type that is only ever reached by a
-runtime scan over `Assembly.GetTypes()` is invisible to that analysis unless
-something tells the trimmer to keep it anyway, typically a
-`DynamicallyAccessedMembers` annotation or a root descriptor naming the type
-by hand. Native ahead-of-time compilation is stricter still: it needs to
-know every type and member a program might reach before it runs, and a
-registry whose membership is only decided at runtime by scanning assemblies
-is exactly the shape that compilation model struggles with.
+| | Reflection scan at startup | Generated registry |
+| --- | --- | --- |
+| How types are found | `Assembly.GetTypes()` and `Activator.CreateInstance` | `new` expressions in `All`'s initializer |
+| Trimmer sees the adapters | no; they need `DynamicallyAccessedMembers` or a root descriptor | yes, as referenced code |
+| Native AOT | membership decided at run time, which AOT must know ahead | every type known at compile time |
+| Contents visible | after the scan runs | in the generated source |
 
-`GeneratedCarrierRegistry` sidesteps the problem instead of solving it.
-`CarrierDispatch.ResolveEndpoint` calls `GeneratedCarrierRegistry.Find`
-directly, `Find` constructs each `<Code>CarrierGateway` with an ordinary
-`new` expression inside `All`'s initializer, and every one of those
-constructor calls is visible to the compiler, the trimmer, and the
-ahead-of-time compiler as ordinary referenced code, the same as any other
-`new SomeType()` anywhere in the project. No reflection runs to discover
-which types exist, because the generator already decided that answer at
-build time and wrote it down as a list of `new` expressions. A trimmed or
-natively compiled build of this project needs no root descriptor and no
-`DynamicallyAccessedMembers` annotation to keep the four adapter classes
-reachable, because they were never reachable only through reflection in the
-first place.
+A trimmer removes code nothing visibly calls, and a type reached only by an assembly scan is invisible to that analysis. The generated registry never depends on reflection, so a trimmed or AOT build needs no annotation to keep the four adapters.
+
+## When not to use it
+
+- **A small, fixed set.** Four gateway classes for four carriers that never change are easier to read and step through than a generator, a manifest and the wiring between them. A `static readonly` list does the job.
+- **A team new to generator debugging.** The generator runs in the compiler process, so breakpoints in application code never stop inside `Emit`. You inspect what it produced by reading the emitted source, for example `runResult.GeneratedTrees` from a `CSharpGeneratorDriver` run.
+- **Without a caching check.** A model holding a plain `ImmutableArray<CarrierEntry>` still compiles and emits correct adapters. The only symptom is every stage rerunning whenever the manifest is re-read. Track the pipeline steps across a re-read with the same content and assert `Unchanged` or `Cached`.
+
+<blockquote class="ai-sidebar" markdown="1">
+**Specifying a source generator.** "Add a source generator for the carrier registry" leaves open the generator interface and how the pipeline's model compares. State it:
+
+> Implement `IIncrementalGenerator`, not `ISourceGenerator`, which reruns all of `Execute` on every compilation. Read `carriers.manifest` through `AdditionalTextsProvider`, name the parse and combine stages with `WithTrackingName`, and hold entries in an `EquatableArray<T>` so the model compares by value. Add a test with `trackIncrementalGeneratorSteps: true` that replaces the manifest with an equal-content copy and expects `Unchanged` or `Cached` on the second run.
+
+If the model holds a plain `ImmutableArray<T>`, ask for the caching test.
+</blockquote>
 
 ## Build, run, observe
-
-The example is standalone-testable from its own directory:
 
 ```sh
 cd examples/27-source-generators && dotnet test
 ```
 
-Observed locally on Fedora with the .NET 10 SDK:
+All 6 tests pass. They drive the generator with `CSharpGeneratorDriver` against an in-memory manifest and read the generated trees off the run result. `dotnet build` runs the generator as part of ordinary compilation, compiling the adapters and registry into `CarrierManifest.dll`; the generated file is written to disk only if the project sets `EmitCompilerGeneratedFiles`. One experiment:
 
-```
-Test run summary: Passed!
-  total: 5
-  failed: 0
-  succeeded: 5
-  skipped: 0
-  duration: 1s 690ms
-```
-
-The five cases split across two files. `GeneratorEmitTests` drives
-`CarrierGatewayGenerator` directly with a raw `CSharpGeneratorDriver`
-against an in-memory `AdditionalText`, proving the generator emits an
-adapter class for each of the four manifest rows, that
-`GeneratedCarrierRegistry` wires all four into `All` and answers `Find`
-correctly, that the generated code compiles against the hand-written
-`ICarrierGateway` contract with no diagnostics, and that supplying no
-manifest at all produces no generated output rather than a
-`GeneratedCarrierRegistry` with an empty `All` list. `GeneratorCachingTests`
-drives the same generator twice with
-`trackIncrementalGeneratorSteps: true` and asserts the `Parse` and
-`Combine` pipeline steps move from `IncrementalStepRunReason.New` on the
-first run to `.Cached` or `.Unchanged` on the second, the behavior
-`EquatableArray<CarrierEntry>` exists to guarantee.
-
-`dotnet build` from the same directory also runs the generator, as part of
-ordinary compilation rather than as a separate step: `CarrierManifest.csproj`
-references `CarrierManifest.Generation.csproj` as an analyzer, so every build
-reads `carriers.manifest`, runs `CarrierGatewayGenerator`, and compiles the
-resulting adapters and registry straight into `CarrierManifest.dll`. The
-generated source is not written to a visible file during an ordinary build;
-it exists only inside the compilation unless a project opts into
-`EmitCompilerGeneratedFiles`. The tests above read it directly off the
-`GeneratorDriver`'s run result instead, which is the same approach this
-project's own CI takes to check the generator's output without needing that
-extra opt-in.
-
-## When not to use it
-
-A source generator costs more than it pays when the set of types it would
-produce is small and fixed. Four hand-written carrier gateway classes, typed
-out once and never touched again because the company works with exactly
-four carriers, are easier to read, step through, and change than a
-generator, a manifest file, and the pipeline wiring that connects them. The
-manifest-driven approach in this chapter pays off specifically because
-carriers get added and removed over time and the registry has to track that
-without a corresponding code change; a registry that never changes gets
-nothing from being generated that a `static readonly` list would not provide
-with far less machinery.
-
-Debugging a generator is also a different exercise from debugging ordinary
-code. `CarrierGatewayGenerator` itself runs inside the host compiler
-process, not inside the application being built, so a breakpoint set in
-application code never stops execution partway through `Emit`; finding out
-what the generator produced for a given manifest means reading the emitted
-source directly, the way this chapter's tests do by inspecting
-`runResult.GeneratedTrees`, rather than stepping through the generator live
-alongside the code it generates. A team unfamiliar with that split loses
-real time the first time a generator misbehaves and the usual debugging
-habits do not apply.
-
-The caching contract behind the pipeline can also regress without raising
-any error. A `CarrierManifestModel` built around a plain
-`ImmutableArray<CarrierEntry>` instead of `EquatableArray<CarrierEntry>`
-would still compile, still emit correct adapters, and still pass
-`GeneratorEmitTests` without a single failing assertion; the only visible
-symptom would be a pipeline that reruns every stage on every build, a cost
-that shows up as slower builds rather than as a wrong answer. Writing the
-caching test alongside the emit tests, the way `GeneratorCachingTests` does
-here, is what catches a regression a correctness test alone would miss.
-
-<blockquote class="ai-sidebar" markdown="1">
-Asked to add a source generator for a registry like this
-one, an AI pairing partner will sometimes reach for `ISourceGenerator`, the
-interface source generators were originally shipped with, instead of
-`IIncrementalGenerator`. `ISourceGenerator` reruns its entire `Execute`
-method on every compilation, with no caching stage to skip unchanged
-input, so a generator written against it pays the full cost of reparsing
-`carriers.manifest` and re-emitting every adapter on every keystroke in an
-editor, not just on every build. A related suggestion builds the pipeline
-correctly with `IIncrementalGenerator` but wraps `CarrierEntry` values in a
-plain `ImmutableArray<T>` rather than `EquatableArray<T>`, which compiles
-and passes functional tests while losing the caching the interface exists
-to provide, with nothing in the output to flag the loss. Check a generated
-answer against what this chapter
-built: confirm the generator implements `IIncrementalGenerator`, confirm
-any collection crossing a pipeline stage boundary compares by value rather
-than by reference, and add a caching test with
-`trackIncrementalGeneratorSteps: true` rather than trusting that caching
-works because the generated output looks right.
-</blockquote>
+- **Hold a plain array.** Change `CarrierManifestModel` to wrap `ImmutableArray<CarrierEntry>`. The emit tests and the unrelated-change caching test still pass. The re-read test fails: after `driver.ReplaceAdditionalText` swaps in an equal-content manifest, `Parse` reports `Modified` instead of `Unchanged`.
 
 ## For deeper coverage
 
-- Microsoft Learn, [Source Generators](https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/source-generators-overview): the authority for how a source generator runs inside the compiler process and contributes compiled source to the build that hosts it.
-- Microsoft Learn, [Incremental generators](https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/tutorials/incremental-generators): the authority for `IIncrementalGenerator`, the provider pipeline `CarrierGatewayGenerator.Initialize` builds, and the value-equality contract the caching behind `RegisterSourceOutput` depends on.
-- Microsoft Learn, [AdditionalText Class](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.additionaltext): the authority for the `AdditionalFiles` input `carriers.manifest` arrives through and the `AdditionalTextsProvider` that surfaces it to a generator.
-- The .NET Compiler Platform SDK, [Source Generators Cookbook](https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.cookbook.md): worked patterns for incremental generator pipelines, including the equatable-model shape `CarrierManifestModel` and `EquatableArray<T>` follow in this chapter.
+- Microsoft Learn, [Source Generators](https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/source-generators-overview): how a generator runs inside the compiler and adds source to the build.
+- Microsoft Learn, [Incremental generators](https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/tutorials/incremental-generators): `IIncrementalGenerator`, the provider pipeline, and the value-equality contract behind caching.
+- Microsoft Learn, [AdditionalText Class](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.additionaltext): the `AdditionalFiles` input and `AdditionalTextsProvider`.
+- The .NET Compiler Platform SDK, [Source Generators Cookbook](https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.cookbook.md): worked patterns for incremental pipelines, including the equatable-model shape.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

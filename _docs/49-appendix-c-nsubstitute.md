@@ -5,48 +5,58 @@ layout: tutorial
 sectionid: docs
 part: appendices
 appendix: "C"
-description: "A reference for NSubstitute, the mocking library this book uses, with a note on Moq for readers on existing Moq codebases."
+description: "A reference for NSubstitute, the mocking library the examples use, with a note on Moq for readers on existing Moq codebases."
 ---
 
 ## Learning objectives
 
-- Create a substitute for an interface with `Substitute.For<T>()` and stub a
-  return value with `.Returns(...)`.
-- Stub different return values for different argument combinations, and stub
-  a sequence of returns across consecutive calls.
-- Verify interactions with `Received()`, `Received(n)`, `DidNotReceive()`, and
-  `Received.InOrder`, including the `await`-qualified form for asynchronous
-  members.
-- Use the `Arg.Any<T>()` and `Arg.Is<T>(predicate)` matchers to loosen or
-  tighten which calls a stub or verification applies to.
-- Configure a substitute to throw, and recognize when NSubstitute is the
-  right tool against a codebase that already standardizes on Moq.
+By the end of this appendix you can:
+
+- Create a substitute with `Substitute.For<T>()` and stub a return value with
+  `.Returns(...)`.
+- Stub different returns for different arguments, and a sequence of returns
+  across consecutive calls.
+- Verify interactions with `Received()`, `Received(n)`, `DidNotReceive()` and
+  `Received.InOrder`, including the awaited form for async members.
+- Loosen or tighten a match with `Arg.Any<T>()` and `Arg.Is<T>(predicate)`.
+- Make a substitute throw, and decide whether NSubstitute fits a codebase
+  that already uses Moq.
 
 ## Why this matters
 
-Every example in this book that has a collaborator worth isolating, a carrier
-rate lookup, a tax policy, an audit sink, a clock, uses NSubstitute to stand
-in for that collaborator. The library shows up in nearly every test project
-under `examples/`, so a reader who has not used it before needs a place to
-look up the handful of idioms that recur: creating a substitute, telling it
-what to return, and checking what was called on it. This appendix collects
-those idioms in one place, with the exact signatures this book's suites use,
-so a chapter can show a test without re-explaining `Substitute.For` every
-time.
+Collaborators worth isolating, such as a carrier rate lookup, a tax policy,
+an audit sink or a clock, are replaced with NSubstitute in nearly every test
+project under `examples/`. The same few idioms recur: create a substitute,
+tell it what to return, check what was called.
 
-NSubstitute's design goal is a mocking API that reads like plain C#: no
-`Setup`, no `.Object` indirection, no expectation DSL to learn before the
-first assertion. A substitute is a dynamic proxy generated at runtime from an
-interface (or an unsealed class with virtual members), and every member on it
-starts out doing nothing: a method returns the default value for its return
-type, a `void` method does nothing, and a property returns its backing
-field's default. Tests then narrow that behavior down to exactly the calls
-they care about.
+NSubstitute's API reads like plain C#: no `Setup`, no `.Object`, no
+expectation DSL. A substitute is a dynamic proxy generated at run time from
+an interface (or an unsealed class with virtual members). Every member starts
+out doing nothing: a method returns its return type's default, a `void`
+method does nothing, a property returns its default. You then configure only
+the calls you care about.
+
+## API summary
+
+| Need | API |
+| --- | --- |
+| Create | `Substitute.For<T>()` |
+| Fixed return for given arguments | `.Returns(value)` |
+| Computed return | `.Returns(callInfo => ...)` |
+| Consecutive returns | `.Returns(first, second, third)` |
+| Return for any arguments | `.ReturnsForAnyArgs(value)` |
+| Called at least once / exactly n | `Received()`, `Received(n)` |
+| Never called with these arguments | `DidNotReceive()` |
+| Never called at all | `DidNotReceiveWithAnyArgs()` |
+| Call order | `Received.InOrder(() => ...)` |
+| Match any value / a condition | `Arg.Any<T>()`, `Arg.Is<T>(predicate)` |
+| Throw from a `void` member | `.When(...).Do(_ => throw ...)` |
+| Throw from a returning member | `.Throws(exception)` |
 
 ## Creating a substitute
 
-`Substitute.For<T>()` is the one entry point. It takes a type parameter and
-returns an object that implements `T`:
+`Substitute.For<T>()` is the one entry point. It returns an object that
+implements `T`:
 
 ```csharp
 using NSubstitute;
@@ -54,9 +64,8 @@ using NSubstitute;
 var taxPolicy = Substitute.For<ITaxPolicy>();
 ```
 
-`taxPolicy` now satisfies `ITaxPolicy` well enough to pass to any constructor
-that asks for one. Called with no further configuration, `ApplyTax` returns
-`default(Money)`, not an exception and not a null-reference failure:
+An unconfigured `ApplyTax` returns `default(Money)`, not an exception or a
+null-reference failure:
 
 ```csharp
 var taxPolicy = Substitute.For<ITaxPolicy>();
@@ -66,14 +75,13 @@ var result = taxPolicy.ApplyTax(new Money(50.00m));
 Assert.Equal(default, result);
 ```
 
-That default-returning behavior matters: a substitute a test never configures
-still behaves predictably, which is what lets a test pass three collaborators
-into a constructor and only configure the one the test cares about.
+So you can pass three substitutes into a constructor and configure only the
+one that matters.
 
 ## Stubbing returns
 
-`.Returns(value)` attaches a canned return value to a specific call,
-argument values and all:
+`.Returns(value)` attaches a canned result to a call with specific argument
+values:
 
 ```csharp
 var taxPolicy = Substitute.For<ITaxPolicy>();
@@ -84,9 +92,8 @@ var result = taxPolicy.ApplyTax(new Money(1.00m));
 Assert.Equal(new Money(999.99m), result);
 ```
 
-The same substitute can carry different stubs for different arguments. Each
-call to `.Returns(...)` records its own argument-to-result mapping, so a
-test does not need a separate substitute per input:
+One substitute can carry a stub per argument list, so you don't need a
+substitute per input:
 
 ```csharp
 var taxPolicy = Substitute.For<ITaxPolicy>();
@@ -97,42 +104,35 @@ Assert.Equal(new Money(110.00m), taxPolicy.ApplyTax(new Money(100.00m)));
 Assert.Equal(new Money(220.00m), taxPolicy.ApplyTax(new Money(200.00m)));
 ```
 
-When the call's result should depend on something other than a fixed value,
-for example an incrementing counter, or when a test wants to assert on the
-arguments a caller passed rather than supply a fixed answer, `.Returns` also
-accepts a function instead of a value. The function receives a
-`CallInfo` and can inspect the arguments the call was made with:
+When the result depends on something other than a fixed value, such as a
+counter, or you need the arguments the caller passed, `.Returns` takes a
+function. It receives a `CallInfo` holding the call's arguments:
 
 ```csharp
 references.NewReference().Returns(_ => $"RQ-{Guid.NewGuid():N}");
 ```
 
-`.Returns` also accepts multiple values, and NSubstitute returns them in
-order across successive calls, repeating the last one once the list is
-exhausted. That consecutive-returns form is useful for a collaborator whose
-answer changes call over call, a retry policy's gateway, for instance,
-without reaching for a stateful fake:
+Given several values, `.Returns` hands them out in order across successive
+calls and repeats the last one once the list runs out. That covers a
+collaborator whose answer changes call over call, such as a gateway behind a
+retry policy, without a stateful fake:
 
 ```csharp
 gateway.GetStatusAsync(trackingNumber, Arg.Any<CancellationToken>())
     .Returns(Task.FromResult("Pending"), Task.FromResult("InTransit"), Task.FromResult("Delivered"));
 ```
 
-`ReturnsForAnyArgs(value)` is the broader sibling of `.Returns`: it stubs a
-member regardless of which arguments it is called with, rather than binding
-the stub to one specific argument list. Reach for it when a test does not
-care what was passed at all, a counter or an identity generator, and reach
-for the argument-specific `.Returns` (optionally combined with
-`Arg.Is<T>(...)`, below) everywhere a wrong argument should be allowed to
-fail the test.
+`ReturnsForAnyArgs(value)` stubs a member whatever its arguments. Use it when
+the arguments don't matter, as with a counter or an identity generator. Use
+the argument-specific `.Returns`, optionally with `Arg.Is<T>(...)`, wherever
+a wrong argument should fail.
 
 ## Verifying interactions
 
-Stubbing answers what a substitute returns. Verifying checks what a caller
-did with it. `Received()` asserts that a call happened at least once;
-`Received(n)` asserts it happened exactly `n` times; `DidNotReceive()`
-asserts it never happened. The book's `ShipmentRatingEngine` suite verifies
-its audit sink this way:
+Stubbing sets what a substitute returns; verifying checks what the caller did
+with it. `Received()` requires at least one matching call, `Received(n)`
+exactly `n`, and `DidNotReceive()` none. Here the audit sink must have
+recorded the quote once:
 
 ```csharp
 var engine = BuildEngine(out var auditSink, new Money(100.00m), new Money(110.00m));
@@ -143,24 +143,19 @@ await engine.QuoteAsync(consignment, TestContext.Current.CancellationToken);
 await auditSink.Received(1).RecordAsync("C-1001", new Money(110.00m), Arg.Any<CancellationToken>());
 ```
 
-Note the `await` in front of `Received(1)`. `RecordAsync` returns a `Task`,
-and verifying a call against an asynchronous member needs the same `await`
-discipline as calling it: `Received(1)` returns an awaitable proxy, and
-skipping the `await` lets the verification no-op without a test failure.
+`RecordAsync` returns a `Task`, so the verification is awaited like the call
+itself.
 
-`DidNotReceive()` reads the same way, asserting the call's absence rather
-than its presence:
+`DidNotReceive()` asserts absence with the same shape:
 
 ```csharp
 await auditSink.DidNotReceive().RecordAsync(
     Arg.Any<string>(), Arg.Is<Money>(quoted => quoted != new Money(110.00m)), Arg.Any<CancellationToken>());
 ```
 
-`DidNotReceiveWithAnyArgs()` is the companion for a member whose exact
-arguments are inconvenient to restate at the call site: it asserts the member
-was never called at all, under any arguments, which is the right check after
-an early return or a thrown exception should have short-circuited the rest of
-a workflow:
+`DidNotReceiveWithAnyArgs()` asserts the member was never called under any
+arguments. It's the check after an early return or a thrown exception should
+have stopped the rest of a workflow:
 
 ```csharp
 Assert.Throws<AddressValidationException>(() => facade.Book(request));
@@ -168,9 +163,8 @@ gateway.DidNotReceiveWithAnyArgs().GetQuote(default!);
 filer.DidNotReceiveWithAnyArgs().File(default!, default!);
 ```
 
-When the order of calls across multiple substitutes matters, not just that
-each one happened, `Received.InOrder` wraps a block of call expressions and
-asserts they happened in that sequence:
+`Received.InOrder` takes a block of call expressions and requires that they
+happened in that sequence:
 
 ```csharp
 await gateway.Received(1).ConfirmAsync("BK-6001", Arg.Any<CancellationToken>());
@@ -182,22 +176,26 @@ Received.InOrder(() =>
 });
 ```
 
-The calls inside `Received.InOrder`'s delegate are not re-executed; NSubstitute
-replays its recorded call history and checks the sequence matches.
+The calls inside the delegate aren't executed again. NSubstitute checks them
+against its recorded call history.
 
 ## Argument matchers
 
-`Arg.Any<T>()` loosens a stub or verification so it matches any value of
-type `T` at that position, which is the common case for a `CancellationToken`
-parameter a test does not control directly:
+| Argument | Matches |
+| --- | --- |
+| A literal | Exactly that value |
+| `Arg.Any<T>()` | Any value of type `T` |
+| `Arg.Is<T>(predicate)` | Any value satisfying the predicate |
+
+One call can combine all three across its parameters. `Arg.Any<T>()` is the
+usual choice for a `CancellationToken` you don't control:
 
 ```csharp
 carrierRates.GetBaseRateAsync(Arg.Any<string>(), Arg.Any<decimal>(), Arg.Any<CancellationToken>())
     .Returns(baseRate);
 ```
 
-`Arg.Is<T>(predicate)` tightens the match instead, accepting a lambda that
-the actual argument must satisfy:
+`Arg.Is<T>(predicate)` narrows the match:
 
 ```csharp
 await auditSink.Received(1).RecordAsync(
@@ -206,18 +204,10 @@ await auditSink.Received(1).RecordAsync(
     Arg.Any<CancellationToken>());
 ```
 
-Mixing `Arg.Is` and literal values in the same call is normal: a literal
-argument means "exactly this value," `Arg.Any<T>()` means "any value of this
-type," and `Arg.Is<T>(predicate)` means "any value matching this condition."
-A stubbed or verified call can combine all three across its parameter list,
-as the carrier-rate lookups above do with a literal destination, a literal
-weight, and `Arg.Any<CancellationToken>()` for the token.
-
 ## Throwing substitutes
 
-A substitute can be told to throw instead of return. For a `void` member,
-`.When(...).Do(...)` runs a callback (here, one that throws) whenever the
-matching call happens:
+For a `void` member, `.When(...).Do(...)` runs a callback, here one that
+throws, on every matching call:
 
 ```csharp
 validator
@@ -227,24 +217,22 @@ validator
 Assert.Throws<AddressValidationException>(() => facade.Book(request));
 ```
 
-For a member with a return value, the equivalent is a `.Returns` overload
-whose function throws instead of returning, or the `.Throws(exception)`
-shorthand:
+For a member with a return value, use `.Throws(exception)` or a `.Returns`
+function that throws:
 
 ```csharp
 carrierRates.GetBaseRateAsync(Arg.Any<string>(), Arg.Any<decimal>(), Arg.Any<CancellationToken>())
     .Throws(new CarrierUnavailableException("rate service unreachable"));
 ```
 
-Both forms configure the substitute once; the exception fires on every call
-that matches the configured arguments, which is what makes them suitable for
-exercising a caller's error-handling path rather than its happy path.
+Either way the exception fires on every matching call, which is how you drive
+a caller's error-handling path.
 
 ## Asynchronous substitutes
 
-NSubstitute has no separate API for asynchronous members. `.Returns(value)`
-on a member that returns `Task<T>` wraps `value` in an already-completed
-task, so the substitute can be awaited exactly like a real implementation:
+There's no separate async API. `.Returns(value)` on a `Task<T>` member wraps
+`value` in a completed task, so the substitute is awaited like a real
+implementation:
 
 ```csharp
 carrierRates.GetBaseRateAsync("Rotterdam", 820m, Arg.Any<CancellationToken>())
@@ -256,19 +244,14 @@ var baseRate = await carrierRates.GetBaseRateAsync(
 Assert.Equal(new Money(76.00m), baseRate);
 ```
 
-`.Returns(Task.FromResult(value))` works too, and is equivalent; NSubstitute
-accepts a bare value for a `Task<T>`-returning member and wraps it
-automatically, so most of this book's suites use the shorter form and reserve
-the explicit `Task.FromResult` for places where the test is already
-constructing a task for another reason. The same rule from the verification
-section applies here: `Received(n)` and `DidNotReceive()` need an `await` in
-front of them when the member being checked is asynchronous, because the
-verification itself returns an awaitable.
+`.Returns(Task.FromResult(value))` is equivalent; use the explicit form only
+when you're already building a task for another reason. `Received(n)` and
+`DidNotReceive()` on an async member are awaited, as above.
 
-Every token-taking member in this book's examples threads a real
-`CancellationToken` through, `TestContext.Current.CancellationToken` in most
-tests, or a test-owned `CancellationTokenSource` when the test wants to prove
-the token specifically reaches a collaborator:
+Token-taking members get a real `CancellationToken`:
+`TestContext.Current.CancellationToken` in most tests, or the token of your
+own `CancellationTokenSource` when the point is that the token reaches a
+collaborator:
 
 ```csharp
 await carrierRates.Received(1).GetBaseRateAsync("Felixstowe", 12m, cancellationSource.Token);
@@ -277,18 +260,11 @@ await auditSink.Received(1).RecordAsync("C-2002", new Money(15.00m), cancellatio
 
 ## A note on Moq
 
-Some readers maintain an existing suite built on Moq, and this book does not
-pretend that suite does not exist. Where a chapter mentions Moq at all, it is
-to acknowledge that Moq's `Mock<T>`, `Setup`, and `.Object` accomplish the
-same isolation NSubstitute does, with a different API shape. This book never
-tells a team to migrate a working Moq suite to NSubstitute. A mocking library
-is infrastructure, not a design pattern, and a suite that already passes
-reliably on Moq has nothing to gain from a rewrite whose only output is a
-different import statement. NSubstitute is this book's choice for its own
-examples because its API has no `Setup`/`.Object` ceremony to explain before
-the first real test, which keeps the testing appendix and the pattern
-chapters focused on the collaborator being isolated rather than the mocking
-library isolating it.
+Moq's `Mock<T>`, `Setup` and `.Object` give the same isolation with a
+different API shape. Don't migrate a working Moq suite to NSubstitute: a
+mocking library is infrastructure, not a design pattern, and the rewrite buys
+nothing but a different import. NSubstitute is used here because it has no
+`Setup` or `.Object` ceremony to explain before the first test.
 
 ## For deeper coverage
 
@@ -296,6 +272,5 @@ library isolating it.
   [nsubstitute.github.io](https://nsubstitute.github.io/) covers the full API
   surface, including configuring substitutes for classes with virtual
   members, partial substitutes, and the auto- and recursive-substitute
-  helpers this appendix does not cover because the book's examples do not use
-  them.
+  helpers the examples don't use.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

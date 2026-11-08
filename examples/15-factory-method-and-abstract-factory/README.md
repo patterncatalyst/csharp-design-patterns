@@ -47,7 +47,7 @@ no edit to `CarrierRegistry`; and a never-registered carrier throws
 shows `FastlineDispatcher.Dispatch` yields the expected
 `ShipmentConfirmation`, and that `DelegateCarrierDispatcher` configured the
 same way reaches an equal confirmation, the subclass and delegate forms are
-genuinely interchangeable. `ShipmentDispatchServiceTests` dispatches a
+interchangeable. `ShipmentDispatchServiceTests` dispatches a
 shipment end to end for all three carriers through `CarrierRegistry`.
 `RequestBuilderTests` proves the static-abstract reification: each
 builder stamps `CarrierRequest.Carrier` from its carrier type's own `Code`,
