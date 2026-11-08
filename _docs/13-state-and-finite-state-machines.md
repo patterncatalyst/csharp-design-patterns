@@ -132,7 +132,7 @@ Neither holds here. Every status is a label, and the only question is what an ev
 
 ### Illegal transitions: throw or return a result
 
-`InvalidTransitionException` is sealed and has the three constructors CA1032 requires: parameterless, message, and message plus inner exception.
+`InvalidTransitionException` is sealed and has the three constructors that CA1032, the .NET analyzer rule for exception types, requires: parameterless, message, and message plus inner exception.
 
 ```csharp
 public sealed class InvalidTransitionException : Exception
