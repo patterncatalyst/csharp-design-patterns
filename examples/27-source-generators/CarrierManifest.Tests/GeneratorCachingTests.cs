@@ -6,13 +6,11 @@ using Xunit;
 namespace CarrierManifest.Tests;
 
 /// <summary>
-/// Proves the incremental pipeline actually caches: the driver's own tracked
-/// steps, not just "the output looked the same," show that an unrelated
-/// change elsewhere in the compilation does not force the manifest-reading
-/// generator to redo its work. This is the behavior <see cref="EquatableArray{T}"/>
-/// exists for; without it, <see cref="CarrierManifestModel"/>'s default
-/// equality would compare the underlying array by reference and every run
-/// would look "changed."
+/// Reads the driver's own tracked steps, not just the generated output.
+/// An unrelated change elsewhere in the compilation leaves both stages cached.
+/// A re-read manifest with the same content reruns the parse, and
+/// <see cref="EquatableArray{T}"/> gives an equal model, so the parse reports
+/// unchanged and the combine stays cached.
 /// </summary>
 public sealed class GeneratorCachingTests
 {
@@ -47,6 +45,34 @@ public sealed class GeneratorCachingTests
 
         AssertAllReasonsAreCachedOrUnchanged(secondRun, "CarrierManifest.Parse");
         AssertAllReasonsAreCachedOrUnchanged(secondRun, "CarrierManifest.Combine");
+    }
+
+    [Fact]
+    public void Equal_content_manifest_reread_leaves_the_model_unchanged()
+    {
+        var manifestText = new GeneratorEmitTests.InMemoryAdditionalText(
+            "carriers.manifest",
+            GeneratorEmitTests.ManifestContent);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(
+            generators: [new CarrierGatewayGenerator().AsSourceGenerator()],
+            additionalTexts: [manifestText],
+            parseOptions: null,
+            optionsProvider: null,
+            driverOptions: new GeneratorDriverOptions(default, trackIncrementalGeneratorSteps: true));
+
+        var compilation = GeneratorEmitTests.CreateCompilation(GeneratorEmitTests.CarrierGatewayInterfaceSource);
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+
+        var rereadText = new GeneratorEmitTests.InMemoryAdditionalText(
+            "carriers.manifest",
+            GeneratorEmitTests.ManifestContent);
+        driver = driver.ReplaceAdditionalText(manifestText, rereadText);
+        driver = driver.RunGenerators(compilation, TestContext.Current.CancellationToken);
+        var rereadRun = driver.GetRunResult().Results.Single();
+
+        AssertAllReasons(rereadRun, "CarrierManifest.Parse", IncrementalStepRunReason.Unchanged);
+        AssertAllReasons(rereadRun, "CarrierManifest.Combine", IncrementalStepRunReason.Cached);
     }
 
     private static void AssertAllReasons(GeneratorRunResult result, string trackingName, IncrementalStepRunReason expected)

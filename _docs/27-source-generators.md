@@ -238,9 +238,9 @@ If the model holds a plain `ImmutableArray<T>`, ask for the caching test.
 cd examples/27-source-generators && dotnet test
 ```
 
-All 5 tests pass. They drive the generator with `CSharpGeneratorDriver` against an in-memory manifest and read the generated trees off the run result. `dotnet build` runs the generator as part of ordinary compilation, compiling the adapters and registry into `CarrierManifest.dll`; the generated file is written to disk only if the project sets `EmitCompilerGeneratedFiles`. One experiment:
+All 6 tests pass. They drive the generator with `CSharpGeneratorDriver` against an in-memory manifest and read the generated trees off the run result. `dotnet build` runs the generator as part of ordinary compilation, compiling the adapters and registry into `CarrierManifest.dll`; the generated file is written to disk only if the project sets `EmitCompilerGeneratedFiles`. One experiment:
 
-- **Hold a plain array.** Change `CarrierManifestModel` to wrap `ImmutableArray<CarrierEntry>`. All 5 tests still pass, because the shipped caching check covers only the unrelated-change case, where `Parse` never reruns. Add a run that calls `driver.ReplaceAdditionalText` with an equal-content manifest, and `Parse` and `Combine` report `Modified` instead of `Unchanged` and `Cached`.
+- **Hold a plain array.** Change `CarrierManifestModel` to wrap `ImmutableArray<CarrierEntry>`. The emit tests and the unrelated-change caching test still pass. The re-read test fails: after `driver.ReplaceAdditionalText` swaps in an equal-content manifest, `Parse` reports `Modified` instead of `Unchanged`.
 
 ## For deeper coverage
 

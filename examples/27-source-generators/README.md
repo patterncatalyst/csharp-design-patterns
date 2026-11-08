@@ -19,13 +19,12 @@ compiled, strongly-typed code, read at build time instead of hand-written.
   carrier is a one-line edit to the manifest, not a new hand-written class.
 - **Incremental caching.** The pipeline's model types wrap the parsed rows in
   `EquatableArray<T>`, a small struct that compares an `ImmutableArray<T>` by
-  its elements instead of by the array's identity. Without it, every pipeline
-  run would build a fresh `ImmutableArray<CarrierEntry>` that compares unequal
-  to the previous run's array even when every row is identical, so Roslyn's
-  incremental engine would treat every build as "the manifest changed" and
-  re-emit source on every compile, generator or no generator. With it, an
-  unrelated edit elsewhere in the project leaves the manifest-reading stages
-  reporting `Cached`/`Unchanged`.
+  its elements instead of by the array's identity. An unrelated edit elsewhere
+  in the project leaves the manifest-reading stages `Cached` either way. When
+  the manifest is re-read with the same content, the parse reruns; with
+  `EquatableArray<T>` it produces an equal model, so it reports `Unchanged` and
+  the combine stage stays `Cached`. A plain `ImmutableArray<CarrierEntry>`
+  compares unequal, and every stage downstream reruns.
 - **The consumer.** `CarrierDispatch`, hand-written in the top-level project,
   calls only `GeneratedCarrierRegistry.Find` and `.All`; it never references a
   specific generated gateway type by name, so it proves the generated code
@@ -45,12 +44,11 @@ directly with a raw `CSharpGeneratorDriver` over an in-memory
 manifest row, that `GeneratedCarrierRegistry` wires all of them into `All` and
 `Find`, that the generated code compiles with zero errors against the
 hand-written `ICarrierGateway` contract, and that a manifest-free run produces
-no generated source at all. `GeneratorCachingTests` runs the driver twice over
-two separately built but content-equivalent compilations and asserts, from
-the driver's own tracked steps, that the manifest-parsing and combine stages
-report `New` on the first run and `Cached`/`Unchanged` on the second,
-demonstrating the `EquatableArray<T>` fix actually works rather than merely
-asserting the final output text looks the same.
+no generated source at all. `GeneratorCachingTests` reads the driver's own tracked steps. Both stages
+report `New` on the first run and `Cached` after an unrelated change. After an
+equal-content manifest is swapped in with `ReplaceAdditionalText`, the parse
+reports `Unchanged` and the combine `Cached`; that case fails if the model
+holds a plain `ImmutableArray<T>`.
 
 Shipping domain, no containers: parsing a manifest and compiling generated
 source is pure, synchronous, in-memory work, no network or I/O to fake out.
