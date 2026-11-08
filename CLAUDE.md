@@ -122,11 +122,15 @@ Every chapter (`_docs/NN-*.md`) follows the same shape:
 7. **"For deeper coverage"** at the end, citing the hub's `books.yml` and this
    book's own `/bibliography/`.
 
-- Prose target: body prose (excluding code and diagrams) has a **2,000-word hard
-  floor** and a **2,500-word target that is not a ceiling**. There is no hard
-  upper limit; longer is fine when value-driven, never padding. As a chapter
-  approaches or passes 2,500 words, add another diagram to carry the extra
-  density rather than trimming substantive content.
+- **Write like the EIP-Camel book** (`~/Dev/enterprise-integration-patterns-with-camel`), owner
+  decision 2026-11-08: get to the point. About 2,000 words a chapter is the goal and 2,500 the
+  most; there is no floor, and never pad. At least one diagram. Chapters never name tests and never
+  narrate what a test or a code block does; the example holds the tests. No self-reference: no
+  "the book", "this chapter", "the suite", "the test", "the example shows". Pattern chapters use one
+  `## Pattern: <Name>` H2 per pattern with `### The problem`, `### The solution` (a bold
+  one-sentence definition) and `### How C# models it`, then topic H3s. The .NET and C# versions are
+  stated only in prerequisites, Appendix A, Appendix G and the README; elsewhere keep a version only
+  as a feature fact ("new in C# 14").
 - Voice: no em-dash (zero tolerance), no rule-of-three, no contrived AI phrasing,
   no confessional register. Run `lgtm-professional-voice` before calling a
   chapter done.

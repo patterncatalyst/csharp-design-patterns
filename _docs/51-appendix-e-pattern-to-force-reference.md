@@ -5,62 +5,56 @@ layout: tutorial
 sectionid: docs
 part: appendices
 appendix: "E"
-description: "A quick reference mapping every pattern, principle, and idiom in the book to the forces it answers."
+description: "A quick reference mapping every pattern, principle, and idiom covered to the forces it answers."
 ---
 
 ## Learning objectives
 
-- Look up, for any named pattern, principle, or idiom in this book, the force
-  or forces it exists to answer.
-- Explain "force" in the decision-under-pressure sense this book uses it:
-  the concrete pressure a design choice resolves, not a label to apply for
-  its own sake.
-- Find, for a force you are feeling right now ("I need to add behavior
-  without subclassing," "I need exactly one instance, created safely under
-  concurrent access"), the pattern and the modern C# 14 / .NET 10 feature
-  that answers it.
-- Judge whether a 1994 pattern still earns its own class hierarchy in
-  current C#, or whether a language or runtime feature now answers the same
-  force directly.
+By the end of this appendix you can:
+
+- Look up the force or forces any named pattern, principle or idiom answers.
+- Use "force" in the concrete sense: the pressure a design choice resolves.
+- Start from a force you feel now ("add behavior without subclassing",
+  "exactly one instance, created safely under concurrent access") and find
+  the pattern and the C# feature that answers it.
+- Judge whether a 1994 pattern still needs its own class hierarchy, or
+  whether a language or runtime feature answers the force directly.
 
 ## Why this matters
 
-A pattern name is a shorthand for a force, not a goal. The Gang of Four
-catalogued Strategy, Observer, and Singleton because 1994 object-oriented
-languages left programmers without interfaces-as-first-class-types,
-closures, or a managed runtime, so a recurring pressure (vary an algorithm,
-notify many listeners, guarantee one instance under concurrency) had no
-direct language answer and needed a structural workaround. Reaching for a
-pattern by name first, then hunting for a problem it fits, runs the
-decision backward and tends to produce indirection nobody asked for. This
-appendix inverts the lookup: it lists the forces this book's patterns,
-principles, and idioms answer, and the specific C# 14 / .NET 10 feature
-each one reaches for today. Some forces still need the original structural
-answer. Others are now answered directly by the platform, a delegate
-instead of a Strategy hierarchy, a record `with` expression instead of
-`ICloneable`, a `Channel<T>` instead of a hand-rolled Active Object queue.
-Knowing which is which, for a specific force, is the point of the book's
-temporal thesis: not that the catalogue is wrong, but that fewer of its
-1994 assumptions hold in C# 14 than they did in the language the catalogue
-was written against.
+A pattern name is shorthand for a force, not a goal. The Gang of Four
+catalogued Strategy, Observer and Singleton for languages without
+first-class interfaces, closures or a managed runtime, so pressures such as
+varying an algorithm, notifying many listeners or guaranteeing one instance
+under concurrency needed a structural workaround. Picking a pattern by name
+and then looking for a problem it fits produces indirection nobody asked for.
 
-## How to read this table
+The tables below run the lookup the other way: force first, then the
+pattern, then the C# construct that answers it. Some forces still need the
+original structure. Others are now answered by the platform:
 
-Each row names one pattern, principle, or idiom, the area of the book
-where it is worked through, the force or forces that justify reaching for
-it, and the modern C# construct that answers that force today. "Forces it
-answers" is written as the pressure you would be feeling, not an abstract
-category, so it doubles as a search key: if you are feeling a pressure
-that matches a row, that row's pattern and modern C# note are your
-starting point. Rows are grouped the way the Gang of Four grouped its own
-catalogue, creational, structural, and behavioral, with the book's
-principles, platform primitives, compiler-level idioms, async and
-concurrency idioms, and process-level idioms (shortcuts, legacy code,
-putting it together) grouped separately around them. A pattern that spans
-more than one force, Decorator answers both "add responsibility without
-subclassing" and "compose several responsibilities independently," gets
-one row with both forces named; a chapter that covers more than one
-pattern, Factory Method and Abstract Factory, gets one row per pattern.
+| Force | 1994 answer | C# answer |
+| --- | --- | --- |
+| Vary an algorithm | Strategy class hierarchy | A delegate |
+| Copy an object with changes | `ICloneable` Prototype | A record `with` expression |
+| Queue calls for one executor | Hand-rolled Active Object queue | `Channel<T>` |
+
+## How to read the tables
+
+| Column | Contents |
+| --- | --- |
+| Pattern / principle / idiom | One named pattern, principle or idiom per row |
+| Where it appears | The topic where it's worked through |
+| Forces it answers | The pressure you'd be feeling, phrased so it works as a search key |
+| Modern C# note | The C# construct that answers that force today |
+
+Rows follow the Gang of Four grouping (creational, structural, behavioral),
+with principles, platform primitives, compiler-level idioms, async and
+concurrency idioms, and legacy-code idioms in their own groups. A pattern
+that answers more than one force gets one row naming each: Decorator answers
+both "add responsibility without subclassing" and "compose several
+responsibilities independently". Patterns covered together, such as Factory
+Method and Abstract Factory, get a row each.
 
 ## Reading the forces, before the catalogue
 
