@@ -21,12 +21,12 @@ under `examples/`.
 - **Lead with divergence, not similarity.** C# is the closest of the four
   languages to Java, which is the risk. Patterns like Observer, Strategy, and
   Iterator dissolve into `event`, delegates, and `yield`/LINQ.
-- **Patterns the platform defines** — Dispose, Options, Tester-Doer, TAP — a part
+- **Patterns the platform defines** (Dispose, Options, Tester-Doer, TAP): a part
   with no equivalent in the C++ or Java books.
-- **Concurrency patterns** — POSA2's Active Object and Monitor Object
+- **Concurrency patterns**: POSA2's Active Object and Monitor Object
   re-expressed on `async` and `Channel<T>`, mapped to modern C# for the first
   time.
-- **Idiomatic C#** — extension members, expression trees, source generators,
+- **Idiomatic C#**: extension members, expression trees, source generators,
   Roslyn analyzers, and `static abstract` members.
 
 ## Prerequisites

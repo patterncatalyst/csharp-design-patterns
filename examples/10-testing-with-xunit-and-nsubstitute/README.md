@@ -2,7 +2,7 @@
 
 `ShipmentRatingEngine`, a minimal shipping-rating collaborator with three
 constructor-injected dependencies: `ICarrierRates`, `ITaxPolicy`, and
-`IAuditSink`. The library is deliberately thin. The teaching artifact in this
+`IAuditSink`. The library is thin. The teaching artifact in this
 example is the **test project**: every xUnit v3 and NSubstitute idiom the rest
 of this book relies on appears here as a real, green test.
 

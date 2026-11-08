@@ -4,7 +4,7 @@ order: 0
 layout: tutorial
 sectionid: docs
 part: "orientation"
-description: "The .NET 10 SDK, dotnet CLI, xUnit, and NSubstitute toolchain this book builds against on Fedora, how the example harness works with no containers, and why every code sample is a single idiomatic C# 14 block."
+description: "The .NET 10 SDK, dotnet CLI, xUnit, and NSubstitute toolchain the examples build against on Fedora, how the example harness works with no containers, and why every code sample is a single idiomatic C# 14 block."
 ---
 
 <!-- EXAMPLE (shipping domain): Smoke test: build and test a Consignment record. -->

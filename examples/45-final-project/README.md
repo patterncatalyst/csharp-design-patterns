@@ -30,7 +30,7 @@ through customs, and invoice it.
 **Substitutable collaborators.** `StowageStage` depends on `ISlotAllocator`
 rather than constructing `SequentialSlotAllocator` itself, and
 `ClearanceStage` depends on `IClearanceCheck` rather than constructing
-`StandardClearanceCheck` itself. Each seam earns its place: a test
+`StandardClearanceCheck` itself. Each seam has a use: a test
 substitutes `ISlotAllocator` with NSubstitute to verify `StowageStage` calls
 it exactly once with the consignment ID, independent of the real allocation
 sequence.

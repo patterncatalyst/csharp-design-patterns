@@ -4,7 +4,7 @@ order: 1
 layout: tutorial
 sectionid: docs
 part: "why-not-gof"
-description: "Reframing the catalogue from a taxonomy to a set of decisions made under competing forces, with the rating problem as the book's running thread."
+description: "Reframing the catalogue from a taxonomy to a set of decisions made under competing forces, with shipment rating as the running example."
 ---
 
 ## Learning objectives

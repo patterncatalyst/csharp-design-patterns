@@ -69,12 +69,12 @@ Method and Abstract Factory, get a row each.
 
 | Pattern / principle / idiom | Where it appears | Forces it answers | Modern C# note |
 | --- | --- | --- | --- |
-| Single Responsibility Principle (SRP) | the SRP/OCP/LSP chapter | one reason to change per collaborator; avoiding a class that absorbs every new concern | partition by responsibility into focused types; primary constructors keep each type's one dependency set explicit |
-| Open/Closed Principle (OCP) | the SRP/OCP/LSP chapter | extending behavior without editing code already proven correct | a pipeline of small delegate- or interface-typed strategies; pattern matching over a closed, enumerable set of variations |
-| Liskov Substitution Principle (LSP) | the SRP/OCP/LSP chapter | substitutability of any implementation behind a shared contract | record value equality and `with` make a substitutable value contract explicit; interface default members hold every substitute to the same contract |
-| Interface Segregation Principle (ISP) | the ISP/DIP/DI chapter | forcing a consumer to depend on members it never calls | narrow, role-specific interfaces instead of one wide interface; explicit interface implementation to hide irrelevant members |
-| Dependency Inversion Principle (DIP) | the ISP/DIP/DI chapter | high-level code must not depend on low-level implementation detail | depend on an interface or delegate type, never a concrete class; constructor injection via primary constructors |
-| Dependency Injection (built-in container) | the ISP/DIP/DI chapter | runtime selection and lifetime control of a dependency without editing its callers | `Microsoft.Extensions.DependencyInjection`, keyed services for named variants, scoped/singleton/transient lifetimes |
+| Single Responsibility Principle (SRP) | SRP, OCP, and LSP | one reason to change per collaborator; avoiding a class that absorbs every new concern | partition by responsibility into focused types; primary constructors keep each type's one dependency set explicit |
+| Open/Closed Principle (OCP) | SRP, OCP, and LSP | extending behavior without editing code already proven correct | a pipeline of small delegate- or interface-typed strategies; pattern matching over a closed, enumerable set of variations |
+| Liskov Substitution Principle (LSP) | SRP, OCP, and LSP | substitutability of any implementation behind a shared contract | record value equality and `with` make a substitutable value contract explicit; interface default members hold every substitute to the same contract |
+| Interface Segregation Principle (ISP) | ISP, DIP, and DI with the built-in container | forcing a consumer to depend on members it never calls | narrow, role-specific interfaces instead of one wide interface; explicit interface implementation to hide irrelevant members |
+| Dependency Inversion Principle (DIP) | ISP, DIP, and DI with the built-in container | high-level code must not depend on low-level implementation detail | depend on an interface or delegate type, never a concrete class; constructor injection via primary constructors |
+| Dependency Injection (built-in container) | ISP, DIP, and DI with the built-in container | runtime selection and lifetime control of a dependency without editing its callers | `Microsoft.Extensions.DependencyInjection`, keyed services for named variants, scoped/singleton/transient lifetimes |
 
 ## Platform primitives
 
