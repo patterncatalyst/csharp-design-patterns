@@ -227,7 +227,11 @@ A Roslyn analyzer flags a type named `*Stream` as implying a `System.IO.Stream`,
 | Streams to filter, combine or end definitively | `IObservable<T>` |
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to make a status change "reactive" or "observable," an assistant will sometimes reach for a `Subject<T>` and an `IObservable<T>` property, package reference included, for a publisher with one kind of subscriber and no need for `OnError` or operators. A one-line `event EventHandler<T>?` says the same with nothing to install or dispose. Check a generated answer with one question: does a subscriber need to compose this stream with another, react uniformly to an error, or detect a definitive end? If not, a plain `event` gives it everything the `Subject<T>` would.
+**Specifying an observer.** "Make the tracker observable" doesn't say whether subscribers need operators, an error channel or an end signal, or how they unsubscribe. State those in the prompt:
+
+> In `ConsignmentTracker`, declare `public event EventHandler<HandlingReportedEventArgs>? HandlingReported` and raise it from `Report` with `HandlingReported?.Invoke` after adding the event to `History`, so a tracker with no subscribers doesn't throw. Give `CustomerNotifier` and `AuditLog` an `OnHandlingReported(object? sender, HandlingReportedEventArgs e)` handler and unsubscribe with `-=`. Don't add `System.Reactive` or a `Subject<T>` to the tracker; that belongs in `HandlingEventStream`, where a subscriber needs `OnCompleted`.
+
+Run `dotnet test --project ConsignmentTracking.Tests --filter ConsignmentTrackerTests`, and confirm `ConsignmentTracker.cs` never mentions `IObservable`.
 </blockquote>
 
 ## Build, run, observe

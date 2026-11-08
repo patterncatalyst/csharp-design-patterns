@@ -155,11 +155,11 @@ The two capabilities compose. `shipments.Select(RateBook.Quote)` projects three 
 - **Money with currencies.** A currency code changes every operator: adding two currencies needs a conversion policy or an exception, and so does comparing them. The interfaces say which operations exist, not what happens when operands disagree about units. Decide that policy before `Money` grows a second field.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying a numeric type.** "Make `Money` support math" leaves open which operations, and invites every `System.Numerics` interface the type could satisfy. State the operations the callers use:
+**Specifying a numeric type.** "Make `Money` support math" doesn't say which operations, and invites every `System.Numerics` interface the type could satisfy. State the operations callers use:
 
-> Make `Money` a `readonly record struct` over `decimal Amount` implementing `IAdditionOperators<Money, Money, Money>`, `IAdditiveIdentity<Money, Money>`, `IMultiplyOperators<Money, decimal, Money>`, `IComparisonOperators<Money, Money, bool>` and `IComparable<Money>`, with `Add` and `Multiply` as named alternates. No division or negation. Constrain `Totals.Sum<T>` to addition and additive identity only, not `INumber<T>`.
+> Make `Money` a `readonly record struct` over `decimal Amount` implementing `IAdditionOperators<Money, Money, Money>`, `IAdditiveIdentity<Money, Money>`, `IMultiplyOperators<Money, decimal, Money>`, `IComparisonOperators<Money, Money, bool>` and `IComparable<Money>`, with `Add` and `Multiply` as named alternates. Add no division or negation. Constrain `Totals.Sum<T>` to `IAdditionOperators<T, T, T>` and `IAdditiveIdentity<T, T>`, not `INumber<T>`, so it sums both `Money` and `decimal`.
 
-If the reply adds `IDivisionOperators` or constrains on `INumber<T>`, ask which caller needs it.
+Run `dotnet test --project RateMath.Tests --filter MoneyGenericMathTests`; `IDivisionOperators` or `INumber<T>` in the reply is the defect.
 </blockquote>
 
 ## Build, run, observe

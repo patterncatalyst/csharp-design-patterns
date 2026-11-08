@@ -144,11 +144,11 @@ One analyzer gap: CA1708, "identifiers should differ by more than case", can fir
 - **An operator whose meaning isn't obvious.** `shipment1 + shipment2` reads like built-in arithmetic, with nothing marking it as a locally written rule. The named alternate gives readers a name to search for; if the rule needs explaining, a named method alone may be the better choice.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying members on a vendor type.** "Add a method to this SDK type" leaves open whether to wrap, extend or reach in with reflection, and "a static helper for creating these" leaves open where the factory lives. State it:
+**Specifying members on a vendor type.** "Add a method to this SDK type" doesn't say whether to wrap it, extend it or reach in with reflection, or where a factory lives. State it:
 
-> `CarrierShipment` is a sealed vendor type with no setters. Add `WeightKilograms` and `IsHeavy` as instance extension properties in an `extension(CarrierShipment shipment)` block, plus `WithAddedWeight(int grams)` returning a new instance. Put `Empty` and `FromKilograms` in an `extension(CarrierShipment)` block. Pair any extension operator with its CA2225 named alternate. No wrapper type, no reflection.
+> `CarrierShipment` in `CarrierParcels.Vendor` is a sealed vendor type with get-only properties. In `CarrierShipmentExtensions.cs`, add `WeightKilograms`, `IsHeavy` and `WithAddedWeight(int grams)`, which returns a new instance, in an `extension(CarrierShipment shipment)` block. Put `Empty` and `FromKilograms` in an `extension(CarrierShipment)` block. Pair `operator +` with a static `Add`, the named alternate CA2225 asks for. Add no wrapper type, no factory class and no reflection.
 
-If the reply adds a wrapper or a `CarrierShipmentFactory`, ask what it does that an extension member can't.
+Run `dotnet test --project CarrierParcels.Tests --filter ExtensionMemberTests`; a new type wrapping `CarrierShipment` in the reply is the defect.
 </blockquote>
 
 ## Build, run, observe

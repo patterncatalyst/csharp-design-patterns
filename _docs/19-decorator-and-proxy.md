@@ -269,7 +269,11 @@ This is what a reader might expect an attribute to do. A `[Loggable]` method log
 - **Proxy.** Skip it when there's no cost, latency or access concern to interpose. `CachingRateGatewayProxy` pays off because the gateway stands in for a network round trip. Wrapping `BaseRateCalculator`, whose `Quote` is one multiplication, adds a dictionary, a branch and a type for nothing.
 
 <blockquote class="ai-sidebar" markdown="1">
-Asked to make a single pricing adjustment "flexible" or "pluggable," an assistant will sometimes wrap `BaseRateCalculator` in a `DiscountRateDecorator` for an amount one method could compute, with no second layer, removable layer or second implementation anywhere in the prompt. A related suggestion builds a `DispatchProxy` subclass or a reflection interceptor to log one method on one class with one call site, where a plain wrapper implementing the interface reads the same with no `MethodInfo`. Check a generated answer with two questions: does a second or removable layer exist or is one clearly coming (Decorator), and is there a cache, log or metric that must sit between caller and target without either changing (Proxy)? If both answers are no, a plain method or wrapper says the same thing.
+**Specifying a decorator.** "Add a discount to the rate" doesn't say whether it's a removable layer, which order the layers run in or where the wrapping happens. State those in the prompt:
+
+> Add each pricing step as a `sealed` class implementing `IRateCalculator` that takes the inner calculator through its primary constructor, as `DiscountRateDecorator`, `SurchargeRateDecorator` and `TaxRateDecorator` do. Compose them in `AddRatePipeline` in `ServiceCollectionExtensions.cs` as discount, then surcharge, then tax, and register `BaseRateCalculator` on its own. Cache carrier rates in `CachingRateGatewayProxy` around `ICarrierRateGateway`, keyed on `RateRequest`. Use `DispatchProxy`, as `LoggingRateProxy` does, only when one interception applies to any interface.
+
+Run `dotnet test --project RateComposition.Tests --filter DecoratorChainTests`; `CachingRateGatewayProxyTests` must still pass.
 </blockquote>
 
 ## Build, run, observe
