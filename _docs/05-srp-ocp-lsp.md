@@ -190,13 +190,11 @@ public sealed class RateCalculator(IRateQuote pricing, ITaxPolicy? taxPolicy = n
 SRP draws the boundaries, OCP says how each grows, and LSP makes it safe to
 depend on the boundary instead of the implementation behind it.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a SOLID change.** "Apply SOLID to the rate calculator" doesn't say which change is coming, so it leaves room for an interface per class and a strategy that breaks the contract.
-
-> Add fuel and insurance charges without editing `WeightBasedRateCalculator` or `RateCalculator`: write `FuelSurcharge` and `InsuranceSurcharge` as sealed classes implementing `ISurcharge`, and compose them in `SurchargedRateQuote`, which is itself an `IRateQuote`. Keep tax behind `ITaxPolicy` and audit behind `IAuditSink`, both optional constructor parameters of `RateCalculator`. Every `IRateQuote` and `ISurcharge` must return a non-negative `Money` in the input currency and charge no less for a heavier `Consignment`. Add no other interface.
-
-Check with `dotnet test --project RateCalculation.Tests --filter LspInvariantTests`; a new type belongs in its `RateQuoteImplementations` or `SurchargeImplementations` list.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Add fuel and insurance charges without editing `WeightBasedRateCalculator` or `RateCalculator`: write `FuelSurcharge` and `InsuranceSurcharge` as sealed classes implementing `ISurcharge`, and compose them in `SurchargedRateQuote`, which is itself an `IRateQuote`. Keep tax behind `ITaxPolicy` and audit behind `IAuditSink`, both optional constructor parameters of `RateCalculator`. Every `IRateQuote` and `ISurcharge` must return a non-negative `Money` in the input currency and charge no less for a heavier `Consignment`. Add no other interface."
+>
+> Check with `dotnet test --project RateCalculation.Tests --filter LspInvariantTests`; a new type belongs in its `RateQuoteImplementations` or `SurchargeImplementations` list.
 
 ## Build, run, observe
 

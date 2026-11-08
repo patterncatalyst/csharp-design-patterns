@@ -202,13 +202,11 @@ The spread copies the template's elements into a fresh list and appends `extraIt
 - **Builder.** Skip it when nothing in `Build()` would ever throw. A builder for a type with no cross-field rule and no staged assembly adds a class, a private field per property and a `Build()` that copies them into the initializer the caller could have written directly.
 - **Prototype.** Skip the template when no configuration recurs. A static template for a request built once is indirection a reader traces back to one caller. A type with several mutable reference members needs an explicit replacement on every clone; a constructor or builder that states each member may serve it better.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a booking request.** "Give `BookingRequest` a fluent API" leaves open whether a builder adds any check and whether a clone shares the source's collections.
-
-> Construct `BookingRequest` with an object initializer: `Origin`, `Destination` and `DeclaredValue` are `required` with `init`, and the other members have defaults. Keep `BookingRequestBuilder` only because its `Build()` checks what `required` can't, a non-blank origin and destination, and throws `BookingValidationException`. Derive variants of `BookingTemplates.StandardDomestic` with `with`, and when a variant changes `LineItems`, assign a new collection expression that spreads the template's items, so the clone shares no mutable reference with the template.
-
-Check with `dotnet test --project BookingRequests.Tests --filter BookingTemplatesTests`; `Collection_spread_amend_copies_rather_than_shares_the_template_line_items` must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Construct `BookingRequest` with an object initializer: `Origin`, `Destination` and `DeclaredValue` are `required` with `init`, and the other members have defaults. Keep `BookingRequestBuilder` only because its `Build()` checks what `required` can't, a non-blank origin and destination, and throws `BookingValidationException`. Derive variants of `BookingTemplates.StandardDomestic` with `with`, and when a variant changes `LineItems`, assign a new collection expression that spreads the template's items, so the clone shares no mutable reference with the template."
+>
+> Check with `dotnet test --project BookingRequests.Tests --filter BookingTemplatesTests`; `Collection_spread_amend_copies_rather_than_shares_the_template_line_items` must pass.
 
 ## Build, run, observe
 

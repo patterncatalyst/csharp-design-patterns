@@ -246,13 +246,11 @@ public sealed class ShipmentDispatchService(CarrierRegistry registry)
 - **One implementation.** A factory costs a protected override, an interface or a generic constraint that a constructor call doesn't. A dispatcher that only ever sends through one gateway, with no second carrier planned, is one concrete class calling `new FastlineGateway()`. A system that talks to one carrier gets nothing from `ICarrierGatewayFactory<TCarrier>`, because there's no second family to tell apart.
 - **A registry without runtime selection.** `CarrierRegistry` pays off because the carrier arrives on the request and isn't known until the call. A warehouse integration that only ever talks to Fastline at one call site gets nothing from it that a directly constructed `FastlineGatewayFactory` doesn't give, and gains a dictionary, a registration step and an `UnknownCarrierException` failure mode.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying carrier resolution.** "Make carrier resolution pluggable" leaves open how a carrier is identified and how its factory is found: by registration, by a string key, or by reflection with [`Activator.CreateInstance`](https://learn.microsoft.com/en-us/dotnet/api/system.activator.createinstance), which fails at run time on a renamed type.
-
-> Identify each carrier by a type implementing `ICarrier` with a `static abstract string Code`. Register one `ICarrierGatewayFactory<TCarrier>` per carrier in a `CarrierRegistry` keyed by `typeof(TCarrier)`, with `where TCarrier : ICarrier` on `Register` and `FactoryFor`, and throw `UnknownCarrierException` for a missing carrier. `ShipmentDispatchService.Dispatch<TCarrier>` gets its factory from `FactoryFor<TCarrier>()` and does no cast. Don't use `Activator.CreateInstance` or a `Dictionary<string, object>`.
-
-Check with `dotnet test --project CarrierProvisioning.Tests --filter CarrierRegistryTests`, and confirm `Activator` appears nowhere in the reply.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Identify each carrier by a type implementing `ICarrier` with a `static abstract string Code`. Register one `ICarrierGatewayFactory<TCarrier>` per carrier in a `CarrierRegistry` keyed by `typeof(TCarrier)`, with `where TCarrier : ICarrier` on `Register` and `FactoryFor`, and throw `UnknownCarrierException` for a missing carrier. `ShipmentDispatchService.Dispatch<TCarrier>` gets its factory from `FactoryFor<TCarrier>()` and does no cast. Don't use `Activator.CreateInstance` or a `Dictionary<string, object>`."
+>
+> Check with `dotnet test --project CarrierProvisioning.Tests --filter CarrierRegistryTests`, and confirm `Activator` appears nowhere in the reply.
 
 ## Build, run, observe
 

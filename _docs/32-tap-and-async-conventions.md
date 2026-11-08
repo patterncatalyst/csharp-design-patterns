@@ -153,13 +153,11 @@ All 10 tests pass; `scripts/verify.sh` at the repo root runs them with every oth
 - **A token nothing checks.** A `CancellationToken` that's never checked or forwarded tells callers the method cancels when it doesn't. It compiles and passes every case that never cancels.
 - **A progress parameter nothing calls.** An `IProgress<T>` that never receives `Report` leaves a progress bar at zero until the batch ends. Remove plumbing that implies a capability the method lacks.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying an async member.** "Make the gateway async" doesn't say where cancellation is checked, when progress is reported or which members await real work. State them:
-
-> In `FakeCarrierGateway`, implement `DispatchBatchAsync(IReadOnlyList<DispatchRequest>, IProgress<DispatchProgress>?, CancellationToken)`. Call `cancellationToken.ThrowIfCancellationRequested()` before each request, pass the token to every await and end each await with `ConfigureAwait(false)`. After each receipt, call `progress?.Report(new DispatchProgress(i + 1, requests.Count))`. Implement `IsReachableAsync` without `async`, returning a completed `ValueTask<bool>`. Don't wrap anything in `Task.Run`, and keep the `Async` suffix and a trailing `CancellationToken` on every member of `ICarrierGateway`.
-
-Run `dotnet test --project CarrierDispatch.Tests --filter "BatchProgressTests|AsyncConventionTests"`; all 8 must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `FakeCarrierGateway`, implement `DispatchBatchAsync(IReadOnlyList<DispatchRequest>, IProgress<DispatchProgress>?, CancellationToken)`. Call `cancellationToken.ThrowIfCancellationRequested()` before each request, pass the token to every await and end each await with `ConfigureAwait(false)`. After each receipt, call `progress?.Report(new DispatchProgress(i + 1, requests.Count))`. Implement `IsReachableAsync` without `async`, returning a completed `ValueTask<bool>`. Don't wrap anything in `Task.Run`, and keep the `Async` suffix and a trailing `CancellationToken` on every member of `ICarrierGateway`."
+>
+> Run `dotnet test --project CarrierDispatch.Tests --filter "BatchProgressTests|AsyncConventionTests"`; all 8 must pass.
 
 ## For deeper coverage
 

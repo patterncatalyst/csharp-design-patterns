@@ -245,13 +245,11 @@ The caretaker pushes snapshots and hands them back unopened. The stack gives rol
 - **Switch-expression Visitor.** Every operation lists every case, so a fifth `TariffRule` means editing `Evaluate`, `Build` and any other switch. A hierarchy that changes often, or that other assemblies extend, is a poor fit; virtual methods on the records suit it better.
 - **Memento on a plain stack.** Each checkpoint holds a full copy of the line list, and the stack only shrinks on rollback. A long-running or large booking needs a bounded history or an eviction policy.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying undo and tariff evaluation.** "Add a way to undo this" doesn't say whether undo replays commands or restores state, or how deep the copy goes. State it:
-
-> Add `Save()` and `Restore(BookingMemento)` to `BookingOriginator`, with `BookingMemento` a record of `ServiceLevel`, `WeightKilograms` and `Lines`. Copy the line list with a collection expression; `BookingLine` is an immutable record, so don't clone the lines. Keep checkpoints on a `Stack<BookingMemento>` in `AmendmentCaretaker`, whose `Checkpoint` and `Rollback` never read memento fields. Write `TariffEvaluator.Evaluate` as a recursive switch over `FlatFee`, `PerKilogram`, `Surcharge` and `Sum` with a throwing discard arm, and use `TariffCompiler.Compile` only when one rule prices many shipments.
-
-Run `dotnet test --project TariffRules.Tests --filter MementoTests`; `Memento_snapshot_is_isolated_from_later_mutation` fails if `Save` shares the list.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Add `Save()` and `Restore(BookingMemento)` to `BookingOriginator`, with `BookingMemento` a record of `ServiceLevel`, `WeightKilograms` and `Lines`. Copy the line list with a collection expression; `BookingLine` is an immutable record, so don't clone the lines. Keep checkpoints on a `Stack<BookingMemento>` in `AmendmentCaretaker`, whose `Checkpoint` and `Rollback` never read memento fields. Write `TariffEvaluator.Evaluate` as a recursive switch over `FlatFee`, `PerKilogram`, `Surcharge` and `Sum` with a throwing discard arm, and use `TariffCompiler.Compile` only when one rule prices many shipments."
+>
+> Run `dotnet test --project TariffRules.Tests --filter MementoTests`; `Memento_snapshot_is_isolated_from_later_mutation` fails if `Save` shares the list.
 
 ## Build, run, observe
 

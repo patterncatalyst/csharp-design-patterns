@@ -268,13 +268,11 @@ This is what a reader might expect an attribute to do. A `[Loggable]` method log
 - **Decorator.** Skip it when there's one adjustment that never comes off and never gets a neighbor. A jurisdiction with one tax rate and no discount or surcharge needs one `Quote` that multiplies by `1m + taxRate`. The tell is every call site building the same nesting in the same order: one fixed computation spread over three classes.
 - **Proxy.** Skip it when there's no cost, latency or access concern to interpose. `CachingRateGatewayProxy` pays off because the gateway stands in for a network round trip. Wrapping `BaseRateCalculator`, whose `Quote` is one multiplication, adds a dictionary, a branch and a type for nothing.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a decorator.** "Add a discount to the rate" doesn't say whether it's a removable layer, which order the layers run in or where the wrapping happens. State those in the prompt:
-
-> Add each pricing step as a `sealed` class implementing `IRateCalculator` that takes the inner calculator through its primary constructor, as `DiscountRateDecorator`, `SurchargeRateDecorator` and `TaxRateDecorator` do. Compose them in `AddRatePipeline` in `ServiceCollectionExtensions.cs` as discount, then surcharge, then tax, and register `BaseRateCalculator` on its own. Cache carrier rates in `CachingRateGatewayProxy` around `ICarrierRateGateway`, keyed on `RateRequest`. Use `DispatchProxy`, as `LoggingRateProxy` does, only when one interception applies to any interface.
-
-Run `dotnet test --project RateComposition.Tests --filter DecoratorChainTests`; `CachingRateGatewayProxyTests` must still pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Add each pricing step as a `sealed` class implementing `IRateCalculator` that takes the inner calculator through its primary constructor, as `DiscountRateDecorator`, `SurchargeRateDecorator` and `TaxRateDecorator` do. Compose them in `AddRatePipeline` in `ServiceCollectionExtensions.cs` as discount, then surcharge, then tax, and register `BaseRateCalculator` on its own. Cache carrier rates in `CachingRateGatewayProxy` around `ICarrierRateGateway`, keyed on `RateRequest`. Use `DispatchProxy`, as `LoggingRateProxy` does, only when one interception applies to any interface."
+>
+> Run `dotnet test --project RateComposition.Tests --filter DecoratorChainTests`; `CachingRateGatewayProxyTests` must still pass.
 
 ## Build, run, observe
 

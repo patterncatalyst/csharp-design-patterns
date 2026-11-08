@@ -224,13 +224,11 @@ A trimmer removes code nothing visibly calls, and a type reached only by an asse
 - **A team new to generator debugging.** The generator runs in the compiler process, so breakpoints in application code never stop inside `Emit`. You inspect what it produced by reading the emitted source, for example `runResult.GeneratedTrees` from a `CSharpGeneratorDriver` run.
 - **Without a caching check.** A model holding a plain `ImmutableArray<CarrierEntry>` still compiles and emits correct adapters. The only symptom is every stage rerunning whenever the manifest is re-read. Track the pipeline steps across a re-read with the same content and assert `Unchanged` or `Cached`.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a source generator.** "Add a source generator for the carrier registry" doesn't say which generator interface to use or how the pipeline's model compares. State it:
-
-> In `CarrierGatewayGenerator`, implement `IIncrementalGenerator`, not `ISourceGenerator`, which reruns all of `Execute` on every compilation. Read `carriers.manifest` through `AdditionalTextsProvider`, filtered on the `.manifest` extension, and name the parse and combine stages with `WithTrackingName` using `TrackingNames.Parse` and `TrackingNames.Combine`. Hold the entries of `CarrierManifestModel` in an `EquatableArray<CarrierEntry>` so the model compares by value. Emit one `ICarrierGateway` per entry plus `GeneratedCarrierRegistry`.
-
-Run `dotnet test --project CarrierManifest.Tests --filter GeneratorCachingTests`; `Equal_content_manifest_reread_leaves_the_model_unchanged` is the test that catches a model holding a plain `ImmutableArray<T>`.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `CarrierGatewayGenerator`, implement `IIncrementalGenerator`, not `ISourceGenerator`, which reruns all of `Execute` on every compilation. Read `carriers.manifest` through `AdditionalTextsProvider`, filtered on the `.manifest` extension, and name the parse and combine stages with `WithTrackingName` using `TrackingNames.Parse` and `TrackingNames.Combine`. Hold the entries of `CarrierManifestModel` in an `EquatableArray<CarrierEntry>` so the model compares by value. Emit one `ICarrierGateway` per entry plus `GeneratedCarrierRegistry`."
+>
+> Run `dotnet test --project CarrierManifest.Tests --filter GeneratorCachingTests`; `Equal_content_manifest_reread_leaves_the_model_unchanged` is the test that catches a model holding a plain `ImmutableArray<T>`.
 
 ## Build, run, observe
 

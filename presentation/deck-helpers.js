@@ -268,12 +268,18 @@ function addDiagramSlide(slide, eyebrow, title, pngName, caption, opts = {}) {
   const y = opts.y ?? 1.75;
   const w = opts.w ?? 9.74;
   const h = opts.h ?? 4.75;
-  slide.addImage({
-    path: `${PNG}/${pngName}.png`,
-    x, y, w, h,
-    sizing: { type: "contain", w, h },
-  });
+  addFigure(slide, `${PNG}/${pngName}.png`, x, y, w, h);
   if (caption) addCaption(slide, caption);
+}
+
+// Place a PNG inside a box at its own aspect ratio, centred. pptxgenjs
+// "contain" needs the image's pixel size, so read it from the PNG header.
+function addFigure(slide, file, x, y, w, h) {
+  const buf = require("fs").readFileSync(file);
+  const ratio = buf.readUInt32BE(16) / buf.readUInt32BE(20);
+  let fw = w, fh = w / ratio;
+  if (fh > h) { fh = h; fw = h * ratio; }
+  slide.addImage({ path: file, x: x + (w - fw) / 2, y: y + (h - fh) / 2, w: fw, h: fh });
 }
 
 // language eyebrow chip (right-aligned, above the code box)
@@ -378,5 +384,5 @@ module.exports = {
   newDeck,
   addFooter, addContentTitle, addBullets, addTwoColBullets, addStatusTable,
   addCaption, addPerfCallout,
-  addDiagramSlide, addCodeSlide, addLangChip, addSectionDivider, addNotes,
+  addDiagramSlide, addFigure, addCodeSlide, addLangChip, addSectionDivider, addNotes,
 };

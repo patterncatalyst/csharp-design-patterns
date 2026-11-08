@@ -220,13 +220,11 @@ These techniques get code under test before a change. They don't turn every seam
 | `InternalsVisibleTo` | The thing to reach is a fixed rule like `IsKnownLane` |
 | Extract Interface | A second implementation of the rule becomes plausible |
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying dependency breaking.** "Make the legacy rate engine testable" doesn't say which of its five dependencies to break, or with which technique. State each:
-
-> Starting from `Legacy.RateEngine.Quote`, write `RateEngineDependencies.RateEngine`. Extract `ITariffBook` from the static `LegacyTariffBook` and `IAuditLog` from `LegacyAuditLog`, and take them with `IClock` and `IReferenceGenerator` through the primary constructor. Replace `Environment.UserName` with a `quotedBy` parameter on `Quote`. Route the reference through a `protected virtual NewReference()`. Keep `LaneValidation.IsKnownLane` `internal`. Don't change the amount or the audit message text. If today's change touches only the tariff, extract only `ITariffBook` and stop.
-
-Run `dotnet test --project RateEngineDependencies.Tests --filter "DependencyBreakingTests|LegacyContrastTests"`; all must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Starting from `Legacy.RateEngine.Quote`, write `RateEngineDependencies.RateEngine`. Extract `ITariffBook` from the static `LegacyTariffBook` and `IAuditLog` from `LegacyAuditLog`, and take them with `IClock` and `IReferenceGenerator` through the primary constructor. Replace `Environment.UserName` with a `quotedBy` parameter on `Quote`. Route the reference through a `protected virtual NewReference()`. Keep `LaneValidation.IsKnownLane` `internal`. Don't change the amount or the audit message text. If today's change touches only the tariff, extract only `ITariffBook` and stop."
+>
+> Run `dotnet test --project RateEngineDependencies.Tests --filter "DependencyBreakingTests|LegacyContrastTests"`; all must pass.
 
 ## For deeper coverage
 

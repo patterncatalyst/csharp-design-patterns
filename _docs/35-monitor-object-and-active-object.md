@@ -238,13 +238,11 @@ All 8 tests pass, covering the four strategies: contention and sequential runs f
 | Contains I/O, needs ordering and backpressure | Active Object on a bounded channel |
 | Distributed, supervised or persisted | An actor framework |
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a thread-safe stowage plan.** "Make the stowage plan thread-safe" doesn't say whether the critical section awaits, or whether callers need ordering and backpressure. State it:
-
-> `StowagePlan.TryReserve` is synchronous; the `IStowageLedger.AppendAsync` write after it awaits. Build `StowageActiveObject` around one `StowagePlan`: a private `ReserveRequest` record carrying a `TaskCompletionSource<SlotAssignment?>` created with `RunContinuationsAsynchronously`, a `Channel.CreateBounded` channel with `BoundedChannelFullMode.Wait`, and one `RunAsync` consumer that completes each request with a result, a cancellation or the ledger's exception and keeps running. `DisposeAsync` completes the writer and awaits the pump. Never put an `await` inside a `lock`.
-
-Run `dotnet test --project StowageCoordination.Tests --filter ActiveObjectTests`; all 4 must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "`StowagePlan.TryReserve` is synchronous; the `IStowageLedger.AppendAsync` write after it awaits. Build `StowageActiveObject` around one `StowagePlan`: a private `ReserveRequest` record carrying a `TaskCompletionSource<SlotAssignment?>` created with `RunContinuationsAsynchronously`, a `Channel.CreateBounded` channel with `BoundedChannelFullMode.Wait`, and one `RunAsync` consumer that completes each request with a result, a cancellation or the ledger's exception and keeps running. `DisposeAsync` completes the writer and awaits the pump. Never put an `await` inside a `lock`."
+>
+> Run `dotnet test --project StowageCoordination.Tests --filter ActiveObjectTests`; all 4 must pass.
 
 ## For deeper coverage
 

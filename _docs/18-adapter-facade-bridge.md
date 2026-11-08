@@ -256,13 +256,11 @@ All four combinations render the right title, carrier code and address (destinat
 - **Bridge.** Skip it when one axis has one value. With one label format, each label can format its own string; a renderer interface with one implementation has nothing on the other side.
 - **Conversion operator.** Use a named method when the conversion does more than change units or representation. Converting a `ShipmentRequest` into a `CarrierQuote` by defaulting a price would hide that behind a cast, or behind no syntax at all if implicit. A conversion that needs a sentence of explanation belongs in a method whose name carries it.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a conversion.** "Add a conversion between the weight types" doesn't say whether it can lose precision or whether a caller has to cast. State that in the prompt:
-
-> In `Kilograms.cs` and `Pounds.cs`, keep `ToPounds` and `ToKilograms` as the named methods and add each conversion as an `explicit operator` that calls them, since either can drop a fraction of a pound. Keep `Money`'s lossless `implicit operator decimal` and make `explicit operator Money` call `FromDecimal`, which rounds with `MidpointRounding.ToEven`. Don't add a Bridge for one label kind: `ShipmentLabel` takes an `ILabelRenderer` only because `StandardShipmentLabel` and `ReturnShipmentLabel` each render through both `PdfLabelRenderer` and `ZplLabelRenderer`.
-
-Run `dotnet test --project CarrierIntegration.Tests --filter ConversionOperatorTests`, and treat an `implicit operator Pounds` in the reply as the defect.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `Kilograms.cs` and `Pounds.cs`, keep `ToPounds` and `ToKilograms` as the named methods and add each conversion as an `explicit operator` that calls them, since either can drop a fraction of a pound. Keep `Money`'s lossless `implicit operator decimal` and make `explicit operator Money` call `FromDecimal`, which rounds with `MidpointRounding.ToEven`. Don't add a Bridge for one label kind: `ShipmentLabel` takes an `ILabelRenderer` only because `StandardShipmentLabel` and `ReturnShipmentLabel` each render through both `PdfLabelRenderer` and `ZplLabelRenderer`."
+>
+> Run `dotnet test --project CarrierIntegration.Tests --filter ConversionOperatorTests`, and treat an `implicit operator Pounds` in the reply as the defect.
 
 ## Build, run, observe
 

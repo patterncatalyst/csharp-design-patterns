@@ -161,13 +161,11 @@ With `ValidateScopes = true`, resolving `LazyTariffTable` from the root provider
 - **Static Singleton.** Avoid it once more than one implementation could exist: a fake tariff source in a test, a flat sandbox rate, a second consumer with a different source. The static shape fixes one construction path when the static constructor runs. A DI singleton gives the same sharing and keeps the constructor open. Keep the static shape only where no container exists and nothing will need a substitute.
 - **Lazy loading of a required dependency.** Both `LazyTariffTable` and the DI singleton load on first use. If the rates service is down, the failure lands on whichever request touches the table first, after the service has reported healthy and accepted traffic. For a table every request needs, load it at startup and fail the deployment. Lazy suits a dependency that's rarely needed, such as a background job that occasionally reads tariffs.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a singleton.** "Make the tariff table a thread-safe singleton" leaves open who owns the single instance and whether a test can replace it.
-
-> Register the table as a DI singleton in `AddTariffTables`: `AddSingleton<ITariffSource, CountingTariffSource>()` and a `TariffTable` built from the resolved `ITariffSource`. Where a type must defer its own load, use `Lazy<TariffTable>` with `LazyThreadSafetyMode.ExecutionAndPublication`, as `LazyTariffTable` does. Don't write double-checked locking, a nullable static field or a `lock`, and don't give anything but `ClassicTariffTable` a static `Instance`; it stays as the comparison.
-
-Check with `dotnet test --project TariffTables.Tests --filter LazyTariffTableTests`; `Concurrent_access_from_many_threads_still_loads_exactly_once` must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Register the table as a DI singleton in `AddTariffTables`: `AddSingleton<ITariffSource, CountingTariffSource>()` and a `TariffTable` built from the resolved `ITariffSource`. Where a type must defer its own load, use `Lazy<TariffTable>` with `LazyThreadSafetyMode.ExecutionAndPublication`, as `LazyTariffTable` does. Don't write double-checked locking, a nullable static field or a `lock`, and don't give anything but `ClassicTariffTable` a static `Instance`; it stays as the comparison."
+>
+> Check with `dotnet test --project TariffTables.Tests --filter LazyTariffTableTests`; `Concurrent_access_from_many_threads_still_loads_exactly_once` must pass.
 
 ## Build, run, observe
 

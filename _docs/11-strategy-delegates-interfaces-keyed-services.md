@@ -191,13 +191,11 @@ The keyless case is easier to miss. Three tariffs implement `IPricingStrategy`, 
 - **An interface for a one-off rule.** A rule with one call site, no second consumer, no tests of its own and no name the team uses is a delegate. Promoting it adds a file, an interface with a single implementer and a constructor parameter that exists because the pattern says so. Default to dissolving interface to delegate; reach for `IPricingStrategy` once a second implementation exists, a consumer needs a substitute in tests, or the rule goes into a container.
 - **Keyed services without runtime selection.** Keys earn their place when the selecting value is data the caller doesn't control at compile time: a string on a request, a database row, a message header. Two call sites that always want `StandardTariff` and `ExpressTariff` get nothing from `AddKeyedSingleton` that a plain injected `IPricingStrategy` doesn't give, and they gain a string lookup table, a registration per key and a throw-on-miss failure mode.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a strategy.** "Make pricing configurable by service level" leaves open whether the level arrives as runtime data, how many implementations exist, and whether a hand-built dictionary or the container does the lookup.
-
-> Register `StandardTariff`, `ExpressTariff` and `EconomyTariff` as `IPricingStrategy` with `AddKeyedSingleton` under `"standard"`, `"express"` and `"economy"` in one `AddRateQuoting` extension. Have `KeyedTariffQuoter.Quote` call `GetRequiredKeyedService<IPricingStrategy>(request.ServiceLevel)`, and give `ExpressLaneQuoter`, whose key never changes, a `[FromKeyedServices("express")]` parameter. Don't build a `Dictionary` of strategies by hand. For a one-off rule, pass a `Func<RateRequest, Money>` to `DelegateRateQuoter` instead of adding an interface.
-
-Check with `dotnet test --project RateQuoting.Tests --filter KeyedTariffQuoterTests`; if no runtime value selects the strategy, the keys go.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Register `StandardTariff`, `ExpressTariff` and `EconomyTariff` as `IPricingStrategy` with `AddKeyedSingleton` under `"standard"`, `"express"` and `"economy"` in one `AddRateQuoting` extension. Have `KeyedTariffQuoter.Quote` call `GetRequiredKeyedService<IPricingStrategy>(request.ServiceLevel)`, and give `ExpressLaneQuoter`, whose key never changes, a `[FromKeyedServices("express")]` parameter. Don't build a `Dictionary` of strategies by hand. For a one-off rule, pass a `Func<RateRequest, Money>` to `DelegateRateQuoter` instead of adding an interface."
+>
+> Check with `dotnet test --project RateQuoting.Tests --filter KeyedTariffQuoterTests`; if no runtime value selects the strategy, the keys go.
 
 ## Build, run, observe
 

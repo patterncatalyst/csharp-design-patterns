@@ -156,13 +156,11 @@ Thread-safe lazy creation pays when the object is expensive and several callers 
 - **Builders that can recover.** If a caller should be able to retry after a transient failure, `Lazy<T>` in `ExecutionAndPublication` is the wrong tool. Re-create the `Lazy<T>` wrapper after a failure, or use the `Lock` form, where the provider decides what a failed build does, including clearing `_table` so the next caller retries.
 - **Container-managed objects.** A singleton registration in a dependency injection container already gives built-once sharing, and most containers handle concurrent first resolution. Layering `Lazy<T>`, a lock or a static initializer on top adds a second, redundant source of truth for how many instances exist.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying lazy creation.** "Make the tariff table a lazy singleton" leaves open how many builds may race and what a failed build does to the next caller. State both:
-
-> In `LazyTariffProvider`, wrap `builder.Build` in a `Lazy<TariffTable>` with `LazyThreadSafetyMode.ExecutionAndPublication`, and expose `Value` and `IsValueCreated`. Don't hand-roll Double-Checked Locking. That mode caches a build failure and rethrows it, so when the `ITariffBuilder` must be retried after a transient failure, use `LockTariffProvider` instead: guard `_table` with a `Lock` and assign it with `??=` so a throwing `Build` leaves it null for the next caller.
-
-Run `dotnet test --project ThreadSafeTariffs.Tests --filter ThreadSafeCreationTests`; all 5 must pass.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "In `LazyTariffProvider`, wrap `builder.Build` in a `Lazy<TariffTable>` with `LazyThreadSafetyMode.ExecutionAndPublication`, and expose `Value` and `IsValueCreated`. Don't hand-roll Double-Checked Locking. That mode caches a build failure and rethrows it, so when the `ITariffBuilder` must be retried after a transient failure, use `LockTariffProvider` instead: guard `_table` with a `Lock` and assign it with `??=` so a throwing `Build` leaves it null for the next caller."
+>
+> Run `dotnet test --project ThreadSafeTariffs.Tests --filter ThreadSafeCreationTests`; all 5 must pass.
 
 ## For deeper coverage
 

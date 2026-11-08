@@ -36,11 +36,7 @@ function patternSlide(eyebrow, title, bullets, fig, caption, notes, opts = {}) {
     fontSize: opts.fontSize ?? (hasFig ? 15.5 : 17),
   });
   if (hasFig) {
-    s.addImage({
-      path: `${PNG}/${fig}.png`,
-      x: 6.45, y: 1.75, w: 6.25, h: 4.35,
-      sizing: { type: "contain", w: 6.25, h: 4.35 },
-    });
+    H.addFigure(s, `${PNG}/${fig}.png`, 6.45, 1.75, 6.25, 4.35);
   }
   if (caption) addCaption(s, caption);
   addNotes(s, notes);

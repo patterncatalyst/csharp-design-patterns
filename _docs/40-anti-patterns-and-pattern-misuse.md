@@ -193,13 +193,11 @@ The mistake runs both ways:
 
 "Keeping it simple" and "building it right from the start" are both labels. What decides is whether a second occurrence exists, or is planned firmly enough to act on now. For `FreightRating` there's one scheme and none planned, so `RateCalculator.Quote` is the shape to reach for, and `RateEngine` is what a second scheme would plug into.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a rate calculation.** "Compute a freight quote" doesn't say how many rating schemes exist, which leaves room for an interface, a class per charge and a factory. State it:
-
-> There's one rating scheme. Write `RateCalculator.Quote(RateRequest request)` as a single public static method: `DeclaredValue * 0.015m`, plus `WeightKilograms * 2.50m`, plus 8% of that subtotal when `FuelLevyApplies`. Don't add `IRateComponent`, `IRateComponentFactory` or a `RateEngine`, and don't add a parameter for a second scheme. Before deleting `OverAbstracted.RateEngine`, add a theory that runs both forms on the same `RateRequest` values and asserts equal quotes.
-
-Run `dotnet test --project FreightRating.Tests --filter "RateCalculatorTests|EquivalenceTests"`; `Collapsed_calculator_exposes_a_single_public_quote_method` fails if the reply adds a public member.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "There's one rating scheme. Write `RateCalculator.Quote(RateRequest request)` as a single public static method: `DeclaredValue * 0.015m`, plus `WeightKilograms * 2.50m`, plus 8% of that subtotal when `FuelLevyApplies`. Don't add `IRateComponent`, `IRateComponentFactory` or a `RateEngine`, and don't add a parameter for a second scheme. Before deleting `OverAbstracted.RateEngine`, add a theory that runs both forms on the same `RateRequest` values and asserts equal quotes."
+>
+> Run `dotnet test --project FreightRating.Tests --filter "RateCalculatorTests|EquivalenceTests"`; `Collapsed_calculator_exposes_a_single_public_quote_method` fails if the reply adds a public member.
 
 ## For deeper coverage
 

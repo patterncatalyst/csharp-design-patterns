@@ -206,13 +206,11 @@ The justification sits beside it: the draw drives a delay simulation, nothing de
 - **One real transition.** A consignment tracked only as delivered or not has no illegal moves to guard beyond setting a flag twice. A boolean does; a transition table, a custom exception and a history are ceremony without a rule behind them.
 - **A process the state set can't express.** Returns after delivery, mid-transit re-routing or split shipments with their own statuses need those states and events in the table. Forcing them through the four-event happy path rejects legal operations as `InvalidTransitionException`. Add the missing states and events; don't loosen `Transitions.Next` until the exception stops firing.
 
-<blockquote class="ai-sidebar" markdown="1">
-**Specifying a transition.** "Add cancellation" leaves open which statuses can be cancelled, whether to add classes or switch arms, and what an illegal pair does.
-
-> Add a cancelled value to `ConsignmentStatus` and a cancel value to `HandlingEventType`. In `Transitions.Next`, add tuple arms that allow cancelling from `ConsignmentStatus.Booked` and `ConsignmentStatus.Loaded` only, and keep the `_ =>` arm throwing `InvalidTransitionException`. Don't add state classes or a state interface; `ConsignmentStateMachine.Apply` keeps calling `Transitions.Next`. Add a `TransitionsTests` case for each new arm and one showing that cancelling an `InTransit` consignment throws.
-
-Check with `dotnet test --project ConsignmentTracking.Tests --filter TransitionsTests`, and read each new arm: it must be a pair the domain allows.
-</blockquote>
+> **🤖 Explore with your agent**
+>
+> "Add a cancelled value to `ConsignmentStatus` and a cancel value to `HandlingEventType`. In `Transitions.Next`, add tuple arms that allow cancelling from `ConsignmentStatus.Booked` and `ConsignmentStatus.Loaded` only, and keep the `_ =>` arm throwing `InvalidTransitionException`. Don't add state classes or a state interface; `ConsignmentStateMachine.Apply` keeps calling `Transitions.Next`. Add a `TransitionsTests` case for each new arm and one showing that cancelling an `InTransit` consignment throws."
+>
+> Check with `dotnet test --project ConsignmentTracking.Tests --filter TransitionsTests`, and read each new arm: it must be a pair the domain allows.
 
 ## Build, run, observe
 
