@@ -162,7 +162,11 @@ With `ValidateScopes = true`, resolving `LazyTariffTable` from the root provider
 - **Lazy loading of a required dependency.** Both `LazyTariffTable` and the DI singleton load on first use. If the rates service is down, the failure lands on whichever request touches the table first, after the service has reported healthy and accepted traffic. For a table every request needs, load it at startup and fail the deployment. Lazy suits a dependency that's rarely needed, such as a background job that occasionally reads tariffs.
 
 <blockquote class="ai-sidebar" markdown="1">
-Ask an assistant for "a thread-safe singleton" in C# and a common answer is still double-checked locking: a nullable static field, a null check, a `lock`, a second check, then the assignment. It reimplements what `Lazy<T>` with `LazyThreadSafetyMode.ExecutionAndPublication` already does, and can carry ordering bugs if a field read is reordered relative to its write. The same prompt sometimes produces a static mutable Singleton for a cache, a clock or a configuration source that a test later needs to replace. Check a generated singleton with two questions: does `Lazy<T>` give the same guarantee with less code, and will a test, sandbox or second consumer ever need a different implementation? A DI singleton keeps that open; a static field closes it.
+**Specifying a singleton.** "Make the tariff table a thread-safe singleton" leaves open who owns the single instance and whether a test can replace it.
+
+> Register the table as a DI singleton in `AddTariffTables`: `AddSingleton<ITariffSource, CountingTariffSource>()` and a `TariffTable` built from the resolved `ITariffSource`. Where a type must defer its own load, use `Lazy<TariffTable>` with `LazyThreadSafetyMode.ExecutionAndPublication`, as `LazyTariffTable` does. Don't write double-checked locking, a nullable static field or a `lock`, and don't give anything but `ClassicTariffTable` a static `Instance`; it stays as the comparison.
+
+Check with `dotnet test --project TariffTables.Tests --filter LazyTariffTableTests`; `Concurrent_access_from_many_threads_still_loads_exactly_once` must pass.
 </blockquote>
 
 ## Build, run, observe

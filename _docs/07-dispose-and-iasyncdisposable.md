@@ -244,17 +244,11 @@ guard it with one boolean field, and add more only when an unmanaged handle or a
 subclassing requirement appears.
 
 <blockquote class="ai-sidebar" markdown="1">
-Ask an AI pairing partner to "make this class disposable" and a common result is
-the full six-member pattern, finalizer, `Dispose(bool)` and
-`GC.SuppressFinalize`, whether or not the class is sealed or owns anything
-unmanaged, because that shape is what training material most often calls "the
-dispose pattern." For a class with one `await`-based cleanup step, the same
-prompt sometimes produces a synchronous `Dispose()` that blocks on
-`.GetAwaiter().GetResult()` instead of implementing `IAsyncDisposable`, with
-deadlock risk built in. Check a generated implementation against two questions:
-does release require awaiting something, which decides the interface, and does
-this type own an unmanaged resource directly or allow subclassing, which alone
-justifies the finalizer and `Dispose(bool)` that CA1063 and CA1816 gate.
+**Specifying disposal.** "Make this class disposable" leaves open whether release must be awaited and whether the type needs a finalizer.
+
+> `ManifestWriter` is sealed and owns one `FileStream`: implement `IDisposable` with a single `Dispose()` that disposes the stream and sets `_disposed`, with no finalizer, no `Dispose(bool)` and no `GC.SuppressFinalize`. `LedgerAppender` writes through a `StreamWriter` asynchronously: implement `IAsyncDisposable` with a `DisposeAsync()` that returns `ValueTask` and awaits `_writer.DisposeAsync()`, never `.GetAwaiter().GetResult()`. In both, a second dispose is a no-op, and `WriteLine` or `AppendAsync` after disposal throws through `ObjectDisposedException.ThrowIf`.
+
+Check with `dotnet test --project ManifestWriting.Tests --filter Dispos`; a `~ManifestWriter` finalizer in the reply is the pattern this class doesn't need.
 </blockquote>
 
 ## For deeper coverage

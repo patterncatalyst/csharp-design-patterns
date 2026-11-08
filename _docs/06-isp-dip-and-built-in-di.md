@@ -282,18 +282,11 @@ or a capability varies by consumer. The built-in container itself is cheap: no
 extra package and no framework decision, just a few `AddSingleton` calls.
 
 <blockquote class="ai-sidebar" markdown="1">
-Ask an LLM pairing partner to "add dependency injection" to a C# class and it
-sometimes reaches for a third-party container such as Autofac, even when the
-project already references `Microsoft.Extensions.DependencyInjection` and no
-missing capability was mentioned. It also tends to register everything as
-scoped, carrying a web-request model into a console library or background worker
-with no request boundary, the mistake the service-lifetimes documentation warns
-about. Check a generated registration: does a second implementation exist or is
-one coming, does a test need a substitute, and does the process have a
-request-like boundary that justifies anything narrower than singleton? A
-generated `IRateGateway` around one class with one call site, or a scoped
-registration in a tool that runs start to finish, solves a wiring problem the
-codebase doesn't have.
+**Specifying the wiring.** "Add dependency injection" leaves open the container, the lifetime and how much of the gateway each consumer sees.
+
+> Wire the gateway with `Microsoft.Extensions.DependencyInjection` only, in `ServiceCollectionExtensions.AddCarrierGateway<TGateway>`; add no third-party container. Register `TGateway` once with `AddSingleton` and forward `ICarrierGateway`, `ICarrierRates` and `ICarrierTracking` to that one instance. This library has no request boundary, so nothing is scoped. `ShipmentRateAdvisor` takes only `ICarrierRates`; `ShipmentBookingService` takes `ICarrierGateway`. Both receive dependencies through primary constructors, never from `IServiceProvider`. Tests swap in `FakeCarrierGateway` with `AddCarrierGateway<FakeCarrierGateway>()`.
+
+Check with `dotnet test --project CarrierGateways.Tests --filter CarrierGatewayRegistrationTests`; `Narrow_interfaces_resolve_to_the_same_registered_gateway_instance` must pass.
 </blockquote>
 
 ## Build, run, observe

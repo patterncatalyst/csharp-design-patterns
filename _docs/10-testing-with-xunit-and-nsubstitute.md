@@ -289,11 +289,11 @@ Moq is the other common library, and a team with a working Moq suite has no reas
 The other reason is supply chain. Moq 4.20.0 bundled SponsorLink, a closed-source component that read the developer's email address at build time and sent a hashed form of it. Version 4.20.2 removed it, and the [Moq changelog](https://github.com/devlooped/moq/blob/main/changelog.md) records it as no longer bundled from 4.20.70. NSubstitute has no comparable telemetry dependency to evaluate. For a new project with no investment either way, that makes NSubstitute the default.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying a test.** "Write a mocking example in C#" leaves open the library, the token and how async calls are stubbed and verified. State them:
+**Specifying a test.** "Write a mocking example in C#" leaves open the library, the token and how async calls are stubbed and verified.
 
-> Write an xUnit v3 test for `ShipmentRatingEngine.QuoteAsync` with NSubstitute: `Substitute.For<T>()` for `ICarrierRates`, `ITaxPolicy` and `IAuditSink`, `.Returns(value)` on async members with no `Task.FromResult`, `TestContext.Current.CancellationToken` on every token-accepting call, and `await auditSink.Received(1).RecordAsync(...)` for the audit check. Use `TheoryData<,>` for member data.
+> Write xUnit v3 tests for `ShipmentRatingEngine.QuoteAsync` with NSubstitute: `Substitute.For<T>()` for `ICarrierRates`, `ITaxPolicy` and `IAuditSink`, `.Returns(value)` on `GetBaseRateAsync` with no `Task.FromResult`, `TestContext.Current.CancellationToken` on every token-accepting call, and `await auditSink.Received(1).RecordAsync(...)` for the audit check. Feed theories from a method returning `TheoryData<decimal, decimal>` through `[MemberData]`. Don't use Moq.
 
-Reject a reply that uses `Mock<T>` and `.Object` or passes `CancellationToken.None`.
+Check with `dotnet test --project RatingEngine.Tests --filter ReceivedTests`, and reject a reply containing `Mock<T>`, `.Object` or `CancellationToken.None`.
 </blockquote>
 
 ## Build, run, observe

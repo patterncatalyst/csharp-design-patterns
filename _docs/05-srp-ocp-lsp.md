@@ -191,16 +191,11 @@ SRP draws the boundaries, OCP says how each grows, and LSP makes it safe to
 depend on the boundary instead of the implementation behind it.
 
 <blockquote class="ai-sidebar" markdown="1">
-Ask an AI pairing partner to "apply SOLID" to a working rate calculator and a
-common result is an interface for every class, whether or not a second
-implementation exists. Check the result against each principle. SRP: does the
-split follow a real difference in who changes the code and why, or does it only
-add files? OCP: is a second pricing strategy or surcharge in hand or clearly
-coming? An `ISurcharge` with one implementation and nothing planned is OCP's cost
-with none of its benefit. LSP: does a generated implementation honor the
-contract, not only the signature? A model asked for a new pricing strategy will
-write one that returns a negative adjustment for a promotional rate, which no
-other `IRateQuote` does, unless substitution checks catch it.
+**Specifying a SOLID change.** "Apply SOLID to the rate calculator" doesn't say which change is coming, so it leaves room for an interface per class and a strategy that breaks the contract.
+
+> Add fuel and insurance charges without editing `WeightBasedRateCalculator` or `RateCalculator`: write `FuelSurcharge` and `InsuranceSurcharge` as sealed classes implementing `ISurcharge`, and compose them in `SurchargedRateQuote`, which is itself an `IRateQuote`. Keep tax behind `ITaxPolicy` and audit behind `IAuditSink`, both optional constructor parameters of `RateCalculator`. Every `IRateQuote` and `ISurcharge` must return a non-negative `Money` in the input currency and charge no less for a heavier `Consignment`. Add no other interface.
+
+Check with `dotnet test --project RateCalculation.Tests --filter LspInvariantTests`; a new type belongs in its `RateQuoteImplementations` or `SurchargeImplementations` list.
 </blockquote>
 
 ## Build, run, observe

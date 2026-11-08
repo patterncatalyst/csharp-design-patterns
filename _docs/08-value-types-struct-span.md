@@ -172,11 +172,11 @@ A value type fits a type that is small, immutable and has no identity beyond its
 - **`ref struct` beyond one synchronous call.** A parser that yields records through an iterator or hands a span to an `await`ed step can't be a `ref struct`; the compiler rejects it. Materialize a `ConsignmentRecord` or a `string` before the boundary and keep the `ref struct` in the synchronous part. A span returned from a method and held past its backing memory is a bug the compiler can't always catch, so the discipline applies outside `ref struct` too.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying a value type.** "Make this a struct for performance" leaves open the size of the type, whether it needs identity, whether it's immutable and where a span may live. State them:
+**Specifying a value type.** "Make this a struct for performance" leaves open the size of the type, whether it needs identity, whether it's immutable and where a span may live.
 
-> Convert `Weight` to a `readonly record struct` with one `decimal Kilograms` property validated in its initializer; don't hand-write `Equals`, `GetHashCode` or the operators. Keep `Consignment` a class. Write `EdiRecordParser` as a `readonly ref struct` used inside one synchronous `TryParse` call, slicing a `ReadOnlySpan<char>` and parsing with `CultureInfo.InvariantCulture` and explicit `NumberStyles`, with no `Substring`.
+> Keep `Weight`, `Money` and `SlotId` as `readonly record struct` types with each property validated in its initializer; don't hand-write `Equals`, `GetHashCode` or the operators. `ConsignmentRecord` stays a `readonly record struct` of those values. Write `EdiRecordParser` as a `readonly ref struct` used only inside the static `TryParse(ReadOnlySpan<char>, out ConsignmentRecord)`, slicing the span and parsing with `CultureInfo.InvariantCulture` and explicit `NumberStyles`. Use no `Substring`, and return `false` for bad input instead of throwing.
 
-Check a converted struct against three questions: is it small, does it need no identity, does it need no inheritance.
+Check with `dotnet test --project FreightValueTypes.Tests --filter TryParse`; `TryParse_steady_state_allocates_nothing_on_the_current_thread` must pass.
 </blockquote>
 
 ## For deeper coverage

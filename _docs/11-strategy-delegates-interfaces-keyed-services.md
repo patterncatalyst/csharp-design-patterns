@@ -192,11 +192,11 @@ The keyless case is easier to miss. Three tariffs implement `IPricingStrategy`, 
 - **Keyed services without runtime selection.** Keys earn their place when the selecting value is data the caller doesn't control at compile time: a string on a request, a database row, a message header. Two call sites that always want `StandardTariff` and `ExpressTariff` get nothing from `AddKeyedSingleton` that a plain injected `IPricingStrategy` doesn't give, and they gain a string lookup table, a registration per key and a throw-on-miss failure mode.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying a strategy.** "Make pricing configurable by service level" leaves open whether the level arrives as runtime data, how many implementations exist, and whether a hand-built `Dictionary<string, IPricingStrategy>` or the container does the lookup. State it:
+**Specifying a strategy.** "Make pricing configurable by service level" leaves open whether the level arrives as runtime data, how many implementations exist, and whether a hand-built dictionary or the container does the lookup.
 
-> Register `StandardTariff`, `ExpressTariff` and `EconomyTariff` as `IPricingStrategy` with `AddKeyedSingleton` under `"standard"`, `"express"` and `"economy"` in one `AddRateQuoting` extension. Have `KeyedTariffQuoter` resolve `GetRequiredKeyedService<IPricingStrategy>(request.ServiceLevel)`. Don't build a dictionary of strategies by hand, and don't add an interface for a rule with one implementation; pass a `Func<RateRequest, Money>` there.
+> Register `StandardTariff`, `ExpressTariff` and `EconomyTariff` as `IPricingStrategy` with `AddKeyedSingleton` under `"standard"`, `"express"` and `"economy"` in one `AddRateQuoting` extension. Have `KeyedTariffQuoter.Quote` call `GetRequiredKeyedService<IPricingStrategy>(request.ServiceLevel)`, and give `ExpressLaneQuoter`, whose key never changes, a `[FromKeyedServices("express")]` parameter. Don't build a `Dictionary` of strategies by hand. For a one-off rule, pass a `Func<RateRequest, Money>` to `DelegateRateQuoter` instead of adding an interface.
 
-Ask which value selects the strategy at runtime; if none does, the keys go.
+Check with `dotnet test --project RateQuoting.Tests --filter KeyedTariffQuoterTests`; if no runtime value selects the strategy, the keys go.
 </blockquote>
 
 ## Build, run, observe

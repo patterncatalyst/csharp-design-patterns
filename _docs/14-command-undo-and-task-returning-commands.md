@@ -276,11 +276,11 @@ Command pays for itself when something needs undo, queued or batched application
 - **The machinery is overhead.** Each reversible command carries a snapshot field, a constructor taking receiver and value, and an `Undo` with its own guard. A queue whose commands are never undone or replayed is a `Queue<T>` and a `Stack<T>` doing what a `foreach` over a list of actions does.
 
 <blockquote class="ai-sidebar" markdown="1">
-**Specifying undo.** "Make these operations support undo" leaves open which operations need it and what each command captures. State both:
+**Specifying undo.** "Make these operations support undo" leaves open which operations need it and what each command captures.
 
-> Add undo only for the service-level and weight changes, as `ChangeServiceLevelCommand` and `ChangeWeightCommand` implementing `IBookingCommand`. Each `Execute` copies the prior value into a private nullable field before overwriting it, and `Undo` throws `InvalidOperationException` if `Execute` never ran. Don't capture a reference to a mutable list or object as a snapshot; copy the value.
+> Implement undo for service-level and weight changes as `ChangeServiceLevelCommand` and `ChangeWeightCommand`, both `IBookingCommand`. Each `Execute` copies the prior `Booking.ServiceLevel` or `Booking.WeightKilograms` into a private nullable field before overwriting it, and `Undo` throws `InvalidOperationException` if `Execute` never ran. `AmendmentQueue` keeps executed commands on a stack for `Undo` and `Redo`. The gateway call goes in `ConfirmAmendmentCommand` behind `IAsyncBookingCommand`, run by `AsyncAmendmentQueue.RunAsync` with the caller's `CancellationToken`. Don't snapshot a reference to a mutable list or object; copy the value.
 
-Check each snapshot field: a value, an immutable type or a copy, never a live reference.
+Check with `dotnet test --project BookingAmendments.Tests --filter AmendmentQueueTests`; `Undo_restores_the_exact_snapshot_even_after_later_commands_changed_the_value` must pass.
 </blockquote>
 
 ## Build, run, observe
