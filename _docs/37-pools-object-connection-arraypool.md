@@ -11,25 +11,37 @@ description: "Resource-management patterns for pooling connections and buffers t
 
 ## Learning objectives
 
-- Build a fixed-size async connection pool over a `Channel<T>`, where the channel is both the storage for idle connections and the wait queue a renter suspends on when the pool is empty.
-- Explain why an exhausted pool suspending `RentAsync` is correct backpressure rather than a defect, and trace exactly which waiting caller a returned connection goes to.
-- Wrap a borrowed resource in an RAII-style lease so a `using` block guarantees return even when the caller throws.
-- Rent, use, and return a scratch buffer through `ArrayPool<byte>`, and state precisely why `clearArray: true` matters when the buffer held carrier or EDI data.
-- Judge when buffer reuse through an array pool is worth the added complexity against allocating a fresh array per call.
+By the end of this chapter you can:
+
+- Build a fixed-size async connection pool over a `Channel<T>` that is both the idle store and the wait queue.
+- Explain why an exhausted pool suspending `RentAsync` is correct backpressure, and which waiting caller a returned connection goes to.
+- Wrap a borrowed resource in a lease so a `using` block guarantees return even when the caller throws.
+- Rent, use and return a scratch buffer through `ArrayPool<byte>`, and say why `clearArray: true` matters for carrier or EDI data.
+- Judge when array-pool reuse is worth it against allocating a fresh array.
 
 ## Why this matters
 
-Most objects in a C# program are cheap. A `List<T>`, a DTO, a small record, allocating one costs a few nanoseconds and the garbage collector reclaims it without anyone noticing. Pooling that kind of object buys nothing: the pool's bookkeeping, a rent call, a return call, a place to store idle instances, costs more than the allocation it is trying to avoid. The pattern only pays for itself when the thing being managed is scarce enough to matter: expensive to create, limited in count, or large enough that repeated allocation shows up as real, measurable pressure on the garbage collector.
+Most objects are cheap. Allocating a `List<T>`, a DTO or a small record costs a few nanoseconds, and the garbage collector reclaims it unnoticed. Pooling those costs more in rent, return and idle storage than it saves. Pooling pays only when a resource is expensive to create, limited in count, or large enough that repeated allocation shows up as garbage-collector pressure.
 
-A connection to a carrier gateway is scarce in the first sense. Establishing one means a handshake and authentication with a remote system, work a caller does not want to repeat for every manifest it sends. A carrier's own infrastructure, or a contract with them, usually also caps how many connections a shipper can hold open at once, so the count itself is bounded independent of how much traffic the shipper wants to push through it. A large scratch buffer used to serialize a manifest is scarce in the second sense: not limited in count, but expensive enough per allocation, and frequent enough in a hot serialization path, that allocating and discarding one on every call turns into visible garbage-collector churn.
+A carrier gateway connection is scarce in the first two senses. Opening one means a handshake and authentication with a remote system, and the carrier's infrastructure or contract usually caps how many connections a shipper holds open. A large scratch buffer for serializing manifests is scarce in the third: unlimited in count, but costly enough per allocation, on a hot path, to cause visible churn.
 
-Both problems share the same shape: acquire a resource, use it, give it back, and make the giving-back automatic enough that a caller cannot forget. *Pattern-Oriented Software Architecture, Volume 3: Patterns for Resource Management* is the catalogue for exactly this shape, and it names the pieces this chapter builds: a Resource Pool that holds a bounded set of reusable instances, Eager Acquisition that creates the pool's full membership up front rather than on first demand, and a Resource Lease that ties a borrowed resource's lifetime to a scope the caller cannot exit without releasing it. None of that is C#-specific; what is specific here is how little code the modern runtime needs to express it. A `Channel<T>` already understands "suspend the reader until a writer shows up," so a connection pool does not need a hand-rolled wait queue, and `ArrayPool<T>` already understands bucketed array reuse, so a buffer pool does not need to be written at all, only used correctly.
+Both share one shape: acquire, use, give back, with giving back automatic enough that a caller can't forget. *Pattern-Oriented Software Architecture, Volume 3* catalogs the pieces: Resource Pool, Eager Acquisition and Resource Lease. The runtime supplies most of the code. `Channel<T>` already suspends a reader until a writer arrives, so a connection pool needs no hand-rolled wait queue, and `ArrayPool<T>` already does bucketed array reuse.
 
 {% include excalidraw.html name="37-pools-object-connection-arraypool" caption="Figure 37.1: A fixed-size connection pool hands out connections and takes them back on return; a scratch buffer pool reuses memory the same way." %}
 
-## A fixed-size connection pool over a channel
+## Pattern: Resource Pool
 
-`GatewayConnectionPool` is a pool of `IGatewayConnection` instances, each one standing in for an established session with a carrier gateway. Its constructor takes a fixed `size` and a `connectionFactory`, and it calls that factory exactly `size` times, writing every resulting connection into an unbounded `Channel<IGatewayConnection>` before the constructor returns. That is Eager Acquisition: the pool's full membership exists the moment construction completes, rather than growing lazily as callers show up. `Size` reports that fixed count for the life of the pool, and `Available` reports how many of those connections are currently idle, which is just the channel reader's `Count`.
+### The problem
+
+Opening a carrier connection per manifest repeats an expensive handshake, and opening as many as demand asks for exceeds what the carrier allows.
+
+### The solution
+
+**A Resource Pool holds a bounded set of reusable instances that callers rent and return, instead of creating and destroying one per use.**
+
+### How C# models it
+
+`GatewayConnectionPool` calls its factory exactly `size` times in the constructor and writes every connection into an unbounded `Channel<IGatewayConnection>`. That's Eager Acquisition: the full membership exists when construction completes. `Size` is the fixed count; `Available` is the channel reader's `Count`.
 
 ```csharp
 public sealed class GatewayConnectionPool : IAsyncDisposable
@@ -56,43 +68,38 @@ public sealed class GatewayConnectionPool : IAsyncDisposable
 }
 ```
 
-The channel is doing two jobs with one field. It is the storage for every connection that is not currently rented out, and it is the wait queue for a caller that arrives when nothing is idle. `RentAsync` is nothing more than `_available.Reader.ReadAsync(ct)`: reading from a channel that has an item completes immediately with that item, and reading from an empty channel suspends the reader until a writer supplies one. `Return` is nothing more than `_available.Writer.TryWrite(connection)`, which both deposits the connection back into the idle set and, if a reader happens to be parked waiting, completes that reader's pending read directly. A test confirms that distinct rents really do return distinct connections: renting all three connections out of a pool of three produces three different `Id` values, proving the factory is called once per slot and the channel is not silently handing out the same instance twice.
+The one channel does two jobs: it stores idle connections, and it's the wait queue for callers who arrive when none are idle. `RentAsync` is a channel read, which completes at once if an item is there and suspends otherwise. `Return` is a channel write, which restores the connection to the idle set or completes a parked reader's read directly. Renting all three connections from a pool of three yields three distinct `Id` values.
 
-## Exhaustion is backpressure, not a bug
+### Exhaustion is backpressure, not a bug
 
-A pool sized smaller than demand will, by construction, run out. What happens next is the entire point of pooling a scarce resource rather than just allocating more of it: a renter that arrives when `Available` is already zero does not get an exception, a null, or a busy-wait loop. It gets a `ValueTask` that has not completed yet, suspended on the same channel read every other renter uses, until a `Return` call somewhere else in the program hands a connection back.
+A pool smaller than demand runs out by design. A renter arriving at `Available == 0` gets no exception, no null and no busy-wait: it gets an incomplete `ValueTask`, parked on the same channel read, until a `Return` elsewhere frees a connection.
 
 {% include excalidraw.html name="37-connection-pool-exhaustion" caption="Figure 37.2: A two-connection pool leaves a third rent incomplete until a connection comes back, and that exact connection goes to the caller who was already waiting." %}
 
-The test for this proves the suspension without relying on a timeout or a sleep. It rents both connections out of a two-connection pool, confirms `Available` is zero, then starts a third `RentAsync` call and asserts `pendingC.IsCompleted` is false, a direct, deterministic check that the task really is parked rather than merely slow. Only after that assertion does the test call `Return` on one of the first two connections, and only then does `pendingC` complete. A companion test goes one step further and checks identity: the connection the waiting renter receives is the exact instance that was just returned, `Assert.Same(a, await pendingC)`, which confirms the channel hands a freed resource to whoever has been waiting longest rather than, say, re-queuing it behind the current caller. A third test cancels a pending rent through its own `CancellationTokenSource` while it is still parked and confirms it throws `OperationCanceledException` rather than hanging forever: a caller that gives up on waiting is never left stranded on an incomplete task.
+With both connections of a two-connection pool rented:
 
-This is backpressure, not a bug. If the pool grew without limit to meet demand, or if `RentAsync` threw the moment nothing was idle, the fixed size would stop meaning anything, and the scarce resource it is supposed to protect, whatever cap the carrier's own infrastructure places on concurrent connections, would be meaningless too. A caller that has to wait is getting a clear signal: the system is at capacity right now, and the correct response is to wait your turn, not to force a connection into existence that the far end was never provisioned to accept.
+- a third `RentAsync` reports `IsCompleted` as `false`, parked, not slow;
+- returning one connection completes it, and the waiter receives that exact instance;
+- cancelling a parked rent through its token throws `OperationCanceledException`, so a caller who gives up isn't stranded.
 
-## The lease pattern: RentLeaseAsync and using
+If the pool grew to meet demand, or threw when empty, the fixed size would mean nothing, and neither would the carrier's cap it protects. Waiting tells the caller the system is at capacity; the right response is to wait, not to force a connection the far end wasn't provisioned for.
 
-Calling `RentAsync` directly works, but it leaves returning the connection entirely up to the caller remembering to call `Return`, in every code path, including the ones that throw. `GatewayLease` closes that gap. It is a `readonly record struct` holding the pool and the connection it borrowed, and its only behavior is `IDisposable.Dispose`, which calls `Pool.Return(Connection)`.
+### Object pools beyond a single connection type
 
-```csharp
-public readonly record struct GatewayLease(GatewayConnectionPool Pool, IGatewayConnection Connection)
-    : IDisposable
-{
-    public void Dispose() => Pool.Return(Connection);
-}
-```
+For plain objects that are only expensive to construct, `Microsoft.Extensions.ObjectPool` is .NET's answer. `ObjectPool<T>` has a synchronous `Get`/`Return` pair backed by a `PooledObjectPolicy<T>` that creates and resets objects, and ASP.NET Core uses it to recycle `StringBuilder` instances.
 
-`RentLeaseAsync` on the pool is the one line that ties the two together: `new(this, await RentAsync(ct))`. A caller who writes `using var lease = await pool.RentLeaseAsync(ct);` gets the connection back through `lease.Connection`, and the moment that `using` block ends, by falling off the end normally or by an exception propagating out, `Dispose` runs and the connection goes back to the pool. The test for this is a direct before-and-after: inside the `using` block, `Available` is zero because the pool's only connection is out on lease; once the block exits, `Available` is back to one. A record struct is the right shape for a lease like this because a lease is naturally compared by what it holds rather than by reference identity, and because there is no heap allocation beyond the connection itself, the lease is just a stack-resident pairing of a pool reference and a connection reference.
+It limits how many objects it retains, not how many it hands out. `Get` on an empty pool constructs a fresh instance instead of waiting:
 
-This is the same shape POSA3 calls a Resource Lease: a value whose own lifetime, scoped by `using`, is what releases the resource, so "forgetting to return a connection" stops being a category of bug a caller can even write by accident, short of discarding the lease outright without ever disposing it.
+| | `ObjectPool<T>` | `GatewayConnectionPool` |
+| --- | --- | --- |
+| Rent when empty | Constructs a new instance | Suspends until a return |
+| Hard cap on live instances | No | Yes |
+| API | Synchronous `Get`/`Return` | `RentAsync`/`Return` |
+| Fits | `StringBuilder` and similar | A rationed resource such as carrier connections |
 
-## Object pools beyond a single connection type
+### Reusing buffers with an array pool
 
-`GatewayConnectionPool` is purpose-built: it understands exactly one kind of resource, and its rent operation can suspend a caller when nothing is available. For the more general case, pooling plain objects that are not scarce in the connection sense, just expensive enough to construct that reuse is worth the bookkeeping, `Microsoft.Extensions.ObjectPool` is .NET's own answer. Its `ObjectPool<T>` exposes a synchronous `Get`/`Return` pair, backed by a `PooledObjectPolicy<T>` that controls how an object is created and how it is reset before going back on the shelf, and ASP.NET Core itself uses exactly this to recycle `StringBuilder` instances rather than allocating one per request.
-
-That synchronous `Get`/`Return` shape is also precisely why this chapter's example does not reach for it. `Microsoft.Extensions.ObjectPool` does not place a limit on how many objects it will hand out, only on how many it retains for reuse; a caller that calls `Get` when the pool is empty simply gets a freshly constructed instance rather than waiting. That is the right behavior for a `StringBuilder`, where manufacturing one more instance on demand is harmless, and the wrong behavior for a carrier connection, where the whole point of the fixed size is that the pool must never manufacture a connection the carrier's infrastructure was not provisioned to accept. `GatewayConnectionPool`'s channel-backed wait is a considered divergence from that default: a general object pool trades a hard cap for always returning promptly, and a connection pool over a strictly rationed resource needs the opposite trade.
-
-## Reusing buffers with an array pool
-
-`ManifestWriter` solves a different flavor of the same problem: serializing a `ManifestLine` collection into the wire format a carrier gateway expects, `Code=Value` per line, UTF-8 encoded, without allocating a fresh scratch array on every call.
+`ManifestWriter` serializes `ManifestLine` items into the gateway's wire format, `Code=Value` per line in UTF-8, without allocating a fresh scratch array per call:
 
 ```csharp
 public byte[] Serialize(IReadOnlyList<ManifestLine> lines)
@@ -121,21 +128,59 @@ public byte[] Serialize(IReadOnlyList<ManifestLine> lines)
 }
 ```
 
-`UpperBoundBytes` walks the input once and computes a deterministic worst-case length: the maximum UTF-8 expansion of every code and value, plus one byte for each `=` and `\n` separator. That upper bound is what gets handed to `_pool.Rent`, which is the constructor-injected `ArrayPool<byte>` rather than a hard-coded reference to `ArrayPool<byte>.Shared`, so a test can substitute a recording pool and observe rent and return behavior directly instead of fighting the shared pool's process-wide, non-deterministic bucket contents. Encoding happens directly into the rented array through `AsSpan`, tracking exactly how many bytes have been written so far, and only the final `scratch.AsSpan(0, written).ToArray()` call allocates the array the caller keeps, trimmed to the real length rather than the worst-case one. The `try`/`finally` guarantees the scratch buffer goes back to the pool even if an encoding step throws partway through.
+`UpperBoundBytes` computes a deterministic worst case: the maximum UTF-8 expansion of every code and value, plus one byte per `=` and `\n`. `_pool` is a constructor-injected `ArrayPool<byte>`, not a hard-coded `ArrayPool<byte>.Shared`, so a recording pool can stand in and observe rents and returns without the shared pool's process-wide, non-deterministic buckets. Only the final `ToArray()` allocates, trimmed to the bytes written. The `finally` returns the buffer even if encoding throws.
 
 {% include excalidraw.html name="37-arraypool-buffer-reuse" caption="Figure 37.3: Renting a buffer, using it, and returning it cleared means the next rent gets back the same array instead of a fresh allocation." %}
 
-A recording test double confirms the reuse directly rather than inferring it from timing or memory counters. It wraps a dedicated `ArrayPool<byte>.Create()` instance, never the shared pool, and records every array it hands out and takes back. Serializing the same sample manifest twice in a row shows the array returned after the first call is the exact array rented for the second call, `Assert.Same(firstReturnedArray, secondRentedArray)`, and that the two calls produce identical output bytes despite sharing physical memory between them. A round trip through `ManifestWriter.Parse`, the inverse of `Serialize`, confirms the reused buffer's contents decode back to the original lines correctly, closing the loop on correctness, not just reuse.
+A recording wrapper over a dedicated `ArrayPool<byte>.Create()` instance shows the reuse: serializing the same manifest twice rents, for the second call, the exact array returned by the first, and both calls produce identical bytes. `ManifestWriter.Parse`, the inverse of `Serialize`, decodes the output back to the original lines.
 
-## Why clearArray matters for carrier data
+### Why clearArray matters for carrier data
 
-`ArrayPool<T>.Return` takes a `clearArray` argument, and `ManifestWriter` always passes `true`. Without it, a returned array keeps whatever bytes were written into it the last time it held a manifest, sitting in the pool's bucket until the next `Rent` call hands that same backing array to a different caller. If that next caller's manifest happens to be shorter than the previous one, the trailing bytes of the array past where the new encoding stopped still hold the previous manifest's carrier name, consignment weight, or destination, bytes that `Serialize` never touches again because it only returns the span up to `written`. That stale tail cannot leak through `ManifestWriter.Serialize` itself, since the return value is always trimmed to the exact length written. The risk is anyone else who gets the same backing array from the pool and reads past the bounds a correct caller would respect, whether through a bug, a cast, or code that assumes the full rented length is meaningful data. Clearing the array on return removes that possibility entirely: every rented array a caller receives starts from a known, zeroed state, and freight data from one manifest never has a physical path into memory a different manifest's serialization might expose. The recording test asserts `pool.LastReturnedCleared` is true specifically to pin this behavior, because clearing is an opt-in argument, not a default, and a refactor that quietly dropped it would otherwise pass every other test in the suite.
+`ArrayPool<T>.Return` clears only when asked, and `ManifestWriter` always passes `clearArray: true`. Without it, a returned array keeps the last manifest's bytes until the next `Rent` hands that array to another caller. If the next manifest is shorter, the tail past `written` still holds the previous carrier name, consignment weight or destination.
 
-## When buffer reuse pays off versus allocating fresh
+That tail can't leak through `Serialize`, whose result is trimmed. The risk is any other renter of the same array that reads past the bounds a correct caller respects, through a bug, a cast, or code that treats the full rented length as data. Clearing on return means every rented array starts zeroed, so one manifest's freight data has no path into memory another's serialization might expose. Clearing is opt-in, so a check that the last return cleared guards it; a refactor that dropped the argument would otherwise still produce correct output.
 
-Buffer reuse through an array pool is worth the added complexity when three conditions hold together: the array is large enough that allocating and discarding it repeatedly shows up as garbage-collector pressure, the code path that needs it runs often enough for that pressure to matter, and the buffer's lifetime is short and strictly scoped, rented, filled, read, returned, within a single call rather than held indefinitely. `ManifestWriter.Serialize` fits all three: it runs on every outbound manifest, the scratch buffer is only alive for the duration of one `Serialize` call, and the computed upper bound means repeated calls with similarly sized manifests rent from the same size bucket and get the same backing array back, which is exactly what the reuse test observes.
+### When buffer reuse pays off versus allocating fresh
 
-The trade stops paying off outside that shape. A buffer rented once and held for the life of an object defeats the purpose, since nothing else can reuse it while it is checked out indefinitely, and the pool ends up functioning as a slower allocator with extra bookkeeping on top. A caller whose buffer sizes vary wildly from one call to the next spreads rentals across many of the pool's internal size buckets instead of concentrating reuse into one, which looks like pooling but behaves more like allocating fresh arrays from a slightly more complicated allocator. And for small, short-lived arrays, a few dozen bytes, a handful of elements, the generational garbage collector already reclaims them cheaply enough that renting and returning costs more in code and indirection than it saves in allocation pressure. The deciding question is always whether the array is both large and frequent; `ManifestWriter`'s scratch buffer is both, which is why it is the one piece of this chapter's example built around `ArrayPool<T>` rather than a plain `new byte[...]` on every call.
+Array-pool reuse pays when all three hold:
+
+- the array is large enough that allocating and discarding it shows up as garbage-collector pressure;
+- the path runs often enough for that pressure to matter;
+- the buffer's lifetime is short and scoped to one call.
+
+`ManifestWriter.Serialize` meets all three: it runs on every outbound manifest, its buffer lives for one call, and similarly sized manifests rent from the same bucket and get the same array back.
+
+It stops paying when:
+
+- **a buffer is held for an object's lifetime**, so nothing else can reuse it and the pool is a slower allocator;
+- **sizes vary widely between calls**, spreading rentals across many buckets instead of concentrating reuse;
+- **arrays are small and short-lived**, a few dozen bytes, which the generational collector already reclaims cheaply.
+
+## Pattern: Resource Lease
+
+### The problem
+
+`RentAsync` leaves return to the caller, on every path, including the ones that throw. A missed `Return` shrinks the pool for good.
+
+### The solution
+
+**A Resource Lease ties a borrowed resource to a scoped value whose disposal returns it.**
+
+### How C# models it
+
+`GatewayLease` is a `readonly record struct` holding the pool and the connection; its only behavior is `Dispose`:
+
+```csharp
+public readonly record struct GatewayLease(GatewayConnectionPool Pool, IGatewayConnection Connection)
+    : IDisposable
+{
+    public void Dispose() => Pool.Return(Connection);
+}
+```
+
+`RentLeaseAsync` is `new(this, await RentAsync(ct))`. With `using var lease = await pool.RentLeaseAsync(ct);`, the connection is `lease.Connection`, and when the scope ends, normally or by exception, `Dispose` returns it. A one-connection pool shows `Available` as 0 inside the block and 1 after it.
+
+A record struct fits: a lease is compared by what it holds, and it adds no heap allocation beyond the connection, just a pairing of two references. Forgetting to return a connection stops being a bug a caller can write by accident, short of discarding the lease without disposing it.
 
 ## Build, run, observe
 
@@ -143,26 +188,16 @@ The trade stops paying off outside that shape. A buffer rented once and held for
 cd examples/37-pools-object-connection-arraypool && dotnet test
 ```
 
-```
-Test run summary: Passed!
-  total: 9
-  failed: 0
-  succeeded: 9
-  skipped: 0
-```
-
-The suite covers both halves of the chapter. For `GatewayConnectionPool`: a rented connection comes from the pool with a distinct identity, every connection a pool creates has a distinct identity, an exhausted pool suspends a renter until a connection is returned, a returned connection is handed to the exact renter that was already waiting, a cancelled rent while waiting throws, a disposed lease returns its connection, and a pooled connection exchanges a manifest and gets back an acknowledgement. For `ManifestWriter`: serializing a manifest rents one buffer, returns it cleared, and a buffer returned by one call is the exact buffer a later call reuses, verified by decoding the reused buffer's contents back through `Parse`. Every test is deterministic: waiting on a channel read and asserting `IsCompleted` directly replaces any reliance on a timeout or wall-clock sleep.
+All 9 tests pass. They cover distinct connection identities, suspension on an exhausted pool, hand-off of the returned connection to the waiting renter, cancellation of a parked rent, return on lease disposal, a manifest exchange over a pooled connection, and for `ManifestWriter`, one rent per call, a cleared return, and buffer reuse verified through `Parse`. Asserting `IsCompleted` on a channel read replaces timeouts and sleeps.
 
 ## When not to use it
 
-A pool is the wrong tool the moment the resource it manages is not scarce. Pooling a DTO, a small record, or any object cheap enough that the generational garbage collector reclaims it without measurable cost adds a rent call, a return call, and a place to store idle instances, real code and real indirection, for an allocation that was never a problem. Measure first: reach for `GatewayConnectionPool`'s shape, or `Microsoft.Extensions.ObjectPool`, only once an allocation or a connection setup has shown up as a real cost, not because pooling sounds like the disciplined choice.
-
-A pool can also hide a leak rather than prevent one. If a code path rents a connection or a lease and an exception, an early return, or a forgotten `Dispose` skips the return, the pool's `Available` count quietly shrinks and never recovers, and the failure only surfaces later as unrelated-looking timeouts once every connection is checked out and nothing is coming back. The lease pattern closes most of that gap by tying return to scope, but it only helps for code that uses `using`; a caller that holds a bare `IGatewayConnection` from `RentAsync` and skips the `try`/`finally` around `Return` can still leak a connection the same way a `lock` without a `finally` can leak a held monitor.
-
-`ArrayPool<T>` reuse carries its own specific risk: forgetting `clearArray: true` on `Return` does not break any test that only checks the length-trimmed result, because the trimmed output is still correct. It leaves stale bytes sitting in the returned array for whoever rents that backing array next, which is invisible until something else reads past the bounds a well-behaved caller would respect. If the data a buffer carries is sensitive, carrier credentials, consignment contents, anything that should not outlive its own call, clearing on return is not an optional tidiness step.
+- **The resource isn't scarce.** Pooling a DTO or a small record adds a rent, a return and idle storage for an allocation that was never a problem. Measure first; reach for `GatewayConnectionPool`'s shape or `Microsoft.Extensions.ObjectPool` only after allocation or connection setup shows up as a real cost.
+- **Return can be skipped.** An exception, an early return or a forgotten `Dispose` shrinks `Available` permanently, and the failure surfaces later as unrelated-looking timeouts once every connection is out. A lease helps only where callers use `using`; a bare `RentAsync` without `try`/`finally` around `Return` leaks the same way a `lock` without a `finally` would.
+- **`clearArray` is forgotten.** Output stays correct, so nothing that checks the trimmed result notices, and stale bytes wait for the next renter. For credentials, consignment contents or anything that shouldn't outlive its call, clearing is required.
 
 <blockquote class="ai-sidebar" markdown="1">
-An assistant is a reasonable pair for scaffolding a pool or a buffer-reuse routine: wiring a channel-backed rent/return pair, writing the `IAsyncDisposable` cleanup loop, or drafting the `UpperBoundBytes` calculation and the `try`/`finally` around a rented array. What has to stay a human call is whether the resource being pooled is scarce enough to justify any of that machinery in the first place, and whether the return path holds up end to end: every exit path releasing the resource, every `ArrayPool<T>.Return` call clearing the array when the data warrants it, and every lease's `Dispose` wired to the right pool. An assistant asked to "pool this" will happily produce a pool for something that did not need one, and a fast, confident `_pool.Return(scratch)` with the `clearArray` argument quietly defaulted to `false` compiles and passes a test that only checks the output, while leaving the real risk sitting in the array for a reviewer to catch by hand.
+An assistant can scaffold a pool or a buffer-reuse routine: a channel-backed rent/return pair, the `IAsyncDisposable` cleanup loop, the `UpperBoundBytes` calculation and the `try`/`finally` around a rented array. Two calls stay human: whether the resource is scarce enough to justify pooling at all, and whether every exit path releases it, every `ArrayPool<T>.Return` clears when the data warrants, and every lease disposes into the right pool. Asked to "pool this," an assistant will pool something that didn't need it, and a confident `_pool.Return(scratch)` with `clearArray` left at `false` compiles and produces correct output while leaving the risk for a reviewer to catch.
 </blockquote>
 
 ## For deeper coverage

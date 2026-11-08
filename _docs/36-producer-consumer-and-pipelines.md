@@ -11,63 +11,98 @@ description: "Producer-Consumer at the pattern level, with the Channels mechanic
 
 ## Learning objectives
 
-- Build a Producer-Consumer pipeline over a bounded channel where any number of producers and any number of consumers race over the same queue, and prove every submitted event is consumed exactly once.
-- Explain why a single producer's submission order survives a single consumer, and why that guarantee is specific to one producer and one consumer rather than a general property of the pattern.
-- Demonstrate backpressure directly: show that a producer's write to a full bounded channel waits rather than growing an unbounded buffer.
-- Signal completion by closing the write side and waiting on every consumer task, and explain why that is deterministic where a wall-clock wait is not.
-- Recognize when a single Producer-Consumer stage should generalize into a multi-stage pipeline, and how backpressure propagates upstream through that chain.
+By the end of this chapter you can:
+
+- Build a Producer-Consumer pipeline over a bounded channel where many producers and many consumers share one queue, with every event consumed exactly once.
+- Explain why one producer's order survives one consumer, and why that guarantee goes no further.
+- Show backpressure: a write to a full bounded channel waits instead of growing a buffer.
+- Signal completion by closing the write side and awaiting every consumer task, with no wall-clock wait.
+- Recognize when one stage should become a multi-stage pipeline, and how backpressure propagates upstream.
 
 ## Why this matters
 
-A shipping network has no single source of handling events. Terminal scanners report a container received, stevedores report it loaded, customs brokers report clearance, a consignee reports claim. Each of those reporters runs on its own schedule, on its own connection, with no coordination between them, and all of them want to write into the same ingest system at once. The ingest system has to accept events from however many reporters happen to be active at a given moment, hand each event to a worker that records it, and never lose one or record it twice, all while a burst of activity, a ship arriving, a customs backlog clearing, does not mean every reporter's call blocks waiting for every other one to finish first.
+A shipping network has no single source of handling events. Terminal scanners report a container received, stevedores report it loaded, customs brokers report clearance, a consignee reports a claim. Each reporter runs on its own schedule and connection, and all of them write into one ingest system at once. The ingest system must hand each event to a worker that records it, never lose or double-record one, and not make every reporter wait on every other when a ship arrives or a customs backlog clears.
 
-That is a producer problem and a consumer problem wearing the same coat. The reporters are producers: independent threads of control that have an item to hand off and want to keep moving once they have handed it off. The workers that record events are consumers: independent threads of control that want work handed to them without caring which reporter it came from. What connects the two sides is not a direct call from reporter to worker, which would tie the reporter's pace to the worker's pace, but a queue that each side can reach without reaching into the other. A reporter that is fast should not have to wait on a worker that is doing something else; a worker should not have to know how many reporters exist or which one sent what. The queue is the seam, and getting that seam right, so that it never drops an event, never double-processes one, and never grows without bound when a worker falls behind, is the entire subject of this chapter.
-
-The example (`HandlingEventIngest`) is exactly that ingest system, trimmed to its essentials. `TrackingId` identifies a consignment, `HandlingKind` enumerates what happened to it (`Receive`, `Load`, `Unload`, `Customs`, `Claim`), and `HandlingEvent` carries a tracking identifier, a kind, and the reporting source's own sequence number. `HandlingEventPipeline` is the queue and the workers together: it takes a capacity, a consumer count, and an optional per-event hook, exposes `SubmitAsync` as the one thing a producer calls, and exposes `CompleteAndDrainAsync` as the one thing that tells the caller every submitted event has been recorded, returning an `IngestReport` with a total processed count, the events each consumer observed, and a count grouped by `HandlingKind`. The pattern behind all of it, independent producers and independent consumers exchanging work through a shared, synchronized queue rather than calling each other directly, is Producer-Consumer, catalogued in *Pattern-Oriented Software Architecture, Volume 2*. The mechanism `HandlingEventPipeline` uses to realize that pattern is a bounded channel from `System.Threading.Channels`, but the channel is plumbing. The pattern is the subject.
+`HandlingEventIngest` is that system, trimmed down. `TrackingId` identifies a consignment, `HandlingKind` lists what happened (`Receive`, `Load`, `Unload`, `Customs`, `Claim`), and `HandlingEvent` carries a tracking identifier, a kind and the reporter's own sequence number. `HandlingEventPipeline` is the queue and the workers. It takes a capacity, a consumer count and an optional per-event hook, exposes `SubmitAsync` for producers and `CompleteAndDrainAsync` for the caller, and returns an `IngestReport` with the processed total, the events each consumer observed, and counts by `HandlingKind`.
 
 {% include excalidraw.html name="36-producer-consumer-and-pipelines" caption="Figure 36.1: Several producers write handling events into one bounded channel while several consumers drain it concurrently. A full channel slows the producers, and completing the writer once stops every consumer after the last event." %}
 
-## The pattern: a bounded channel separates producing from consuming
+## Pattern: Producer-Consumer
 
-`HandlingEventPipeline`'s constructor takes `capacity`, `consumerCount`, and an optional `onEvent` hook, builds a bounded channel sized to `capacity`, and immediately starts `consumerCount` consumer tasks draining it. A producer only ever calls `SubmitAsync`, which forwards to the channel's write side. A consumer is a private loop, `ConsumeAsync`, that runs `await foreach` over the channel's read side, invokes `onEvent` for whatever arrived, records it, and moves on to the next item. Neither side knows anything about the other. A reporter calling `SubmitAsync` has no idea whether one consumer or ten is draining the channel; a consumer pulling an item from the channel has no idea which reporter sent it or how many other reporters exist. The channel is the only thing either side touches, and that is deliberate: it is what lets the number of producers and the number of consumers vary independently of each other and of the code that submits or processes an event.
+### The problem
 
-This is the shape Producer-Consumer always has, regardless of what sits behind the queue. One or more producers add items; one or more consumers remove and process them; the queue between them is the only shared state, and it is the queue's job, not the producers' or consumers' job, to make concurrent access to that shared state safe. What a bounded channel contributes on top of the bare pattern is a capacity limit: the queue refuses to grow past a fixed size, which is the detail everything below turns on. An unbounded queue would still be Producer-Consumer, and it would still keep every event safe from loss or duplication, but it would let a slow consumer turn into unbounded memory growth on the producer side, silently, with no signal to anyone that something has fallen behind. A bounded channel makes that condition visible instead of silent, which is the backpressure behavior covered further below.
+Reporters and recorders run at different paces and in different numbers. A direct call from reporter to worker ties the reporter's pace to the worker's, and makes each side know about the other.
 
-## Every event is consumed exactly once
+### The solution
 
-The strongest claim a Producer-Consumer pipeline can make is that nothing it is handed disappears and nothing it is handed gets processed twice. `Every_event_produced_is_consumed_exactly_once` tests exactly that claim under real contention: four producer tasks each submit two hundred and fifty events concurrently into a pipeline with a capacity of eight and four consumer tasks draining it. After every producer finishes, the test calls `CompleteAndDrainAsync` and compares the full set of produced events against `report.Observed`, sorted the same way on both sides, as a multiset equality check rather than an ordered one. The two collections match exactly, every time the suite runs, regardless of how the scheduler happened to interleave twelve hundred writes against four readers.
+**Producer-Consumer has independent producers and independent consumers exchange work through a shared, synchronized queue instead of calling each other.**
 
-What makes that guarantee hold is where state lives inside `ConsumeAsync`. Each consumer task appends what it reads to a shared `ConcurrentQueue<HandlingEvent>` and increments a shared counter with `Interlocked.Increment`, so the bookkeeping that proves exactly-once consumption is itself safe under concurrent writers from multiple consumer tasks. The channel's read side guarantees that each item written to it is delivered to exactly one reader, never broadcast to every reader and never left for two readers to race over, so the only remaining job is recording what was delivered without losing or duplicating that record, which the concurrent queue and the interlocked counter both do without any explicit lock in `HandlingEventPipeline` itself.
+### How C# models it
+
+`HandlingEventPipeline`'s constructor builds a bounded channel from `System.Threading.Channels` sized to `capacity` and starts `consumerCount` consumer tasks. A producer only calls `SubmitAsync`, which writes to the channel. Each consumer is a private loop, `ConsumeAsync`, that runs `await foreach` over the read side, invokes `onEvent`, records the event and moves on.
+
+Neither side knows the other. A reporter doesn't know whether one consumer or ten is draining; a consumer doesn't know which reporter sent an item. The channel is the only shared state, and making concurrent access to it safe is the channel's job. That lets producer and consumer counts vary independently.
+
+A bounded channel adds a capacity limit. An unbounded queue would still be Producer-Consumer and would still lose nothing, but a slow consumer would become silent memory growth. The bound makes that condition visible.
+
+### Every event is consumed exactly once
+
+Four producers each submit 250 events into a pipeline with capacity 8 and four consumers. After the producers finish and the pipeline drains, the multiset of observed events equals the multiset produced, on every run, however the scheduler interleaves the writes and reads.
+
+Two things make that hold:
+
+- the channel delivers each item to exactly one reader, never to all of them and never to two;
+- each consumer records into a shared `ConcurrentQueue<HandlingEvent>` and bumps a shared counter with `Interlocked.Increment`, so the bookkeeping is safe under concurrent consumers with no explicit lock in `HandlingEventPipeline`.
 
 {% include excalidraw.html name="36-exactly-once-drain" caption="Figure 36.2: Submitting a known number of events, completing the writer, and waiting for every consumer task to finish proves each event is recorded exactly once, and a single producer's order survives a single consumer because the channel is first in, first out." %}
 
-## A single producer keeps its order through a single consumer
+### Order holds only for one producer and one consumer
 
-Exactly-once consumption says nothing about order, and order is a separate guarantee that only holds under a narrower condition. `A_single_producer_order_is_preserved_by_a_single_consumer` submits one hundred events from a single caller, each carrying an increasing `Sequence` value, into a pipeline configured with one consumer, and asserts that `report.Observed`, read back in the order the one consumer recorded it, carries that same increasing sequence with no gaps and no reordering. A channel is first in, first out on both sides: a single writer's items leave the channel in the order they entered it, and a single reader consumes them in that same order. With one producer and one consumer, that is enough to guarantee the consumer sees exactly the order the producer sent.
+A channel is first in, first out. One producer submitting 100 events with increasing `Sequence` values into a one-consumer pipeline gets them recorded in that order, with no gaps.
 
-That guarantee does not extend any further than the two participants it names. The moment a second producer starts submitting events, the channel still delivers every item to exactly one reader, but it makes no promise about how one producer's events interleave with another's, because nothing orders two independent writers relative to each other. The moment a second consumer starts reading, each consumer still receives a correctly ordered subset of what arrived, but no single reader sees the global sequence of everything that was submitted, because the channel split that sequence across however many consumers are draining it. Producer-Consumer, as a pattern, never promised a global order across many producers or many consumers; it only promises that work is not lost and not duplicated. A pipeline stage that needs a global order across everything flowing through it needs a single consumer, or needs the items partitioned so that everything requiring relative order lands on the same consumer, which is a design decision made above the queue, not something the queue provides on its own.
+The guarantee stops there:
 
-## Backpressure: the producer's write waits when the channel is full
+| Configuration | Order the consumers see |
+| --- | --- |
+| One producer, one consumer | The producer's order |
+| Several producers | Each producer's events may interleave arbitrarily with the others' |
+| Several consumers | Each consumer sees an ordered subset; none sees the global sequence |
 
-`HandlingEventPipeline` builds its channel with `BoundedChannelFullMode.Wait`, which means a write to a full channel does not fail and does not silently drop the oldest item waiting to be read. It waits. `A_full_bounded_channel_applies_backpressure_to_the_producer` makes that wait observable rather than something you have to take on faith. The pipeline runs with a capacity of one and a single consumer whose `onEvent` hook is a gate built from two `TaskCompletionSource` instances: the hook signals that it has started, then blocks until the test releases it. The test submits one event, waits for the gate to signal it has been picked up by the consumer, which empties the capacity-one channel, then submits a second event, which fills the channel back to capacity. A third submission is captured as a task rather than awaited directly, and the test asserts that task has not completed, while the consumer is still parked inside the gate and the channel is still full. Only after the test releases the gate does the third submission's task complete.
+Producer-Consumer promises no loss and no duplication, not a global order. A stage that needs global order needs one consumer, or partitioning so everything that must stay in relative order lands on the same consumer. That's a design decision above the queue.
 
-That sequence is the whole of backpressure in this example: a producer calling `SubmitAsync` on a full channel gets a pending `ValueTask` back, not an exception and not a silent drop, and that `ValueTask` only completes once a consumer has made room by reading something out. The producer feels a slow consumer directly, as a write that does not resolve, rather than being shielded from it by a buffer that keeps growing to absorb the difference. `FullMode = BoundedChannelFullMode.Wait` is the setting that makes this the behavior; the channel API also offers modes that drop the newest or oldest item instead of waiting, which trade a guarantee of keeping every event for a guarantee of never blocking a producer. An ingest pipeline that cannot afford to lose a handling event has already made that trade in favor of waiting, because `Wait` is the only one of the three that keeps the exactly-once guarantee from the previous section intact under load.
+### Backpressure: the producer's write waits
 
-## Completion: stopping consumers without a wall-clock wait
+The channel uses `BoundedChannelFullMode.Wait`: a write to a full channel neither fails nor drops an item. It waits. With capacity 1 and one consumer whose `onEvent` hook blocks on a `TaskCompletionSource` gate:
 
-A pipeline that only knows how to start never tells a caller when it is safe to read the results. `CompleteAndDrainAsync` closes that gap in two steps: it calls `Writer.Complete()` on the channel, which tells every consumer's `await foreach` loop over `ReadAllAsync()` that no further items are coming once the ones already buffered are drained, and then it awaits `Task.WhenAll` over every consumer task, which only resolves once every one of them has reached the end of that loop. Only after both steps finish does `CompleteAndDrainAsync` build the `IngestReport` from what was observed. `Completion_is_signalled_so_consumers_stop_after_the_last_event` submits sixty events across three consumers and confirms `report.Processed` equals sixty immediately once `CompleteAndDrainAsync` returns, with no delay inserted anywhere in the test to give the consumers time to catch up.
+1. The first event is picked up by the consumer, which empties the channel, and the consumer parks in the gate.
+2. The second event fills the channel.
+3. The third `SubmitAsync` returns a pending `ValueTask` that doesn't complete while the gate is closed.
+4. Opening the gate lets the consumer read, and the third submission completes.
 
-That last detail matters more than it looks. Nothing in this example, anywhere, uses a sleep, a fixed delay, or a timeout-based race to decide whether work is finished. A test that waited an arbitrary interval and then checked how much had been processed would be guessing at how fast the scheduler happened to run that time, and a chapter built on that kind of test would be demonstrating luck, not a guarantee. `Writer.Complete()` combined with `Task.WhenAll` over the consumer tasks is deterministic instead: the pipeline is done exactly when every consumer task has returned, which happens exactly when `ReadAllAsync()` has observed both the completion signal and an empty buffer, and nothing about that depends on wall-clock timing.
+The producer feels the slow consumer directly, as a write that doesn't resolve. The full modes trade differently:
 
-## Cancellation on submission
+| `BoundedChannelFullMode` | On a full channel | Keeps every event |
+| --- | --- | --- |
+| `Wait` | Producer waits for room | Yes |
+| `DropNewest`, `DropOldest` | An item is discarded; the producer never blocks | No |
 
-`SubmitAsync` takes a `CancellationToken` and forwards it straight to the channel's `WriteAsync`, after a null check on the event itself. `A_cancelled_submit_token_is_honoured` passes a token from a `CancellationTokenSource` that has already been cancelled before the call, and asserts the call throws an `OperationCanceledException` rather than writing the event. A pending write, one that is waiting on a full channel exactly as in the backpressure scenario, honors the same token: cancelling it while it waits unblocks the wait with an exception instead of letting it sit forever. After the cancelled call, the test drains the pipeline and confirms `report.Processed` is zero, which rules out a race where the event quietly got written anyway before the cancellation took effect. A producer that times out or shuts down mid-submission needs exactly this: a way to stop waiting on a full channel without leaving the pipeline in a state where it is unclear whether the event landed.
+An ingest pipeline that can't lose a handling event uses `Wait`, the only mode that keeps exactly-once under load.
 
-## Pipelines: chaining stages over bounded channels
+### Completion without a wall-clock wait
 
-Nothing about `HandlingEventPipeline` requires that its consumer be the last stop for an event. A consumer that finishes recording an event can just as easily become a producer, writing that same event, or something derived from it, onto a second bounded channel feeding a second stage. Chain enough of those together, a stage that receives raw reports, a stage that validates them against known tracking identifiers, a stage that records validated events to storage, and the result is a pipeline in the architectural sense: a sequence of independently scheduled stages, each one simultaneously a consumer of the channel feeding it and a producer onto the channel it feeds. Every stage is still an instance of the same pattern this chapter has been building up. Nothing new has to be invented to chain them; the same bounded channel, the same consumer-task count per stage, and the same completion signal apply at every link.
+`CompleteAndDrainAsync` works in two steps. `Writer.Complete()` tells every consumer's `await foreach` over `ReadAllAsync()` that no more items are coming after the buffered ones. Then `Task.WhenAll` over the consumer tasks resolves once each has left its loop. Only then is the `IngestReport` built. Sixty events across three consumers report 60 processed the moment `CompleteAndDrainAsync` returns.
 
-What chaining adds is that backpressure no longer stays local to one stage. If the validate stage is doing real work per event, checking a tracking identifier against a reference table, say, and that work is slower than the receive stage can hand events off, the channel between receive and validate fills up exactly as the capacity-one channel filled up in the backpressure example. Receive's writes into that channel start waiting. If receive itself is being fed by another stage upstream, that stage's writes start waiting too, and the slowdown keeps propagating backward through the chain, one full channel at a time, until it reaches whatever is generating the original events. That is the behavior a pipeline needs: a slow stage should visibly slow the stages ahead of it, the same way a slow consumer visibly slows its producer in a single Producer-Consumer stage, rather than letting every stage ahead of it race forward and pile up work the slow stage has no way to absorb. Each stage can still be tuned on its own, giving a stage that does real network or disk work more consumer tasks than a cheap stage that only validates a shape, without touching how any other stage is built.
+Nothing uses a sleep, a fixed delay or a timeout race to decide whether work is done. A wait-then-check would measure how fast the scheduler ran that time. `Writer.Complete()` plus `Task.WhenAll` is deterministic: the pipeline is done when every consumer has returned, which happens when `ReadAllAsync()` has seen both the completion signal and an empty buffer.
+
+### Cancellation on submission
+
+`SubmitAsync` null-checks the event and forwards its `CancellationToken` to the channel's `WriteAsync`. A pre-cancelled token throws `OperationCanceledException`, and the drained pipeline reports 0 processed, so the event wasn't written anyway. A write waiting on a full channel honors the same token: cancelling it ends the wait with an exception. A producer that times out or shuts down mid-submission can stop waiting without leaving it unclear whether the event landed.
+
+### Pipelines: chaining stages over bounded channels
+
+A consumer can also be a producer, writing the event, or something derived from it, onto a second bounded channel feeding a second stage. Receive raw reports, validate them against known tracking identifiers, record validated events to storage: each stage consumes from the channel feeding it and produces onto the next. Every link uses the same bounded channel, per-stage consumer count and completion signal.
+
+Chaining makes backpressure travel. If validate is slower than receive, the channel between them fills, receive's writes wait, and if receive is fed by another stage, that stage's writes wait too, one full channel at a time, back to the source. A slow stage slows the stages ahead of it instead of letting them pile up work it can't absorb. Each stage is tuned on its own: a stage doing network or disk work gets more consumers than one that only checks a shape.
 
 {% include excalidraw.html name="36-pipeline-stages" caption="Figure 36.3: Receive, validate, and record each run as their own producer and consumer pair, linked by bounded channels. When validate slows down, its full channel propagates backpressure upstream to receive." %}
 
@@ -77,28 +112,18 @@ What chaining adds is that backpressure no longer stays local to one stage. If t
 cd examples/36-producer-consumer-and-pipelines && dotnet test
 ```
 
-```
-Test run summary: Passed!
-  total: 5
-  failed: 0
-  succeeded: 5
-  skipped: 0
-```
-
-The suite is `PipelineTests` and `BackpressureTests` together: exactly-once consumption under multi-producer, multi-consumer contention, order preservation for a single producer and a single consumer, completion through `Writer.Complete()` and `Task.WhenAll` rather than a wall-clock wait, a cancelled submission honoring its token, and a full capacity-one channel applying real backpressure to a pending write. All five pass deterministically; none of them sleeps, delays, or races against a timeout to decide whether the pipeline has caught up.
+All 5 tests pass: exactly-once consumption under multi-producer, multi-consumer contention, single-producer order, completion through `Writer.Complete()` and `Task.WhenAll`, a cancelled submission, and backpressure on a full capacity-1 channel. None sleeps, delays or races a timeout.
 
 ## When not to use it
 
-Producer-Consumer pays for its cost when producers and consumers run at different paces, or in different numbers, and need a queue between them to keep either side from being held hostage to the other's schedule. Reach for something simpler when that condition does not hold.
+Producer-Consumer pays when the two sides run at different paces or in different numbers.
 
-If a producer can call straight into the work that needs doing and get an answer back before it needs to do anything else, a direct call is the right tool. Standing up a bounded channel, a fixed consumer count, and a completion handshake to connect two pieces of code that could just call each other adds a queue, a set of background tasks, and a drain protocol to maintain, for no decoupling benefit the direct call was not already giving it.
-
-If more than one consumer needs to see the same global order that more than one producer submitted events in, Producer-Consumer alone does not deliver that. A bounded channel guarantees every item reaches exactly one consumer, and it preserves a single producer's order through a single consumer, but it makes no promise about how multiple producers interleave or about any order across multiple consumers reading the same channel. A pipeline that needs that ordering has to fall back to a single consumer for the events that must stay in order, or partition events so that everything requiring relative order lands on the same consumer every time.
-
-An unbounded queue in place of a bounded channel trades a visible problem for an invisible one. If a consumer cannot keep up, an unbounded queue absorbs the difference by growing, which looks like success right up until memory pressure or an out-of-memory failure turns a slow consumer into an outage with no earlier warning. A bounded channel with `BoundedChannelFullMode.Wait` turns that same slow consumer into a producer that is visibly waiting, which is the signal a team needs to notice the problem while it is still a performance issue and not yet an incident.
+- **A direct call suffices.** If the producer can call the work and get an answer before it needs to do anything else, a channel, a consumer count and a drain protocol add background tasks and maintenance for no decoupling benefit.
+- **Global order across many producers or consumers.** The queue doesn't provide it. Use one consumer for events that must stay ordered, or partition so related events always reach the same consumer.
+- **An unbounded queue instead of a bounded one.** It hides a slow consumer as memory growth until an out-of-memory failure turns it into an outage. `BoundedChannelFullMode.Wait` turns the same problem into a visibly waiting producer while it's still a performance issue.
 
 <blockquote class="ai-sidebar" markdown="1">
-An assistant is a reasonable pair for scaffolding a Producer-Consumer pipeline: wiring up a bounded channel, starting a fixed number of consumer tasks, and writing the completion and drain plumbing are mechanical enough that a first draft from a generated prompt is often close to correct. What stays a human call is the set of decisions that shape how the pipeline behaves under real load: whether the channel should be bounded or unbounded, how many consumers each stage needs, and what happens on cancellation or shutdown while work is still in flight. An assistant will produce a channel-backed pipeline that compiles and passes a happy-path test without ever asking whether an unbounded channel is hiding a backpressure problem that will only show up under production traffic, and that question only gets asked if someone on the team asks it.
+An assistant can scaffold a Producer-Consumer pipeline well: a bounded channel, a fixed set of consumer tasks, and the completion and drain plumbing are mechanical enough that a first draft is often close. The decisions that shape behavior under load stay with the team: bounded or unbounded, how many consumers each stage needs, and what happens to in-flight work on cancellation or shutdown. A generated pipeline compiles and passes the happy path without asking whether an unbounded channel is hiding a backpressure problem that only production traffic will show.
 </blockquote>
 
 ## For deeper coverage

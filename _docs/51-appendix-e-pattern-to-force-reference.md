@@ -160,7 +160,7 @@ Method and Abstract Factory, get a row each.
 | Shortcut patterns and dispatch tables | shortcut patterns | picking behavior from a small, known set of keys without a class per case | a `Dictionary<TKey, Func<>>` dispatch table, or a switch expression over a closed set |
 | Anti-pattern awareness | anti-patterns and pattern misuse | recognizing when a pattern adds indirection without answering a live force | match the candidate pattern back against this table's Forces column before applying it |
 | Seams | seams in C#: non-virtual by default | finding a point to substitute behavior in code that was not written with testing in mind | an interface extracted at the seam, since C# members are non-virtual by default and sealing is common |
-| Dependency-breaking techniques | dependency-breaking techniques for C# 14 | isolating a unit for testing without a large up-front rewrite | interface extraction, extract-and-override, wrapping a static call behind an injectable interface |
+| Dependency-breaking techniques | dependency-breaking techniques | isolating a unit for testing without a large up-front rewrite | interface extraction, extract-and-override, wrapping a static call behind an injectable interface |
 | Fowler vs Feathers | Fowler vs Feathers, contrasted and combined | choosing between a refactoring move and a characterization-test-first legacy technique | apply Feathers' seams to get a test in place, then Fowler's catalogue once coverage exists |
 | Refactor or rewrite | refactor or rewrite | deciding whether to incrementally improve existing code or replace it outright | a cost-and-risk comparison; a strangler-fig approach when a rewrite is justified |
 

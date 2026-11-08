@@ -1,10 +1,10 @@
 ---
-title: "Dependency-breaking techniques for C# 14"
+title: "Dependency-breaking techniques"
 order: 42
 layout: tutorial
 sectionid: docs
 part: "changing-inherited-code"
-description: "InternalsVisibleTo, interface extraction, DI as a seam, and virtual as a deliberate act."
+description: "InternalsVisibleTo, interface extraction, DI as a seam, and virtual as an explicit opt-in."
 ---
 
 <!-- EXAMPLE (shipping domain): Breaking the same engine's dependencies. -->

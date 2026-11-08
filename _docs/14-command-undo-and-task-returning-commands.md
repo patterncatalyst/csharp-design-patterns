@@ -13,84 +13,36 @@ description: "Delegates as commands, reversible operations, and command queues t
 
 By the end of this chapter you can:
 
-- Explain the GoF Command pattern as a reified operation, an object standing
-  in for a method call, and state why that reification is what makes undo
-  and queued execution possible that a bare method call never supports.
-- Implement a reversible `IBookingCommand` against a mutable `Booking`
-  receiver, with `Execute` snapshotting whatever prior state `Undo` needs and
-  `Undo` restoring exactly that state.
-- Write `DelegateCommand`, the delegate-as-command form, and show it executes
-  and undoes equivalently to a hand-written `IBookingCommand` class for the
-  same change.
-- Build an `AmendmentQueue` that runs queued commands first-in-first-out and
-  unwinds its execution history last-in-first-out, and explain why those two
-  orders are not the same order read backward by accident.
-- State the snapshot rule that makes undo correct under later mutation: a
-  command must capture the prior value, not a live reference to a mutable
-  field that a later command can still change out from under it.
-- Write a Task-returning command, `IAsyncBookingCommand`, that awaits an
-  injected gateway with `ConfigureAwait(false)` and a threaded
-  `CancellationToken`, and explain what changes and what stays identical
-  between a synchronous queue and its asynchronous counterpart.
+- Describe Command as a reified operation, an object standing in for a method call, and say why that makes undo and queuing possible.
+- Implement a reversible `IBookingCommand` whose `Execute` snapshots the prior state and whose `Undo` restores it.
+- Write `DelegateCommand`, the delegate form, and match a hand-written command's execute and undo.
+- Build an `AmendmentQueue` that runs commands first in, first out and undoes them last in, first out.
+- Apply the snapshot rule: capture the prior value, never a live reference that a later command can change.
+- Write a Task-returning command that awaits a gateway with `ConfigureAwait(false)` and a threaded `CancellationToken`, and say what changes between the synchronous and asynchronous queues.
 
 ## Why this matters
 
-A booking amendment is rarely a single, final decision. A customer asks to
-bump a shipment from standard to express service, then changes their mind
-twenty minutes later and asks to go back to standard. An operations clerk
-batches three changes against the same booking, a service-level change,
-a weight correction, and a new line item for a rebooking fee, and wants
-all three applied together or none of them applied at all if the third one
-turns out to be wrong. A finance reconciliation job replays a batch of
-amendments against a nightly snapshot, and if one of them was recorded in
-error, somebody needs to take it back out without re-deriving every booking
-in the batch from scratch.
+A customer bumps a shipment from standard to express, then asks to go back twenty minutes later. A clerk batches three changes to one booking, a service level, a weight correction and a rebooking-fee line item, and wants to pull the third if it's wrong. A reconciliation job replays amendments against a nightly snapshot and must take one back out without rebuilding the batch.
 
-None of those three scenarios is served by a method call that mutates a
-`Booking` directly and forgets what it did. `booking.ServiceLevel =
-"Express"` is a statement, not a thing a program can hold onto, inspect,
-queue behind other statements, or ask to reverse later. Once that
-assignment runs, the only way back to "Standard" is for some other piece of
-code to already know what the value used to be, which means every caller
-that might ever need to undo a change has to shadow the booking's own state
-in a field of its own, rebuilt by hand for every property anyone might
-amend. A clerk's batch of three changes fares no better: applying them is
-three separate statements with nothing tying them together, and if the
-third one needs to be pulled back out, the two before it have no record
-that they ran at all, let alone in what order.
-
-The Gang of Four's Command pattern exists for exactly this problem. Its
-core move is to take a request, a service-level change, a weight
-correction, a line-item addition, and turn it into an object rather than a
-direct call: something with an identity, a place to keep whatever
-state its own reversal needs, and a uniform shape that lets unrelated kinds
-of amendments sit in the same queue, the same history stack, and the same
-test suite without the caller needing to know which concrete change a given
-command represents. A `ChangeServiceLevelCommand` and an
-`AddLineItemCommand` have nothing in common at the level of what they do to
-a `Booking`, but they have everything in common at the level of how a queue
-or an undo stack treats them: enqueue it, run it, and if asked, undo it.
-That uniformity is what makes batching, replay, and undo possible in the
-first place, and it is also what lets this chapter extend the same shape to
-an amendment that confirms over a network call instead of mutating a field
-in memory, without the queue coordinating either kind needing to change at
-all.
-
-The example behind this chapter lives in
-`examples/14-command-undo-and-task-returning-commands`. A `Booking` is the
-plain mutable receiver every command in the chapter targets: a
-`BookingId`, a settable `ServiceLevel`, a settable `WeightKilograms`, and a
-read-only view over an internally mutable list of `LineItem` values added
-through `AddLineItem` and removed through `RemoveLineItem`. Every command
-this chapter writes changes exactly one of those three things and knows how
-to change it back.
+`booking.ServiceLevel = "Express"` serves none of these. It's a statement, not something a program can hold, queue or reverse. Once it runs, only code that already knew the old value can restore it, so every caller that might undo a change shadows the booking's state by hand. Three amendments are three unrelated statements with no record of order.
 
 {% include excalidraw.html name="14-command-undo-and-task-returning-commands" caption="Figure 14.1: A booking amendment reified as a command object instead of a direct mutation, each one snapshotting what its own undo needs; a queue runs commands FIFO and unwinds its history LIFO." %}
 
-## Command as a reified operation
+## Pattern: Command
 
-`IBookingCommand` is the whole contract this chapter builds on, two
-methods and nothing else:
+### The problem
+
+Booking amendments of unrelated kinds must be queued together, applied in order and reversed one at a time. The code that queues and reverses them shouldn't know which concrete change each one is.
+
+### The solution
+
+A **Command** turns a request into an object that can apply itself and reverse itself, so requests can be queued, logged and undone through one uniform shape.
+
+A `ChangeServiceLevelCommand` and an `AddLineItemCommand` do unrelated things to a `Booking`, but a queue treats them the same: enqueue, run, undo. The receiver is a plain mutable `Booking` with a `BookingId`, a settable `ServiceLevel`, a settable `WeightKilograms`, and a read-only view of line items changed through `AddLineItem` and `RemoveLineItem`.
+
+### How C# models it
+
+The contract is two methods:
 
 ```csharp
 public interface IBookingCommand
@@ -101,11 +53,7 @@ public interface IBookingCommand
 }
 ```
 
-There is no `Name` property, no `Description`, no metadata beyond what a
-concrete implementation chooses to add on top. The interface's narrowness
-is the point: anything that can apply itself and reverse itself qualifies
-as a command, regardless of what it changes underneath. `ChangeServiceLevelCommand`
-is the simplest case that still needs a snapshot:
+Anything that can apply and reverse itself qualifies. A property change needs a snapshot:
 
 ```csharp
 public sealed class ChangeServiceLevelCommand(Booking booking, string newServiceLevel) : IBookingCommand
@@ -130,29 +78,9 @@ public sealed class ChangeServiceLevelCommand(Booking booking, string newService
 }
 ```
 
-The constructor captures the receiver, `booking`, and the new value,
-`newServiceLevel`, but it does not yet know what the old value was, because
-at construction time the command has not run and has no business reading
-state it has not been asked to touch. `Execute` reads `booking.ServiceLevel`
-into `_priorServiceLevel` before overwriting it, which is the one moment
-the command can observe the value it is about to replace. `Undo` writes
-that captured value straight back, and `ChangeServiceLevelCommandTests.Execute_then_undo_restores_the_prior_service_level`
-proves the round trip directly: a booking starts at `"Standard"`, `Execute`
-moves it to `"Express"`, and `Undo` returns it to `"Standard"`, asserted
-both ways rather than trusted on inspection. `_priorServiceLevel` is
-nullable specifically so `Undo` can detect the case where it runs before
-`Execute` ever did, something that could otherwise silently write `null`
-onto a booking's service level. `ChangeServiceLevelCommandTests.Undo_before_execute_throws_because_there_is_nothing_to_restore`
-constructs a fresh command and calls `Undo` without ever calling `Execute`
-first, and asserts an `InvalidOperationException`, catching a misuse that a
-command queue running commands out of order, or a caller holding a command
-reference it never ran, would otherwise turn into a confusing bug reported
-somewhere else entirely. `ChangeWeightCommand` repeats the identical
-discipline for `WeightKilograms`, snapshotting a nullable `decimal?` before
-overwriting it and throwing the same way if `Undo` runs first.
+The constructor holds the receiver and the new value but doesn't read the old one, because the command hasn't run. `Execute` reads `booking.ServiceLevel` into `_priorServiceLevel` just before overwriting it, the one moment the old value is visible, and `Undo` writes it back: `"Standard"` goes to `"Express"` and back to `"Standard"`. The field is nullable so that `Undo` before `Execute` throws `InvalidOperationException` instead of writing `null` onto the booking, a misuse an out-of-order queue or a never-run command would otherwise turn into a bug reported somewhere else. `ChangeWeightCommand` does the same with a `decimal?`.
 
-`AddLineItemCommand` needs none of that machinery, and showing why is as
-much the lesson as the snapshot pattern itself:
+A collection addition needs no snapshot:
 
 ```csharp
 public sealed class AddLineItemCommand(Booking booking, LineItem lineItem) : IBookingCommand
@@ -163,28 +91,16 @@ public sealed class AddLineItemCommand(Booking booking, LineItem lineItem) : IBo
 }
 ```
 
-A line item is an immutable `LineItem` record the command already holds as
-a constructor parameter, so there is nothing further to snapshot: the value
-`Execute` adds is identical to the value `Undo` removes, and the command
-never needs a private field to remember anything beyond what it was
-constructed with. The difference between this command and
-`ChangeServiceLevelCommand` is not a difference in how carefully each one
-is written; it is a difference in what each one is reversing. Reversing an
-assignment that overwrote a prior value requires remembering the value that
-got overwritten. Reversing an addition to a collection requires remembering
-only the thing that was added, which the command already has. A command
-that mutates a property always needs an explicit `Execute`-time snapshot; a
-command that appends an immutable value to a collection already holds its
-own "snapshot" in the value it was handed at construction, with no further
-field required.
+`LineItem` is an immutable record the command already holds, so the value `Execute` adds is the value `Undo` removes.
 
-## Delegates as commands
+| Command reverses | Needs |
+| --- | --- |
+| An assignment that overwrote a value | The overwritten value, captured in `Execute` |
+| An addition of an immutable value to a collection | Only the value, already held from construction |
 
-`IBookingCommand` is a one-method-pair interface, and a one-off amendment
-that does not warrant its own named class is a natural fit for the delegate
-dissolution this book has used for Strategy and Template Method: two plain
-`Action` values standing in for a hand-written implementation.
-`DelegateCommand` is that form:
+### Delegates as commands
+
+A one-off amendment that doesn't warrant a named class is two `Action` values:
 
 ```csharp
 public sealed class DelegateCommand(Action execute, Action undo) : IBookingCommand
@@ -195,51 +111,13 @@ public sealed class DelegateCommand(Action execute, Action undo) : IBookingComma
 }
 ```
 
-Nothing about `DelegateCommand` knows or cares what `execute` and `undo`
-actually do. A caller supplies two closures, and `DelegateCommand` is
-nothing more than an `IBookingCommand` wrapper around whichever two
-`Action` values it was constructed with, exactly the way `StrategyRateQuoter`'s
-delegate-dissolved counterpart was nothing more than an
-`Func<RateRequest, Money>` wrapper. `DelegateCommandTests.Delegate_command_executes_and_undoes_equivalently_to_the_interface_form`
-builds the same service-level change two ways against two separate
-bookings that start identical: once as a `ChangeServiceLevelCommand`, and
-once as a `DelegateCommand` whose `execute` closure captures the prior
-value into a local `string?` and whose `undo` closure writes that captured
-value back. Both commands run, both bookings land on `"Express"`, both
-commands undo, and both bookings return to `"Standard"`, with the test
-asserting the two bookings agree with each other at every step rather than
-only matching some expected literal. The closure pair does exactly what
-`ChangeServiceLevelCommand`'s `_priorServiceLevel` field does, captures the
-prior value at execution time in a variable the undo closure can read back
-later, just without a dedicated class or a dedicated field to hold it; a
-captured local plays the same role a private field plays in the named
-class, visible only to the two closures that share the same enclosing
-scope.
+`DelegateCommand` is a wrapper around whichever closures it gets. A service-level change built as a `ChangeServiceLevelCommand` and as a `DelegateCommand`, whose `execute` captures the prior value in a local `string?` and whose `undo` writes it back, leaves two identical bookings in agreement at every step. The captured local plays the role of the private field, visible only to the two closures that share its scope.
 
-The trade here is the same one this book has drawn for Strategy and
-Template Method: a named class gives a reviewer something to find by name,
-something a test class can target on its own, and a type a dependency
-injection container can register and resolve. A `DelegateCommand` gives up
-all three of those in exchange for not needing a file, an interface
-implementation, or a class declaration for a change that exists at exactly
-one call site and will never be referred to by name in a planning
-conversation. Promoting every one-off amendment in a real booking system to
-its own `IBookingCommand` subclass produces a directory of single-use
-classes that differ from each other only in which property they touch and
-what value they touch it with; `DelegateCommand` collapses that entire
-category into one reusable wrapper type, paying for the collapse only in
-the readability a named class would have given a change that was never
-going to be discussed by name regardless.
+The trade is the usual one. A named class gives a reviewer something to find by name, a target for its own tests and a type a container can register. `DelegateCommand` gives those up for not needing a file for a change at one call site that nobody will discuss by name. Without it, a booking system grows a directory of single-use command classes that differ only in which property they touch.
 
-## The queue and its history
+### The queue and its history
 
-A single command executing and undoing in isolation proves the contract
-works. A real amendment workflow needs more than one command applied
-together, in a specific order, with a way to step backward through what
-actually ran. `AmendmentQueue` holds three collections for exactly that:
-a `Queue<IBookingCommand>` of commands waiting to run, a
-`Stack<IBookingCommand>` of commands that have run, and a second stack of
-commands that have been undone and could be redone.
+`AmendmentQueue` holds a `Queue<IBookingCommand>` of pending commands, a `Stack<IBookingCommand>` of executed ones and a second stack of undone ones:
 
 ```csharp
 public sealed class AmendmentQueue
@@ -274,43 +152,11 @@ public sealed class AmendmentQueue
 }
 ```
 
-`Enqueue` only ever adds to `_pending`; nothing runs until `Run` is called.
-`Run` drains the pending queue strictly in the order commands were
-enqueued, a plain `Queue<T>` guarantee, applying each one and pushing it
-onto `_history` immediately after it executes.
-`AmendmentQueueTests.Run_executes_enqueued_commands_in_fifo_order` enqueues
-a service-level change to `"Priority"`, then one to `"Express"`, then a
-line-item addition, and asserts the booking ends at `"Express"`, the
-last-enqueued service level, with a one-line comment explaining the
-negative case directly: if the queue ran last-enqueued-first instead, the
-booking would show `"Priority"`, so the assertion only passes under true
-FIFO ordering. That framing matters because enqueue order and execution
-order look identical in nearly every other test in the suite; this is the
-one test built specifically to fail if the queue silently reversed its own
-contract.
+Nothing runs until `Run`, which drains the pending queue in enqueue order and pushes each command onto `_history`. Enqueueing changes to `"Priority"`, then `"Express"`, then a line item leaves the booking at `"Express"`; last-in-first-out execution would leave `"Priority"`.
 
-`Undo` is where the asymmetry between the two collections shows up.
-Popping `_history`, a stack, means `Undo` always reverses the command that
-ran most recently, regardless of when it was enqueued relative to the
-others still sitting in history. Running three service-level changes in
-order, `"Priority"`, then `"Express"`, then `"Overnight"`, and undoing
-twice walks the booking back `"Overnight"` to `"Express"`, then `"Express"`
-to `"Priority"`, exactly the reverse of the order the three commands ran
-in. `AmendmentQueueTests.Undo_walks_the_executed_history_back_in_lifo_order`
-asserts exactly that sequence, and the name is deliberate about the
-distinction: `Run` is FIFO over the pending queue, and `Undo` is LIFO over
-the executed history, and those are not the same order read in two
-directions. A FIFO structure read backward from its tail would still
-produce the earliest-enqueued item last; a LIFO stack produces the
-most-recently-pushed item first by construction, which is the behavior
-undo actually needs, since reversing the last thing that happened is
-always the correct first step back, independent of when that last thing
-was originally queued.
+`Undo` pops `_history`, so it always reverses the most recent command. Running `"Priority"`, `"Express"`, `"Overnight"` and undoing twice walks back to `"Express"`, then `"Priority"`. These are two structures, not one order read in two directions: `Run` is FIFO over the pending queue, `Undo` is LIFO over the executed history, and reversing the last thing that happened is always the right first step back.
 
-`Redo` is the third operation, and it exists because `Undo` throws
-real information away if nothing captures it: once a command has been
-reversed, re-applying it should not require the caller to reconstruct and
-re-enqueue an equivalent command from scratch.
+`Redo` keeps what `Undo` would otherwise throw away:
 
 ```csharp
 public void Redo()
@@ -325,90 +171,23 @@ public void Redo()
 }
 ```
 
-`Undo` pushes the command it just reversed onto `_undone` as it pops it
-from `_history`; `Redo` pops that same command back off `_undone`,
-re-executes it, and pushes it back onto `_history`, which is why the same
-command object can move between the two stacks any number of times without
-ever being reconstructed. `AmendmentQueueTests.Redo_re_executes_the_most_recently_undone_command`
-runs a single service-level change to `"Express"`, undoes it back to
-`"Standard"`, then redoes it and confirms the booking is back at
-`"Express"`. `Run` clears `_undone` at its own start, on the reasoning that
-a fresh batch of commands applied against a booking invalidates whatever
-was previously undone: redoing a change from before the new batch ran
-could leave the booking in a state nothing in this queue's history ever
-actually produced. Two guard tests close the gaps a caller could otherwise
-hit at runtime rather than compile time:
-`AmendmentQueueTests.Undo_with_no_executed_history_throws` calls `Undo` on
-a brand-new queue with nothing ever run, and
-`AsyncAmendmentQueueTests.UndoAsync_with_no_executed_history_throws` proves
-the identical guard on the asynchronous counterpart later in this chapter;
-both assert `InvalidOperationException` rather than a silent no-op, because
-a queue that quietly does nothing when asked to undo something that never
-happened hides a caller bug instead of surfacing it.
+The same command object moves between `_history` and `_undone` any number of times without being rebuilt: `"Express"` undone to `"Standard"` and redone is `"Express"` again. `Run` clears `_undone` first, because redoing a change from before a new batch could produce a state no history ever held. `Undo` on an empty history throws `InvalidOperationException` in both queues; a silent no-op would hide a caller bug.
 
-## The snapshot rule: value, not reference
+### The snapshot rule: value, not reference
 
-`AmendmentQueueTests.Undo_restores_the_exact_snapshot_even_after_later_commands_changed_the_value`
-proves a correctness property that is easy to get wrong in a way that
-compiles cleanly and passes every simpler test. The scenario: a booking starts at 10 kilograms,
-a `ChangeWeightCommand` moves it to 20, a second `ChangeWeightCommand`
-moves it to 30, both run through `AmendmentQueue.Run`. Undoing once should
-bring the weight back to 20, the value immediately before the second
-command ran, not back to 10, and undoing a second time should bring it
-back to 10. The test asserts exactly that two-step sequence, and it passes
-against `ChangeWeightCommand` precisely because of one design decision in
-that command's `Execute` method: `_priorWeightKilograms = booking.WeightKilograms`
-copies a `decimal` value into a private field at the moment `Execute` runs,
-and `decimal` is a value type, so that assignment is a copy, not a
-reference to anything that could change later.
+A booking starts at 10 kilograms. One `ChangeWeightCommand` moves it to 20, a second to 30, and both run. One undo must give 20, the value just before the second command, and a second undo 10. That holds because `_priorWeightKilograms = booking.WeightKilograms` copies a `decimal`, a value type, at the moment `Execute` runs.
 
-The bug this test is built to catch is subtler than it first looks,
-because it would not show up in `Undo_before_execute_throws_because_there_is_nothing_to_restore`
-or in `Execute_then_undo_restores_the_prior_service_level`. It only shows
-up once a second command runs against the same booking after the first
-command has already captured its snapshot. Imagine a hypothetical command
-that captured its snapshot as a reference into a shared mutable container
-instead of copying the value out of it, for example a command holding a
-reference to a single shared `decimal[]` cell that multiple commands write
-through rather than each holding its own private field. The first
-command's `Execute` would capture a reference to that cell rather than the
-value inside it at that moment; by the time `Undo` runs, if a second
-command has since written a new value into the same cell, the first
-command's "snapshot" now reads whatever the second command left behind, not
-the value that was actually there when the first command ran. The restored
-weight would be wrong, and it would be wrong in a way no test that only
-exercises a single command in isolation could ever catch, because the bug
-only appears once two commands touch the same underlying storage in
-sequence. `string` and `decimal`, the two types every snapshot in this
-chapter's synchronous commands holds, are both immutable value-shaped
-types in C#: a `string` reference, once obtained, can never be mutated out
-from under a holder, because `string` itself has no mutating members, and a
-`decimal` assignment always copies the sixteen-byte value rather than
-aliasing it. Both snapshot fields in this example are safe by the nature
-of the types involved, not merely by convention, but the discipline that
-matters generalizes beyond those two types: a command's `Execute` method
-must capture a value immune to being changed later by something outside
-the command's own control, whether that immunity comes from a value type's
-copy semantics, an immutable reference type like a `record`, or a defensive
-copy taken explicitly where the underlying type is itself mutable. A
-command that captured a reference to a mutable `List<T>` or a mutable
-class instance as its "snapshot," instead of a copy of whatever state it
-needed, would be vulnerable to exactly the stale-or-moved-on failure this
-test is written to rule out, the moment any other code touched that same
-mutable object between the command's `Execute` and its eventual `Undo`.
+The failure this rules out shows up only when a second command touches the same storage after the first has captured its snapshot. A command that held a reference to a shared mutable cell, say one `decimal[]` element that several commands write through, would capture the cell instead of its value. By the time `Undo` runs, the cell holds whatever the second command wrote, and the restored weight is wrong. A single command in isolation can't reveal it.
 
-## Task-returning commands
+`string` and `decimal`, the two snapshot types here, are safe by their nature: `string` has no mutating members and a `decimal` assignment copies the value. The rule generalizes: `Execute` must capture something nothing outside the command can change later.
 
-Every command so far mutates an in-memory field and returns the instant it
-is called. A real booking amendment frequently needs to confirm against
-something outside the process, a carrier's booking API that has to agree
-the new service level is valid before it takes effect, or a billing system
-that has to record a charge before an amendment is considered final. That
-confirmation is I/O-bound, which means the right return type for the
-operation that performs it is `Task`, not `void`, and the right place to
-wait on it is an `await`, not a blocking call that ties up a thread for the
-round trip. `IAsyncBookingCommand` is `IBookingCommand`'s Task-returning
-counterpart:
+- **A value type**, copied on assignment.
+- **An immutable reference type**, such as a `record`.
+- **A defensive copy**, where the underlying type is mutable. A command that keeps a reference to a mutable `List<T>` or class instance as its snapshot fails as soon as other code touches that object before `Undo`.
+
+### Task-returning commands
+
+A real amendment often confirms against something outside the process: a carrier's booking API or a billing system. That's I/O-bound, so the operation returns `Task` and the caller awaits it instead of blocking a thread:
 
 ```csharp
 public interface IAsyncBookingCommand
@@ -419,14 +198,7 @@ public interface IAsyncBookingCommand
 }
 ```
 
-Both methods take a `CancellationToken` as a parameter rather than leaving
-cancellation implicit, because a command library has no ambient context, no
-request scope, and no UI thread to assume a cancellation source from; the
-caller that starts an asynchronous amendment is the only party that can
-decide when that amendment should stop waiting, and the only way for that
-decision to reach the eventual I/O call several layers down is for every
-method along the way to accept and forward the same token. `IAmendmentGateway`
-stands in for the carrier's booking API this example never actually calls:
+Both methods take a `CancellationToken`. A command library has no ambient request scope or UI thread to take cancellation from; only the caller can decide when to stop waiting, and the decision reaches the I/O call only if every method on the way forwards the token. `IAmendmentGateway` stands in for the carrier API:
 
 ```csharp
 public interface IAmendmentGateway
@@ -436,10 +208,6 @@ public interface IAmendmentGateway
     Task RevertAsync(string bookingId, CancellationToken cancellationToken);
 }
 ```
-
-`ConfirmAmendmentCommand` is the one concrete `IAsyncBookingCommand` in the
-example, and it does nothing beyond forward each call to the gateway it
-was constructed with:
 
 ```csharp
 public sealed class ConfirmAmendmentCommand(IAmendmentGateway gateway, string bookingId) : IAsyncBookingCommand
@@ -452,25 +220,9 @@ public sealed class ConfirmAmendmentCommand(IAmendmentGateway gateway, string bo
 }
 ```
 
-`ConfigureAwait(false)` on both awaits tells the awaited `Task` not to
-resume its continuation on whatever synchronization context was captured
-when the `await` started. Microsoft's own guidance on
-`Task`-based asynchronous programming is explicit that library code, code
-with no UI thread and no HTTP request context of its own to return to,
-should use `ConfigureAwait(false)` on its awaits so the continuation can run
-on whatever thread pool thread happens to be free rather than queuing back
-onto a context that might not exist or might introduce unnecessary
-contention. `ConfirmAmendmentCommand` is exactly that kind of code, a
-reusable command with no caller-specific execution context of its own, so
-every await inside it carries `ConfigureAwait(false)`. The
-`cancellationToken` parameter on both methods is not swallowed or replaced
-with `CancellationToken.None` anywhere in the forwarding chain; it is
-threaded straight through to the matching gateway method, which means a
-caller's cancellation request reaches the actual network call, not just the
-command wrapper around it.
+`ConfigureAwait(false)` means the continuation doesn't resume on the captured synchronization context. The [`ConfigureAwait` FAQ](https://learn.microsoft.com/en-us/dotnet/standard/threading/configureawait-faq) advises it for library code with no UI thread or request context to return to, so the continuation runs on any free thread-pool thread. The token is never replaced with `CancellationToken.None`, so a caller's cancellation reaches the network call, not just the wrapper.
 
-`AsyncAmendmentQueue` mirrors `AmendmentQueue` one method at a time, with
-`Task` and `await` replacing the synchronous queue's direct calls:
+`AsyncAmendmentQueue` mirrors the synchronous queue with `await` in place of direct calls:
 
 ```csharp
 public sealed class AsyncAmendmentQueue
@@ -501,150 +253,56 @@ public sealed class AsyncAmendmentQueue
 }
 ```
 
-`RunAsync` drains `_pending` in the identical FIFO order `Run` uses, but
-awaits each command's `ExecuteAsync` before dequeuing the next one, so a
-second command never starts confirming against the gateway until the first
-one's confirmation has actually completed.
-`AsyncAmendmentQueueTests.RunAsync_awaits_each_command_through_the_gateway_in_fifo_order`
-enqueues two `ConfirmAmendmentCommand` instances against an
-NSubstitute-stubbed `IAmendmentGateway`, awaits `RunAsync`, and then uses
-NSubstitute's `Received.InOrder` to assert the gateway's `ConfirmAsync` was
-called for the first booking before the second, proving the ordering
-guarantee the same way the synchronous queue's FIFO test proves its own.
-`AsyncAmendmentQueueTests.UndoAsync_reverses_the_most_recently_executed_command`
-runs two confirmations and then calls `UndoAsync` once, asserting
-`RevertAsync` was received for the second booking and never received at
-all for the first, the same last-executed-first guarantee
-`AmendmentQueue.Undo` makes, proven here against a stubbed collaborator
-instead of a mutable field. `AsyncAmendmentQueueTests.Threads_the_callers_cancellation_token_through_confirm_and_revert`
-builds its own `CancellationTokenSource`, passes its token into both
-`RunAsync` and `UndoAsync`, and asserts the gateway's `ConfirmAsync` and
-`RevertAsync` were each received with that exact token value, not
-`Arg.Any<CancellationToken>()`, which is the test that would fail the
-moment any method in the forwarding chain replaced the caller's token with
-a different one instead of passing it straight through.
+`RunAsync` awaits each `ExecuteAsync` before dequeuing the next, so a second confirmation never starts before the first completes. With two confirmations, NSubstitute's `Received.InOrder` sees `ConfirmAsync` for the first booking before the second. One `UndoAsync` reverts the second booking and never the first. A caller's own token arrives unchanged at both `ConfirmAsync` and `RevertAsync`.
 
-One structural difference between the two queues is deliberate rather than
-an oversight: `AsyncAmendmentQueue` has no `Redo` and no second stack for
-undone commands. Redoing a confirmed-then-reverted amendment against a real
-carrier API means re-confirming it, a second network round trip against a
-system that may have already reallocated the capacity the first
-confirmation held, which is a meaningfully different operation from
-popping a value back out of an in-memory stack. This example scopes
-`AsyncAmendmentQueue` to run and single-step undo, the two operations its
-test suite actually proves, rather than extending the synchronous queue's
-full redo support to a gateway call where redo's correctness would depend
-on guarantees the stand-in `IAmendmentGateway` interface never makes.
+| | `AmendmentQueue` | `AsyncAmendmentQueue` |
+| --- | --- | --- |
+| Run order | FIFO | FIFO, each command awaited before the next |
+| Undo order | LIFO | LIFO |
+| Redo | Yes | No |
+| Cancellation | None | Caller's token forwarded to the gateway |
 
-Both queue classes carry a `[SuppressMessage]` attribute for CA1711, the
-Roslyn naming rule that flags an identifier ending in a suffix reserved for
-a specific contract, in this case `Queue`, when the type is not itself an
-implementation of that contract. `AmendmentQueue` and `AsyncAmendmentQueue`
-are not `Queue<T>` subtypes and do not implement `IEnumerable<T>` or any
-other collection interface; each one is a Command-pattern invoker that
-happens to use a `Queue<T>` internally as one of its backing fields. The
-suppression is scoped to that specific rule, on that specific type, with a
-written justification explaining the name describes the domain concept, an
-amendment queue a booking system's operators already call by that name, not
-a claim that the type satisfies the `Queue<T>` contract.
+The asynchronous queue has no `Redo` by design. Redoing a reverted amendment against a carrier means confirming again, a second round trip to a system that may have reallocated the capacity, which is a different operation from popping an in-memory stack. The stand-in gateway makes no guarantee that would make redo correct.
+
+Both queues suppress CA1711, which flags a name ending in a reserved suffix such as `Queue` on a type that doesn't implement that contract. Neither is a `Queue<T>` subtype or implements a collection interface; each is a Command invoker that uses a `Queue<T>` internally. The suppression is scoped to that rule on that type, with a justification: the name is the domain concept operators already use.
 
 {% include excalidraw.html name="14-async-command-undo" caption="Figure 14.2: The Task-returning command path awaits each command through a gateway in FIFO order, unwinds history one step at a time, and threads the caller's cancellation token through every call." %}
 
-## Build, run, observe
+## When not to use it
 
-The example lives in
-`examples/14-command-undo-and-task-returning-commands` and is
-standalone-testable from its own directory, with no container anywhere in
-the loop:
+Command pays for itself when something needs undo, queued or batched application, or a log that can be replayed. Without one of those:
+
+- **A direct call is cheaper.** `booking.ServiceLevel = "Express"` or `carrier.Confirm(bookingId)` is easier to write, read and debug. A settings toggle applied at once, with no undo and no batch, is one assignment.
+- **The machinery is overhead.** Each reversible command carries a snapshot field, a constructor taking receiver and value, and an `Undo` with its own guard. A queue whose commands are never undone or replayed is a `Queue<T>` and a `Stack<T>` doing what a `foreach` over a list of actions does.
+
+<blockquote class="ai-sidebar" markdown="1">
+**Specifying undo.** "Make these operations support undo" leaves open which operations need it and what each command captures. State both:
+
+> Add undo only for the service-level and weight changes, as `ChangeServiceLevelCommand` and `ChangeWeightCommand` implementing `IBookingCommand`. Each `Execute` copies the prior value into a private nullable field before overwriting it, and `Undo` throws `InvalidOperationException` if `Execute` never ran. Don't capture a reference to a mutable list or object as a snapshot; copy the value.
+
+Check each snapshot field: a value, an immutable type or a copy, never a live reference.
+</blockquote>
+
+## Build, run, observe
 
 ```sh
 cd examples/14-command-undo-and-task-returning-commands
 dotnet test
 ```
 
-It is also picked up, alongside every other example, by the repo-level
-`scripts/verify.sh`. The suite splits across four files: two
-`ChangeServiceLevelCommandTests` cases proving the execute-then-undo round
-trip and the before-execute guard; five `AmendmentQueueTests` cases
-covering FIFO execution, LIFO undo, the value-snapshot-under-later-mutation
-proof, the empty-history guard, and redo; one `DelegateCommandTests` case
-proving parity between the interface form and the closure form; and four
-`AsyncAmendmentQueueTests` cases covering FIFO execution through a stubbed
-gateway, last-executed-first undo, the empty-history guard on the async
-path, and cancellation-token threading through both confirm and revert.
-Observed locally on Fedora with the .NET 10 SDK:
-
-```
-Test run summary: Passed!
-  total: 12
-  failed: 0
-  succeeded: 12
-  skipped: 0
-  duration: 1s 564ms
-```
-
-## When not to use it
-
-Command pays for itself when at least one of three things is actually
-needed: undo, queued or batched application, or a log of what ran that
-something else can replay later. A direct method call,
-`booking.ServiceLevel = "Express"` or `carrier.Confirm(bookingId)`, is
-cheaper to write, cheaper to read, and cheaper to debug than wrapping that
-same call in a class with an `Execute` and an `Undo`, and it remains the
-right choice for any change nothing ever needs to take back, queue behind
-another change, or record for later replay. A settings screen that applies
-a single toggle immediately, with no undo button and no batch of other
-settings changes alongside it, does not need `IBookingCommand`; it needs
-the one-line assignment the pattern exists to avoid when that assignment is
-the whole story.
-
-The cost of reaching for Command when none of those three needs is present
-is concrete, not abstract. Every reversible command carries a private
-field for its snapshot, a constructor that takes the receiver and the new
-value, and an `Undo` method with its own guard clause against running
-before `Execute`, three things a direct assignment statement never pays
-for. A queue coordinating commands that nothing ever undoes or replays adds
-a `Queue<T>` and a `Stack<T>` doing no useful work beyond what a `foreach`
-loop over a plain list of actions would already do. The pattern's cost is
-proportional to how much of its own machinery, undo, FIFO-versus-LIFO
-ordering, replay, actually gets used; applied to a change with none of
-those requirements, the machinery is pure overhead with nothing on the
-other side of the ledger to offset it.
-
-<blockquote class="ai-sidebar" markdown="1">
-Asked to make a set of operations "support undo," a generated answer will
-sometimes wrap every setter on a domain object in its own command class,
-including ones nothing in the request ever asks to reverse, producing a
-`ChangeDestinationCommand`, a `ChangeCarrierCommand`, and a dozen siblings
-for a system that only ever needed undo on the one or two fields a user
-can actually edit after submission. The opposite failure shows up just as
-often in generated undo code: a command that captures its snapshot as a
-reference to the same mutable object the receiver already holds, for
-example storing a reference to a receiver's own list instead of a copy of
-the values in it at that moment, which compiles cleanly, passes a test
-that only ever runs one command in isolation, and then silently fails to
-restore anything once a second command mutates that same shared list
-before the first command's `Undo` runs, exactly the bug this chapter's
-value-versus-reference snapshot test is built to catch. Check a generated
-command against two questions before accepting it: does the operation it
-wraps actually need undo, queuing, or replay, or would a direct call do,
-and does its snapshot hold a value immune to being changed by something
-else before `Undo` runs, or a live reference to the same mutable state the
-rest of the system keeps modifying.
-</blockquote>
+All 12 tests pass, and `scripts/verify.sh` runs them with every other example. They cover the execute and undo round trip, FIFO execution, LIFO undo, the snapshot under later mutation, redo, the empty-history guards, delegate parity, and token threading through the asynchronous queue.
 
 ## For deeper coverage
 
 - Gamma, Helm, Johnson, and Vlissides, [*Design Patterns: Elements of
   Reusable Object-Oriented Software*](https://www.pearson.com/en-us/subject-catalog/p/design-patterns-elements-of-reusable-object-oriented-software/P200000009480)
   (Addison-Wesley, 1994): the original statement of the Command pattern,
-  including the receiver, invoker, and undo-stack vocabulary this chapter's
-  `AmendmentQueue` implements directly.
+  including the receiver, invoker, and undo-stack vocabulary `AmendmentQueue`
+  implements.
 - Microsoft Learn, [Task-based Asynchronous Pattern (TAP)](https://learn.microsoft.com/en-us/dotnet/standard/asynchronous-programming-patterns/task-based-asynchronous-pattern-tap):
-  the authority for the `Task`-returning method shape `IAsyncBookingCommand`
-  follows.
+  the `Task`-returning method shape `IAsyncBookingCommand` follows.
 - Microsoft Learn, [`ConfigureAwait` FAQ](https://learn.microsoft.com/en-us/dotnet/standard/threading/configureawait-faq):
-  the authority for using `ConfigureAwait(false)` in library code with no
-  captured context worth returning to, the guidance
-  `ConfirmAmendmentCommand` and `AsyncAmendmentQueue` follow on every await.
+  using `ConfigureAwait(false)` in library code with no captured context
+  worth returning to, the guidance `ConfirmAmendmentCommand` and
+  `AsyncAmendmentQueue` follow on every await.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).

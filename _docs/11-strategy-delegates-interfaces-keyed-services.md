@@ -13,83 +13,33 @@ description: "Three levels of the same pattern: pass a Func, define an interface
 
 By the end of this chapter you can:
 
-- Explain the GoF Strategy pattern in terms of what varies and what stays
-  fixed: the pricing algorithm behind a rate quote changes by service level,
-  while the shape of the call, a `RateRequest` in and a `RateQuote` out,
-  never does.
-- Build a `DelegateRateQuoter` that prices a request through a plain
-  `Func<RateRequest, Money>`, with no `IPricingStrategy` interface or
-  implementing class anywhere in the type.
-- Decide when a named `IPricingStrategy` interface is the better fit than a
-  bare delegate, and implement three strategies, `StandardTariff`,
-  `ExpressTariff`, and `EconomyTariff`, that a `StrategyRateQuoter` resolves
-  with no caller-side branching on which one it holds.
-- Register multiple implementations of the same interface under different
-  string keys with `AddKeyedSingleton`, and resolve one by a runtime key
-  with `GetRequiredKeyedService<T>(key)` or by a fixed key baked into a
-  constructor with `[FromKeyedServices("key")]`.
-- State the difference between `GetRequiredKeyedService`, which throws when
-  no service is registered under the requested key, and `GetKeyedService`,
-  which returns null, and explain why a non-keyed `GetService<T>()` call
-  returns null for a type that has only ever been registered with keys.
+- Say what varies and what stays fixed in Strategy: the pricing rule changes by service level, while a `RateRequest` in and a `RateQuote` out never does.
+- Price a request through a plain `Func<RateRequest, Money>` with no interface or implementing class.
+- Decide when a named `IPricingStrategy` beats a delegate, and resolve `StandardTariff`, `ExpressTariff` and `EconomyTariff` with no caller-side branching.
+- Register several implementations under string keys with `AddKeyedSingleton`, and resolve one by a runtime key with `GetRequiredKeyedService<T>(key)` or a fixed key with `[FromKeyedServices("key")]`.
+- Say how `GetRequiredKeyedService` and `GetKeyedService` treat an unknown key, and why `GetService<T>()` returns null for a type registered only with keys.
 
 ## Why this matters
 
-A rate quote for a shipment prices the same request three different ways
-depending on one string: the service level. A standard shipment, an
-express shipment, and an economy shipment moving the same weight to the
-same destination come back with three different prices, because the
-algorithm computing the price is different for each one, not because
-anything about the request itself changed. That is the exact shape the
-Gang of Four's Strategy pattern names: an algorithm that varies
-independently of the client asking for it, with the client's call left
-untouched no matter which algorithm answers it. What varies here is
-strictly the pricing rule; what stays fixed is a `RateRequest` arriving and
-a `RateQuote` coming back, and the caller that makes that call never needs
-to know which rule ran.
+A rate quote prices the same request three ways depending on one string, the service level. Standard, express and economy shipments of the same weight to the same destination get three prices because the pricing rule differs, not the request.
 
-The naive way to write this system reaches for one method that branches
-on the service level inline: an `if`/`else if`/`else` chain, or a `switch`
-expression, with the standard formula, the express formula, and the
-economy formula all written out in the same method body, keyed off a
-string comparison against `request.ServiceLevel`. That method works, and
-it keeps working right up until a fourth service level, a second markup
-schedule for a new region, or a sandbox environment that needs a flat test
-rate instead of a real one shows up. Each of those is a routine change,
-and each one means reopening a method that already prices three other
-service levels correctly, re-reading formulas that have nothing to do with
-the one being added, and re-running every test the method has rather than
-only the one that covers the new case. A unit test for the standard rate
-has no way to exist on its own either, because the method computing it
-can't be instantiated or called without also bringing along the express
-and economy branches sitting next to it in the same function body.
+The obvious version is one method with an `if`/`else` chain or a `switch` on `request.ServiceLevel`, holding all three formulas. It works until a fourth service level, a regional markup or a sandbox with a flat test rate arrives. Each change reopens a method that already prices three levels correctly, and the standard rate can't be tested without the express and economy branches beside it.
 
-This chapter works through three ways modern C# lets that pricing
-algorithm vary without any of that cost, in increasing order of ceremony.
-A plain `Func<RateRequest, Money>` delegate is a Strategy with nothing
-built on top of it: a lambda is the algorithm, and swapping it is passing
-a different one in. A named `IPricingStrategy` interface is the textbook
-GoF shape, justified once an algorithm needs a name, a home for its
-own tests, or a place in the domain vocabulary a team actually discusses.
-A keyed service registered in the built-in dependency injection container
-goes a step further still: the string that picks the algorithm is no
-longer something the caller's code even branches on, because the
-container resolves it from a runtime key the request already carries. All
-three answer the identical two questions, which algorithm runs and how a
-caller finds it, with less and less of that decision visible in the
-caller's own code as the ceremony goes up, and knowing when to stop at
-which level is as much the point of this chapter as any of the three
-mechanisms themselves.
+C# lets the rule vary at three levels of ceremony: a delegate, a named interface, and a keyed service in the built-in container. The skill is knowing where to stop.
 
 {% include excalidraw.html name="11-strategy-delegates-interfaces-keyed-services" caption="Figure 11.1: The same Strategy pattern supplied three ways, a bare delegate, a named interface with three implementations, and a keyed DI registration, with the caller's call shape unchanged at every level." %}
 
-## One Strategy, three levels of ceremony
+## Pattern: Strategy
 
-The example behind this chapter lives in
-`examples/11-strategy-delegates-interfaces-keyed-services`. Every tier
-prices the same two types. A `RateRequest` carries a destination, a
-weight, and a service level that doubles as a lookup key at the
-keyed-service tier:
+### The problem
+
+A quoting service must price a request by the rule its service level names, add rules without reopening the ones that work, and test each rule on its own. The caller that asks for a quote shouldn't know which rule ran.
+
+### The solution
+
+A **Strategy** encapsulates each algorithm in a family behind one signature, so a client can swap the algorithm without its own code changing.
+
+Every level prices the same two types:
 
 ```csharp
 public sealed record RateRequest(string Destination, decimal WeightKilograms, string ServiceLevel);
@@ -97,34 +47,27 @@ public sealed record RateRequest(string Destination, decimal WeightKilograms, st
 public sealed record RateQuote(string Destination, Money Price, string ServiceLevel);
 ```
 
-`Money` is a validating value type, a `readonly record struct` whose
-primary constructor rejects a negative amount or a malformed currency code
-on every construction path, with `Money.Of(amount)` as the call-site sugar
-every tariff in this example uses, defaulting to US dollars. Pricing a
-100-kilogram shipment comes back at three different totals depending on
-which tariff answers the request: 400.00 USD for `StandardTariff`'s flat
-4.00-per-kilogram rate, 650.00 USD for `ExpressTariff`'s 2.50-per-kilogram
-surcharge on top of that, and 300.00 USD for `EconomyTariff`'s 1.00-per-
-kilogram discount under it. Three quoter types, `DelegateRateQuoter`,
-`StrategyRateQuoter`, and `KeyedTariffQuoter`, each expose the identical
-`Quote(RateRequest) : RateQuote` call shape, and each gets that 400.00,
-650.00, or 300.00 answer from a different mechanism entirely. None of the
-three quoters ever branches on the service level string itself; each one
-hands the question of which algorithm runs to something else, a supplied
-delegate, a constructor-injected interface, or a keyed container
-resolution, and that handoff is the whole chapter.
+`Money` is a validating `readonly record struct`; `Money.Of(amount)` defaults to US dollars. For 100 kilograms:
 
-## Level 1: Strategy dissolved to a delegate
+| Tariff | Rule | Quote |
+| --- | --- | --- |
+| `StandardTariff` | 4.00 per kg | 400.00 USD |
+| `ExpressTariff` | 2.50 per kg surcharge on standard | 650.00 USD |
+| `EconomyTariff` | 1.00 per kg discount under standard | 300.00 USD |
 
-The GoF catalogue's own description of Strategy is a family of algorithms,
-each one encapsulated, made interchangeable behind a common signature. A
-`Func<RateRequest, Money>` already is exactly that: a value of a delegate
-type, interchangeable with any other value of the same type, invoked
-through one signature regardless of which concrete lambda or method group
-it was assigned from. `DelegateRateQuoter` takes one of these in its
-constructor and calls it, with no `IPricingStrategy` interface, no
-`StandardTariff` class, and no implementing type of any kind in the
-picture:
+### How C# models it
+
+Three quoters, `DelegateRateQuoter`, `StrategyRateQuoter` and `KeyedTariffQuoter`, expose the same `Quote(RateRequest) : RateQuote` call. None branches on the service level. Each hands the choice to something else: a supplied delegate, a constructor-injected interface or a keyed container lookup.
+
+| Level | Strategy is | Chosen by |
+| --- | --- | --- |
+| Delegate | A `Func<RateRequest, Money>` | Whoever constructs the quoter |
+| Interface | A named `IPricingStrategy` | Whoever constructs the quoter |
+| Keyed service | A keyed `IPricingStrategy` registration | A key read from the request, or fixed at construction |
+
+### Level 1: Strategy dissolved to a delegate
+
+A family of interchangeable algorithms behind one signature is what a delegate type already is:
 
 ```csharp
 public sealed class DelegateRateQuoter(Func<RateRequest, Money> priceStrategy)
@@ -137,46 +80,13 @@ public sealed class DelegateRateQuoter(Func<RateRequest, Money> priceStrategy)
 }
 ```
 
-`priceStrategy` is the entire strategy. `DelegateRateQuoterTests.Prices_a_request_through_the_supplied_delegate`
-constructs a `DelegateRateQuoter` with a lambda computing
-`4.00m * request.WeightKilograms` and asserts a 400.00 USD quote for a
-100-kilogram request to Rotterdam, the same number `StandardTariff` would
-produce, reached with no class implementing anything. The next two tests
-make the actual point of this tier: `A_different_delegate_changes_the_quote_from_the_same_quoter_type`
-builds a second `DelegateRateQuoter`, same type, against a lambda that
-adds a 0.50-per-kilogram surcharge captured in a local `const`, and gets
-450.00 USD back from a 100-kilogram request; `A_discount_closure_also_changes_the_quote_without_a_new_type`
-builds a third one against a lambda capturing a 1.00-per-kilogram discount
-and gets 300.00 USD. Three different prices, three different closures,
-one unchanged `DelegateRateQuoter` type across all three. Swapping the
-pricing algorithm at this tier is passing a different lambda expression to
-a constructor; it is not writing a new class, implementing an interface,
-or touching anything that already compiles.
+`priceStrategy` is the whole strategy. A lambda computing `4.00m * request.WeightKilograms` quotes 400.00 USD for 100 kilograms to Rotterdam. A second lambda that captures a 0.50-per-kilogram surcharge in a local `const` quotes 450.00 USD, and a third with a 1.00 discount quotes 300.00 USD, all through the same `DelegateRateQuoter` type. Swapping the rule is passing a different lambda, not writing a class.
 
-This is what "dissolving" Strategy into a delegate means concretely: the
-GoF pattern's intent, an algorithm a client can swap without the client's
-own code changing, is fully satisfied by a `Func<RateRequest, Money>`
-value on its own. Nothing about the pattern's purpose requires a named
-type, a `Price` method, or an interface declaration; those are the
-mechanism a language without first-class functions needs to reach the same
-place. A C# closure captures whatever state a particular pricing rule
-needs, a surcharge rate, a discount rate, a flat test value for a sandbox
-run, directly in its enclosing scope, and that capture is the entire
-configuration surface the algorithm has. There is nothing to construct
-beyond the lambda itself, and nothing to look up by name, which is exactly
-right for a pricing rule that exists for one call site, one test, or one
-short-lived experiment and has no other reason to be a citizen of the
-domain model.
+The pattern's intent needs no named type, `Price` method or interface; those are what a language without first-class functions uses to get there. A closure captures the state a rule needs, a surcharge, a discount, a flat sandbox value, and that capture is its whole configuration. That fits a rule that exists for one call site, one test or one experiment.
 
-## Level 2: when to define an interface
+### Level 2: when to define an interface
 
-A delegate stops being the right answer the moment a pricing rule needs to
-be more than a lambda somebody wrote inline: a named thing a team discusses
-in a planning meeting, a type with its own file and its own focused test
-class, something a sandbox environment or a second consumer can reference
-by name without recreating the formula. `StandardTariff`, `ExpressTariff`,
-and `EconomyTariff` are exactly that. Each implements the one-method
-`IPricingStrategy` interface:
+A delegate stops fitting when the rule needs to be a named thing: discussed by the team, in its own file with its own tests, referenced by a second consumer without copying the formula.
 
 ```csharp
 public interface IPricingStrategy
@@ -193,9 +103,7 @@ public sealed class ExpressTariff : IPricingStrategy
 }
 ```
 
-`StrategyRateQuoter` is the textbook GoF consumer, a constructor-injected
-`IPricingStrategy` it calls through, never a concrete tariff type it
-constructs itself:
+`StrategyRateQuoter` is the GoF consumer. It calls through an injected `IPricingStrategy` and never constructs a tariff:
 
 ```csharp
 public sealed class StrategyRateQuoter(IPricingStrategy strategy)
@@ -208,75 +116,13 @@ public sealed class StrategyRateQuoter(IPricingStrategy strategy)
 }
 ```
 
-Set the delegate form and the interface form side by side and the
-difference is almost entirely in where the algorithm's identity lives.
-`DelegateRateQuoter` takes an anonymous value, a `Func<>`, that is the
-algorithm; `StrategyRateQuoter` takes a named value, an `IPricingStrategy`,
-that implements the algorithm, and that name is what a reviewer reads in a
-stack trace, a test name, or a dependency injection registration instead
-of an opaque lambda.
+The same 100-kilogram request to Singapore quotes 400.00 USD through `StandardTariff`, 650.00 through `ExpressTariff` and 300.00 through `EconomyTariff`, with `StrategyRateQuoter` unchanged. The difference from the delegate is where the algorithm's identity lives. A tariff has a name a reviewer sees in a stack trace or a registration, its own `BaseRatePerKilogram`, `SurchargePerKilogram` or `DiscountPerKilogram` constant, its own tests, and a type a container can register. A lambda has nowhere to attach any of these.
 
-{% include codetabs.html langs="Delegate|Interface" %}
-```csharp
-public sealed class DelegateRateQuoter(Func<RateRequest, Money> priceStrategy)
-{
-    public RateQuote Quote(RateRequest request)
-    {
-        var price = priceStrategy(request);
-        return new RateQuote(request.Destination, price, request.ServiceLevel);
-    }
-}
-```
-```csharp
-public sealed class StrategyRateQuoter(IPricingStrategy strategy)
-{
-    public RateQuote Quote(RateRequest request)
-    {
-        var price = strategy.Price(request);
-        return new RateQuote(request.Destination, price, request.ServiceLevel);
-    }
-}
-```
+### Level 3: keyed services pick the strategy by a runtime key
 
-`StrategyRateQuoterTests.Standard_and_express_strategies_yield_different_quotes_from_the_unchanged_caller`
-builds one `StrategyRateQuoter` against `new StandardTariff()` and a second
-against `new ExpressTariff()`, quotes the same 100-kilogram request to
-Singapore through each, and asserts 400.00 USD from the first and 650.00
-USD from the second, with `Assert.NotEqual` confirming the two prices
-differ by design. `Economy_strategy_prices_under_standard_from_the_same_caller_type`
-does the same against `EconomyTariff` and gets 300.00 USD. In every case
-`StrategyRateQuoter` itself is the identical type, unmodified, across all
-three strategies; only the constructor argument changes. That is what the
-interface buys over the delegate: `StandardTariff`, `ExpressTariff`, and
-`EconomyTariff` are now things a reader can look up by name, document with
-their own `BaseRatePerKilogram`, `SurchargePerKilogram`, and
-`DiscountPerKilogram` constants, test in isolation with no `RateRequest`
-routing logic anywhere nearby, and eventually register in a dependency
-injection container the way the next tier does. None of that is available
-to a bare `Func<>` value, because a lambda has no identity beyond the code
-inside it and nowhere to attach a name, a constant, or a registration.
+An interface hides the concrete type, but somebody still picks it, and so far that was a `new` expression: `new StrategyRateQuoter(new ExpressTariff())`. A quoting service gets the service level as data on the request. Picking the tariff by that string without an `if ("standard" == request.ServiceLevel)` chain is what keyed services do. The [dependency injection documentation](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection/overview) puts it this way: "you can register services and perform lookups based on a key. In other words, it's possible to register multiple services with different keys and use this key for the lookup."
 
-## Level 3: keyed services pick the strategy by a runtime key
-
-An interface answers "how does a consumer call an algorithm without
-knowing its concrete type," but it still leaves open who decides which
-concrete type a particular `StrategyRateQuoter` gets constructed with.
-Everything so far has answered that at the call site, in test code,
-directly: `new StrategyRateQuoter(new ExpressTariff())`. A real rate
-quoting service does not get to do that, because the service level
-determining which tariff should run arrives as data, a string on the
-incoming request, not as a compile-time choice a developer bakes into a
-`new` expression. Picking the right tariff by that string, without the
-caller writing its own `if ("standard" == request.ServiceLevel)` chain,
-is the problem the built-in DI container's keyed services answer.
-
-The [dependency injection documentation](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection/overview)
-describes keyed services directly: "you can register services and perform
-lookups based on a key. In other words, it's possible to register
-multiple services with different keys and use this key for the lookup."
-`ServiceCollectionExtensions.AddRateQuoting` is the one composition root
-that registers all three tariffs behind the same `IPricingStrategy`
-interface, each under its own string key:
+One composition root registers all three tariffs behind `IPricingStrategy`:
 
 ```csharp
 public static class ServiceCollectionExtensions
@@ -295,14 +141,7 @@ public static class ServiceCollectionExtensions
 }
 ```
 
-`AddKeyedSingleton` is one of three keyed lifetime overloads the container
-ships; `AddKeyedScoped` and `AddKeyedTransient` read identically, just
-with a different lifetime applied to each key. The three tariffs in this
-example hold no per-call state, so a shared singleton per key costs
-nothing to reuse and avoids reconstructing a stateless object on every
-request. `KeyedTariffQuoter` resolves the tariff matching a request's
-service level directly from an injected `IServiceProvider`, using the
-request itself as the source of the key:
+`AddKeyedScoped` and `AddKeyedTransient` read the same with a different lifetime. The tariffs hold no per-call state, so one singleton per key is safe to share. `KeyedTariffQuoter` takes the key from the request:
 
 ```csharp
 public sealed class KeyedTariffQuoter(IServiceProvider serviceProvider)
@@ -316,28 +155,9 @@ public sealed class KeyedTariffQuoter(IServiceProvider serviceProvider)
 }
 ```
 
-`KeyedTariffQuoterTests.Resolves_the_express_strategy_by_key_and_prices_accordingly`
-resolves `GetRequiredKeyedService<IPricingStrategy>("express")` straight
-from a built provider, asserts the resolved instance is an `ExpressTariff`
-with `Assert.IsType`, and confirms it prices a 100-kilogram request at
-650.00 USD. `Dispatches_to_the_standard_tariff_by_service_level`,
-`Dispatches_to_the_express_tariff_by_service_level`, and
-`Dispatches_to_the_economy_tariff_by_service_level` each build a
-`KeyedTariffQuoter` through `GetRequiredService` and quote the same
-Rotterdam request with a different `ServiceLevel` string, landing at
-400.00, 650.00, and 300.00 USD respectively, with no edit to
-`KeyedTariffQuoter` between any of the three. `Swapping_the_requested_key_changes_the_quote_without_editing_the_caller`
-makes that explicit: the same `KeyedTariffQuoter` instance quotes a
-standard request and then an economy request, and the two prices differ
-because the key on the request changed, not because anything about the
-quoter did. Adding a fourth service level later is one more
-`AddKeyedSingleton` line in `AddRateQuoting` and one new tariff class;
-`KeyedTariffQuoter` itself never changes, because it was never the thing
-that knew the list of valid keys in the first place.
+A provider resolves `"express"` to an `ExpressTariff`. The same `KeyedTariffQuoter` quotes a Rotterdam request at 400.00, 650.00 or 300.00 USD as the `ServiceLevel` changes, with no edit between them. A fourth service level is one more `AddKeyedSingleton` line and one tariff class; the quoter never knew the list of keys.
 
-`ExpressLaneQuoter` shows the other shape keyed resolution takes, a fixed
-key chosen once at construction rather than a variable one read off each
-request:
+`ExpressLaneQuoter` binds a fixed key at construction instead:
 
 ```csharp
 public sealed class ExpressLaneQuoter([FromKeyedServices("express")] IPricingStrategy expressStrategy)
@@ -350,155 +170,54 @@ public sealed class ExpressLaneQuoter([FromKeyedServices("express")] IPricingStr
 }
 ```
 
-The [`FromKeyedServicesAttribute`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.fromkeyedservicesattribute)
-on the constructor parameter tells the container which keyed registration
-to bind, at the moment `ExpressLaneQuoter` itself is constructed, rather
-than asking `KeyedTariffQuoter`'s question, "which key does this
-particular call want," at all. `KeyedTariffQuoterTests.FromKeyedServices_consumer_resolves_the_fixed_express_key`
-resolves an `ExpressLaneQuoter` and quotes a request whose `ServiceLevel`
-is `"standard"`, and still gets 650.00 USD back with the resulting
-`RateQuote.ServiceLevel` set to `"express"`, because `ExpressLaneQuoter`
-was wired to the express tariff permanently at construction and never
-reads the request's own service level to decide which strategy to call.
-That is the right tool when a consumer's identity, not the request it is
-handling, determines which registration applies, an express-only
-processing lane being the clearest case: every request that reaches it
-gets the express tariff, regardless of what string it happens to carry.
+[`FromKeyedServicesAttribute`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.fromkeyedservicesattribute) tells the container which registration to inject when `ExpressLaneQuoter` is built. A request marked `"standard"` still quotes 650.00 USD with `ServiceLevel` `"express"`, because the quoter never reads the request's level. Use it when the consumer's identity, an express-only lane, decides the registration rather than the request.
 
-Two correctness traps around keyed services matter before
-reaching for them, and both are proven directly by this example's tests
-rather than left as unverified claims. First, `GetRequiredKeyedService`
-and `GetKeyedService` disagree about what to do with an unregistered key:
-the [`GetRequiredKeyedService` API reference](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.serviceproviderkeyedserviceextensions.getrequiredkeyedservice)
-documents an `InvalidOperationException` when "there is no service of type
-`T`" for the given key, while `GetKeyedService` is the non-throwing
-counterpart. `An_unknown_key_throws_from_GetRequiredKeyedService_but_GetKeyedService_returns_null`
-asks the same built provider for `"overnight"`, a key `AddRateQuoting`
-never registers, through both methods: `GetRequiredKeyedService` throws
-`InvalidOperationException`, and `GetKeyedService` returns null. Second,
-and easier to miss, keyed and non-keyed registrations for the same service
-type do not share a lookup: `A_non_keyed_resolution_returns_null_because_keyed_and_non_keyed_are_separate_graphs`
-calls the ordinary, keyless `provider.GetService<IPricingStrategy>()`
-against a provider built entirely from `AddRateQuoting`'s three keyed
-registrations, and gets null back, even though three tariffs implementing
-`IPricingStrategy` are very much registered, just never under the empty,
-keyless lookup that plain `GetService` performs. A team that registers
-every tariff with `AddKeyedSingleton` and then reaches for a plain
-constructor-injected `IPricingStrategy` somewhere else in the same
-container, expecting the container to pick one of the keyed registrations
-by default, gets a runtime failure at resolution time instead, because no
-default exists; a type is either resolvable without a key or resolvable
-with one, for each distinct key, and registering it one way buys nothing
-for the other.
+### Two keyed-service traps
+
+| Lookup | Unregistered key or keyless lookup |
+| --- | --- |
+| `GetRequiredKeyedService<IPricingStrategy>("overnight")` | Throws `InvalidOperationException` |
+| `GetKeyedService<IPricingStrategy>("overnight")` | Returns null |
+| `GetService<IPricingStrategy>()` with only keyed registrations | Returns null |
+
+The [`GetRequiredKeyedService` reference](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.serviceproviderkeyedserviceextensions.getrequiredkeyedservice) documents the exception when "there is no service of type `T`" for the key.
+
+The keyless case is easier to miss. Three tariffs implement `IPricingStrategy`, but none is registered under the keyless lookup, so a plain constructor-injected `IPricingStrategy` elsewhere in the same container fails at resolution. The container doesn't pick a keyed registration as a default; keyless and each key are separate lookups.
 
 {% include excalidraw.html name="11-keyed-service-resolution" caption="Figure 11.2: A composition root registers three strategy implementations under separate keys; an unrecognized key throws from one resolution method but returns null from another, and a plain lookup finds neither." %}
 
-## Build, run, observe
+## When not to use it
 
-Every command below runs with the local .NET 10 SDK; nothing in this loop
-needs a container. The example is standalone-testable from its own
-directory:
+- **An interface for a one-off rule.** A rule with one call site, no second consumer, no tests of its own and no name the team uses is a delegate. Promoting it adds a file, an interface with a single implementer and a constructor parameter that exists because the pattern says so. Default to dissolving interface to delegate; reach for `IPricingStrategy` once a second implementation exists, a consumer needs a substitute in tests, or the rule goes into a container.
+- **Keyed services without runtime selection.** Keys earn their place when the selecting value is data the caller doesn't control at compile time: a string on a request, a database row, a message header. Two call sites that always want `StandardTariff` and `ExpressTariff` get nothing from `AddKeyedSingleton` that a plain injected `IPricingStrategy` doesn't give, and they gain a string lookup table, a registration per key and a throw-on-miss failure mode.
+
+<blockquote class="ai-sidebar" markdown="1">
+**Specifying a strategy.** "Make pricing configurable by service level" leaves open whether the level arrives as runtime data, how many implementations exist, and whether a hand-built `Dictionary<string, IPricingStrategy>` or the container does the lookup. State it:
+
+> Register `StandardTariff`, `ExpressTariff` and `EconomyTariff` as `IPricingStrategy` with `AddKeyedSingleton` under `"standard"`, `"express"` and `"economy"` in one `AddRateQuoting` extension. Have `KeyedTariffQuoter` resolve `GetRequiredKeyedService<IPricingStrategy>(request.ServiceLevel)`. Don't build a dictionary of strategies by hand, and don't add an interface for a rule with one implementation; pass a `Func<RateRequest, Money>` there.
+
+Ask which value selects the strategy at runtime; if none does, the keys go.
+</blockquote>
+
+## Build, run, observe
 
 ```sh
 cd examples/11-strategy-delegates-interfaces-keyed-services
 dotnet test
 ```
 
-It is also picked up, alongside every other example, by the repo-level
-`scripts/verify.sh`. The suite splits across three files by exactly the
-three tiers this chapter covers: three `DelegateRateQuoterTests` cases
-proving a quoter prices through whatever delegate it is given and that a
-different closure changes the quote without a new type; two
-`StrategyRateQuoterTests` cases proving `StandardTariff`, `ExpressTariff`,
-and `EconomyTariff` yield different prices from an unchanged
-`StrategyRateQuoter`; and eight `KeyedTariffQuoterTests` cases covering
-keyed resolution by key, dispatch across all three registered service
-levels, the fixed-key `FromKeyedServices` consumer, the
-throws-versus-null distinction between `GetRequiredKeyedService` and
-`GetKeyedService`, the separate-graphs trap between keyed and non-keyed
-resolution, and swapping the requested key with no edit to the caller.
-Observed locally on Fedora with the .NET 10 SDK:
-
-```
-Test run summary: Passed!
-  total: 13
-  failed: 0
-  succeeded: 13
-  skipped: 0
-  duration: 969ms
-```
-
-## When not to use it
-
-Each tier in this chapter costs more ceremony than the one before it, and
-that cost only pays for itself when the thing it buys is actually needed.
-A delegate is enough, and an interface is over-abstraction, when a pricing
-rule has exactly one call site, no second consumer, no independent test
-suite of its own, and nothing about it that a team would ever discuss by
-name in a planning conversation. Promoting a one-off lambda to a named
-`IPricingStrategy` implementation adds a file, an interface a reviewer has
-to trace back to its single implementer, and a constructor parameter that
-exists only because the pattern says it should, not because a second
-tariff is coming or a test needs to substitute one. The direction worth
-defaulting toward is the dissolve this chapter demonstrates, interface
-down to delegate, not the reverse; reach for `IPricingStrategy` only once
-a second named implementation exists, a consumer needs to be
-tested against a substitute, or the algorithm is about to be registered in
-a container the way this chapter's third tier does.
-
-Keyed services are the wrong reach even more often than a standalone
-interface is. The entire value of a keyed registration is that the
-selecting value is data the caller does not control at compile time, a
-string arriving on a request, a row from a database, a header on an
-incoming message. A fixed, small set of named strategies with nothing
-picking among them at runtime, two call sites that will only ever want
-`StandardTariff` and `ExpressTariff` respectively and never ask for either
-by a string key, gets nothing from `AddKeyedSingleton` that a plain
-constructor-injected `IPricingStrategy`, registered once per consumer,
-does not already provide, and it adds a string-keyed lookup table, a
-composition root entry per key, and the throw-on-miss behavior this
-chapter just walked through as a new failure mode with nothing on the
-other side to justify it. Keyed services earn their place exactly where
-`KeyedTariffQuoter` uses them: a key that already exists as part of the
-request, with no code anywhere that would otherwise have to branch on it.
-
-<blockquote class="ai-sidebar" markdown="1">
-Asked to make a pricing choice "configurable by service level," a common
-result is a hand-rolled `Dictionary<string, IPricingStrategy>` built and
-populated by hand inside a factory class, wired up with a static
-initializer or a module constructor, reinventing exactly what
-`AddKeyedSingleton` and `GetRequiredKeyedService` already do, out of habit
-from material written before keyed services existed in the base class
-library. The same prompt sometimes produces the opposite mistake: an
-`IPricingStrategy` interface and a DI registration wrapped around a single
-tariff that will never have a second implementation, because "add an
-abstraction" is the reflexive answer to "make this swappable" regardless
-of whether a swap is actually planned. Check a generated answer against
-the two questions this chapter asks directly: does the selecting value
-arrive as runtime data the code does not control, which is what a keyed
-registration is for, and does a second implementation of the interface
-actually exist or is clearly coming, which is what the interface itself is
-for. A dictionary a developer populates by hand with every valid key
-already known at compile time is not configurability; it is the
-container's own job, done worse and left untested by the suite the
-container's own keyed-service tests already provide without extra code.
-</blockquote>
+All 13 tests pass, and `scripts/verify.sh` runs them with every other example. They cover each level: three for delegates, two for the interface and eight for keyed resolution, including the fixed-key consumer and both traps.
 
 ## For deeper coverage
 
-- The official Microsoft Learn documentation cited throughout this
-  chapter: [Dependency injection in .NET](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection/overview),
-  including its keyed services section, the primary source for every claim
-  this chapter makes about `AddKeyedSingleton` and resolving a service by a
-  runtime key.
+- The official Microsoft Learn documentation: [Dependency injection in .NET](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection/overview),
+  including its keyed services section.
 - [`ServiceProviderKeyedServiceExtensions.GetRequiredKeyedService`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.serviceproviderkeyedserviceextensions.getrequiredkeyedservice)
   and [`FromKeyedServicesAttribute`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.fromkeyedservicesattribute)
   in the API reference: the throw-on-miss behavior `KeyedTariffQuoter`
   relies on and the fixed-key constructor binding `ExpressLaneQuoter`
-  relies on, respectively. Both claims are also backed directly by
-  `KeyedTariffQuoterTests` in the runnable example.
+  relies on.
 - Gamma, Helm, Johnson, and Vlissides, *Design Patterns: Elements of
   Reusable Object-Oriented Software* (Addison-Wesley, 1994), is the source
-  for the Strategy pattern this chapter dissolves across three levels of
-  ceremony.
+  for the Strategy pattern.
 - The full reading list lives on the [bibliography page]({{ '/bibliography/' | relative_url }}).
